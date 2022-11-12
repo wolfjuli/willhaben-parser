@@ -1,7 +1,7 @@
 import os.path
 
-base_path = os.path.join(os.path.expanduser("~"), ".willhaben")
-configuration_file = os.path.join(base_path, "base.conf")
+base_path = os.path.expanduser("~/.willhaben")
+configuration_file = os.path.join(base_path, "application.conf")
 database_file = os.path.join(base_path, "data.pkl")
 
 area_ids = {
