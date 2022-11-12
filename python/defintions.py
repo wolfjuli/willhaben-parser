@@ -29,3 +29,4 @@ headers = {'authority': 'www.willhaben.at',
            'x-bbx-csrf-token': 'd972c2aa-5e9d-4c42-b604-f6c25e21e325',
            'x-wh-client': 'api@willhaben.at;responsive_web;server;1.0.0;desktop'
            }
+

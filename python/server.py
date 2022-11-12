@@ -9,15 +9,24 @@ from python.database import db
 config = build_configuration()
 db = db(config)
 
-routes = {
-    '/listings': lambda: [a.__dict__ for a in db.listings.values()]
-}
+last_refresh = time.time()
 
+routes = {
+    '/listings': lambda: [a.__dict__ for a in db.listings.values()],
+    '/attributes': lambda: [a.__dict__ for a in db.attributes.values()]
+}
+frontend_path = "frontend/public"
 
 class Server(BaseHTTPRequestHandler):
-    def _set_headers(self):
+    def _set_json_headers(self):
         self.send_response(200)
         self.send_header('Content-type', 'application/json')
+        self.end_headers()
+
+    def _set_html_headers(self):
+        self.send_response(200)
+        self.send_header('Content-type', 'text/html')
+        self.send_header('encoding', 'utf-8')
         self.end_headers()
 
     def _set_fail_headers(self):
@@ -26,16 +35,35 @@ class Server(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_HEAD(self):
-        self._set_headers()
+        self._set_json_headers()
+
+    def __refresh_db(self):
+        global last_refresh
+
+        now = time.time()
+        if last_refresh - now > 5:
+            db.reload()
+            last_refresh = now
 
     # GET sends back a Hello world message
     def do_GET(self):
-        self._set_headers()
-
-        if self.path not in routes:
-            self.wfile.write(bytes(json.dumps({'error': f'Unknown Path: {self.path}'}), encoding="utf-8"))
+        self.__refresh_db()
+        if self.path.startswith("/api"):
+            path = self.path[4:]
+            self._set_json_headers()
+            if path not in routes:
+                self.wfile.write(bytes(json.dumps({'error': f'Unknown Path: {path}'}), encoding="utf-8"))
+            else:
+                self.wfile.write(bytes(json.dumps({'data': routes[path]()}), encoding="utf-8"))
         else:
-            self.wfile.write(bytes(json.dumps({'data': routes[self.path]()}), encoding="utf-8"))
+            self._set_html_headers()
+            if self.path == "/":
+                path = "/index.html"
+            else:
+                path = self.path
+
+            with open(frontend_path + path, 'rb') as f:
+                self.wfile.write(f.read())
 
     # POST echoes the message adding a JSON field
     def do_POST(self):
@@ -55,7 +83,7 @@ class Server(BaseHTTPRequestHandler):
         message['received'] = 'ok'
 
         # send the message back
-        self._set_headers()
+        self._set_json_headers()
         self.wfile.write(json.dumps(message))
 
 

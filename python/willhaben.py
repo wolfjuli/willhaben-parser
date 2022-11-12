@@ -11,16 +11,6 @@ session = requests.Session()
 session.headers.update(headers)
 
 
-def __as_listing(result):
-    links = result["contextLinkList"]['contextLink']
-    main_link = next(filter(lambda l: l["id"] == "iadShareLink", links))["uri"]
-
-    return {
-        "id": result['id'],
-        "link": main_link
-    }
-
-
 def __fetch_next_data(url):
     res = session.get(url)
     # session.get("https://www.willhaben.at/webapi/iad/vertical")
@@ -39,32 +29,46 @@ def __listing_url(area_ids, page=1):
     return f"https://www.willhaben.at/iad/immobilien/haus-kaufen/haus-angebote?sfId=528fed80-90c1-4432-92bb-1f14fd8019d3&isNavigation=true&rows=90&{area_id_params}&page={page}"
 
 
+ids = set()
+
 def get_ids(config: Configuration):
-    js = __fetch_next_data(__listing_url(list(config.areas)))
+    global ids
+    if len(ids) == 0:
+        js = __fetch_next_data(__listing_url(list(config.areas)))
 
-    rows_found = js["props"]["pageProps"]["searchResult"]['rowsFound']
-    rows_returned = js["props"]["pageProps"]["searchResult"]['rowsReturned']
-
-    print(rows_found)
-
-    ret = []
-    for page in range(2, math.ceil(rows_found / rows_returned) + 2):
         rows_found = js["props"]["pageProps"]["searchResult"]['rowsFound']
         rows_returned = js["props"]["pageProps"]["searchResult"]['rowsReturned']
 
-        print(f"{rows_returned}/{rows_found}")
+        print(rows_found)
 
-        results = js["props"]["pageProps"]["searchResult"]['advertSummaryList']['advertSummary']
-        ret += [r['id'] for r in results]
-        js = __fetch_next_data(__listing_url(list(config.areas), page))
+        ret = []
+        for page in range(2, math.ceil(rows_found / rows_returned) + 2):
+            rows_found = js["props"]["pageProps"]["searchResult"]['rowsFound']
+            rows_returned = js["props"]["pageProps"]["searchResult"]['rowsReturned']
 
-    return set(ret)
+            print(f"{rows_returned}/{rows_found}")
+
+            results = js["props"]["pageProps"]["searchResult"]['advertSummaryList']['advertSummary']
+            ret += [r['id'] for r in results]
+            js = __fetch_next_data(__listing_url(list(config.areas), page))
+
+        ids = set(ret)
+    return ids
+
+
+raw_listings = {}
+def fetch_raw_listing(id):
+    global raw_listings
+
+    if id not in raw_listings:
+        url = f'https://www.willhaben.at/webapi/iad/atverz/{id}?formatEnableHtmlTags=true'
+        raw_listings[id] = json.loads(session.get(url).text)
+
+    return raw_listings[id]
 
 
 def fetch_details(id):
-    url = f'https://www.willhaben.at/webapi/iad/atverz/{id}?formatEnableHtmlTags=true'
-    raw_result = session.get(url)
-    data = json.loads(session.get(url).text)
+    data = fetch_raw_listing(id)
     attr_list = data['attributes']['attribute']
     ret = {}
 
@@ -74,4 +78,14 @@ def fetch_details(id):
 
         ret[d['name']] += d['values']
 
+    ret['raw'] = data
+
     return ret
+
+
+def fetch_attributes(id):
+    data = fetch_raw_listing(id)
+    attrs = data['attributeInformation']
+
+    return dict([(a['treeAttributeElement']['code'], a['treeAttributeElement']['label']) for a in attrs])
+

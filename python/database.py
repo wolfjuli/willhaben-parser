@@ -2,13 +2,14 @@ import os.path
 import pickle
 
 from configuration import Configuration
-from data.structs import Listing
+from python.data.structs import Listing, AttributeDef
 
 
 class Database:
     def __init__(self, db_path):
         self.listings = {}
         self.ratings = {}
+        self.attributes = {}
 
         self.__dirty_counter = 0
         self.db_path = db_path
@@ -23,12 +24,30 @@ class Database:
 
         return self.listings[_id]
 
-    def update_listing_attributes(self, _id, attributes={}):
+    def update_listing(self, _id, attributes=None):
         listing = self.create_listing(_id)
-        listing.attributes = attributes
+        listing.attributes = attributes if attributes else listing.attributes
 
         self.__dirty()
         return listing
+
+    def update_attribute(self, _id, name, force=False):
+        if _id in self.attributes:
+            attr = self.attributes[_id]
+
+            if not force:
+                return attr
+
+            if attr.name != name:
+                print(f"Attribute {_id}: changing value from '{attr.name}' to '{name}'")
+        else:
+            attr = AttributeDef(_id, name)
+
+        attr.name = name
+        self.attributes[_id] = attr
+        self.__dirty()
+
+        return attr
 
     def __dirty(self):
         self.__dirty_counter += 1
@@ -45,6 +64,15 @@ class Database:
             pickle.dump(self, f)
 
         self.__dirty_counter = 0
+
+    def reload(self):
+        if os.path.exists(self.db_path):
+            with open(self.db_path, 'rb') as f:
+                data = pickle.load(f)
+
+            self.listings = data.listings
+            self.ratings = data.ratings
+            self.attributes = data.attributes
 
 
 __data = Database("")
