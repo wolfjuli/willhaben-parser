@@ -11,11 +11,24 @@ db = db(config)
 
 last_refresh = time.time()
 
+
+def listing_overviews():
+    return sorted([{
+        "id": score.listing_id,
+        "name": db.listing(score.listing_id).attributes['raw']['description'],
+        "calculatedScore": score.calculated_score,
+        "userScore": score.user_score,
+        "calculatedPrice": score.calculated_price,
+    } for score in db.scores.values()], key=lambda it: it['userScore'] * 1000 + it['calculatedScore'], reverse=True)
+
+
 routes = {
     '/listings': lambda: [a.__dict__ for a in db.listings.values()],
-    '/attributes': lambda: [a.__dict__ for a in db.attributes.values()]
+    '/attributes': lambda: [a.__dict__ for a in db.attributes.values()],
+    '/listing-overviews': listing_overviews
 }
 frontend_path = "frontend/public"
+
 
 class Server(BaseHTTPRequestHandler):
     def _set_json_headers(self):

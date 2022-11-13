@@ -2,20 +2,34 @@ import os.path
 import pickle
 
 from configuration import Configuration
-from python.data.structs import Listing, AttributeDef
+from python.data.structs import Listing, AttributeDef, Score, LatLong, Distance
 
 
 class Database:
     def __init__(self, db_path):
         self.listings = {}
-        self.ratings = {}
+        self.scores = {}
         self.attributes = {}
+        self.distances = {}
 
         self.__dirty_counter = 0
         self.db_path = db_path
 
     def listing_ids(self):
         return list(self.listings)
+
+    def listing(self, _id):
+        return self.listings[_id] if _id in self.listings else None
+
+    def listing_attribute_values(self, attribute):
+        ret = set()
+        for listing in self.listings.values():
+            if attribute in listing.attributes:
+                for val in listing.attributes[attribute]:
+                    ret.add(val)
+
+        return ret
+
 
     def create_listing(self, _id):
         if _id not in self.listings:
@@ -49,6 +63,26 @@ class Database:
 
         return attr
 
+    def update_distance(self, distance: Distance):
+        if not hasattr(self, 'distances'):
+            self.distances = {}
+
+        if distance.frm not in self.distances:
+            self.distances[distance.frm] = []
+
+        self.distances[distance.frm] += [distance]
+        self.__dirty()
+
+        return distance
+
+    def update_score(self, score):
+        if score.listing_id not in self.listings:
+            raise Exception(f"Score references non existing listing id {score.id}")
+
+        self.scores[score.listing_id] = score
+        self.__dirty()
+        return score
+
     def __dirty(self):
         self.__dirty_counter += 1
 
@@ -71,7 +105,7 @@ class Database:
                 data = pickle.load(f)
 
             self.listings = data.listings
-            self.ratings = data.ratings
+            self.scores = data.scores
             self.attributes = data.attributes
 
 

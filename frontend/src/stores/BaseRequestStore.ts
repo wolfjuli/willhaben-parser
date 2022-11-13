@@ -1,7 +1,7 @@
 import type {Writable} from "svelte/store";
 import type {Subscriber} from "svelte/types/runtime/store";
 import {BaseVolatileStore} from "./BaseVolatileStore";
-import {logDebug, logError} from "../modules/Extensions";
+import {logDebug, logError, trickleCopy} from "../modules/Extensions";
 
 
 const options = {};
@@ -21,8 +21,21 @@ export abstract class BaseRequestStoreStore<T> extends BaseVolatileStore<T> {
         return data
     }
 
-    subscribe(run: Subscriber<T>) {
-        this.objects.subscribe(run)
+    protected subscribers = []
+    protected trickleTimer = null
+
+    subscribe(run: Subscriber<T>, trickle: Boolean = true) {
+        this.subscribers.push(run)
+        this.objects.subscribe(v => {
+            if (trickle && Array.isArray(v) && v.length > 1000) {
+                if (this.trickleTimer)
+                    clearInterval(this.trickleTimer)
+
+                this.trickleTimer = trickleCopy(v, this.subscribers as Subscriber<any[]>[])
+            } else {
+                run(v)
+            }
+        })
     }
 
     refresh() {

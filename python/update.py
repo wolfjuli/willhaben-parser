@@ -4,6 +4,9 @@ import math
 import database
 import willhaben
 from configuration import build_configuration
+from python import mapbox
+from python.data.structs import LatLong
+from python.scoring import score, distances_to
 
 
 def add_new_listings(db, for_ids):
@@ -35,9 +38,42 @@ def add_new_attributes(db, for_ids):
         db.flush()
 
 
-if __name__ == '__main__':
-    config = build_configuration()
-    db = database.db(config)
+def add_distances(db, for_ids):
+    if len(for_ids) > 0:
+        print(f"Calculate score for {len(for_ids)} listings")
+
+        for idx, id in enumerate(for_ids):
+            listing = db.listing(id)
+            coords = listing.string_attribute('COORDINATES')
+            if coords:
+                (lat, long) = coords.split(",")
+                frm = LatLong(lat, long)
+                dists = mapbox.distance(frm, distances_to)
+
+                for d in dists:
+                    db.update_distance(d)
+
+                listing.attributes['distances'] = db.distances[frm]
+                db.update_attribute(listing.id, listing.attributes)
+
+            print(f"{id} - {math.floor((idx + 1) / len(for_ids) * 100)}%")
+
+        db.flush()
+
+def add_new_scores(db, for_ids):
+    if len(for_ids) > 0:
+        print(f"Calculate score for {len(for_ids)} listings")
+
+        for idx, id in enumerate(for_ids):
+            listing = db.listing(id)
+            s = db.update_score(score(listing))
+
+            print(f"{id}: {s.calculated_score} - {math.floor((idx + 1) / len(for_ids) * 100)}%")
+
+        db.flush()
+
+
+def add_new_listings(db):
     known = db.listing_ids()
     ids = willhaben.get_ids(config)
     unknown = [id for id in ids if id not in known]
@@ -45,6 +81,20 @@ if __name__ == '__main__':
 
     add_new_listings(db, unknown)
     add_new_attributes(db, unknown)
+    add_distances(db, unknown)
+    add_new_scores(db, unknown)
+
+
+def recalculate_scores(db):
+    known = db.listing_ids()
+    add_new_scores(db, known)
+
+
+if __name__ == '__main__':
+    config = build_configuration()
+    db = database.db(config)
+
+    recalculate_scores(db)
 
 
 
