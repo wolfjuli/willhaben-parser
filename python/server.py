@@ -16,10 +16,10 @@ def listing_overviews():
     return sorted([{
         "id": score.listing_id,
         "name": db.listing(score.listing_id).attributes['raw']['description'],
-        "calculatedScore": score.calculated_score,
-        "userScore": score.user_score,
-        "calculatedPrice": score.calculated_price,
-    } for score in db.scores.values()], key=lambda it: it['userScore'] * 1000 + it['calculatedScore'], reverse=True)
+        "calculatedScores": score.calculated_scores,
+        "userScores": score.user_scores,
+        "calculatedPrices": score.calculated_prices,
+    } for score in db.scores.values()], key=lambda it: sum(it['userScores'].values()) * 1000 + sum(it['calculatedScores'].values()), reverse=True)
 
 
 routes = {

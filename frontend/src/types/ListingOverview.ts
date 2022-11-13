@@ -1,13 +1,11 @@
-export class Listing {
+export class ListingOverview {
 
     constructor(
         public id: string,
         public name: string,
-        public calculatedScore: number,
-        public userScore: number,
-        public calculatedPrice: number
+        public calculatedScores: {},
+        public userScores: {},
+        public calculatedPrice: {}
     ) {
     }
-
-
 }

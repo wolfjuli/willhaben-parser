@@ -23,11 +23,12 @@ class UserListing(Listing):
 
 
 class Score:
-    def __init__(self, listing_id=-1, calculated_score=-1, calculated_price=-1, user_score=-1):
+    def __init__(self, listing_id=-1, calculated_scores={}, calculated_prices={}, user_scores={}):
         self.listing_id = listing_id
-        self.calculated_score = calculated_score
-        self.user_score = user_score
-        self.calculated_price = calculated_price
+        self.calculated_scores = calculated_scores
+        self.user_scores = user_scores
+        self.calculated_prices = calculated_prices
+
 
 
 class AttributeDef:

@@ -68,7 +68,8 @@ def add_new_scores(db, for_ids):
             listing = db.listing(id)
             s = db.update_score(score(listing))
 
-            print(f"{id}: {s.calculated_score} - {math.floor((idx + 1) / len(for_ids) * 100)}%")
+            calc_score = sum(s.calculated_scores.values())
+            print(f"{id}: {calc_score} - {math.floor((idx + 1) / len(for_ids) * 100)}%")
 
         db.flush()
 

@@ -1,16 +1,15 @@
-import type {Listing} from "../types/Listing";
-import {BaseVolatileStore} from "./BaseVolatileStore";
 import {BaseRequestStoreStore} from "./BaseRequestStore";
 import {listingOverviewsURL, listingsURL, serverURL} from "../modules/config";
+import type {ListingOverview} from "../types/ListingOverview";
 
-class ListingOverviews extends BaseRequestStoreStore<Listing[]> {
+class ListingOverviews extends BaseRequestStoreStore<ListingOverview[]> {
 
     constructor() {
         super([], serverURL + listingOverviewsURL);
     }
 
 
-    protected dataTransformer(data: any): Listing[] {
+    protected dataTransformer(data: any): ListingOverview[] {
         return data['data']
     }
 

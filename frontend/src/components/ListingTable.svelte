@@ -3,8 +3,9 @@
     import {attributes} from "../stores/Attributes";
     import {onMount} from "svelte";
     import {listingOverviews} from "../stores/ListingOverviews";
+    import {ListingOverview} from "../types/ListingOverview";
 
-    let _listings = []
+    let _listings: ListingOverview[] = []
 
     listingOverviews.subscribe(ls => {
         _listings = ls
@@ -51,9 +52,9 @@
                         </a>
                     </td>
                     <td>{listing.name}</td>
-                    <td>{score(listing.userScore )}</td>
-                    <td>{score(listing.calculatedScore)}</td>
-                    <td>{price(listing.calculatedPrice)}</td>
+                    <td>{score(Object.values(listing.userScores).reduce((acc, curr) => acc + curr, 0) )}</td>
+                    <td>{score(Object.values(listing.calculatedScores).reduce((acc, curr) => acc + curr, 0))}</td>
+                    <td>{score(Object.values(listing.calculatedPrices).reduce((acc, curr) => acc + curr, 0))}</td>
                 </tr>
             {/each}
             </tbody>
