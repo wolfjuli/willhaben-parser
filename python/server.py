@@ -1,6 +1,6 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import time
-import json
+import jsonpickle
 import cgi
 
 from python.configuration import build_configuration
@@ -63,11 +63,16 @@ class Server(BaseHTTPRequestHandler):
         self.__refresh_db()
         if self.path.startswith("/api"):
             path = self.path[4:]
+
             self._set_json_headers()
             if path not in routes:
-                self.wfile.write(bytes(json.dumps({'error': f'Unknown Path: {path}'}), encoding="utf-8"))
+                self.wfile.write(bytes(jsonpickle.encode({'error': f'Unknown Path: {path}'}), encoding="utf-8"))
             else:
-                self.wfile.write(bytes(json.dumps({'data': routes[path]()}), encoding="utf-8"))
+                try :
+                    self.wfile.write(bytes(jsonpickle.encode({'data': routes[path]()}), encoding="utf-8"))
+                except Exception as e:
+                    print(f"Path: {path}")
+                    raise e
         else:
             self._set_html_headers()
             if self.path == "/":

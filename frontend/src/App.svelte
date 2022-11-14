@@ -1,6 +1,6 @@
 <script lang="ts">
 
-    import ListingTable from "./components/ListingTable.svelte";
+    import ListingTable from "./components/ListingOverviewTable.svelte";
 
     export let name: string;
 

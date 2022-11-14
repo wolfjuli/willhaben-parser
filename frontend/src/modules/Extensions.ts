@@ -30,3 +30,13 @@ export function trickleCopy<T>(sourceList: T[], callbacks: Subscriber<T[]>[], st
 
     return timer
 }
+
+let format = Intl.NumberFormat('de-DE', {style: "currency", currency: "EUR"})
+
+export function price(value: string | number): string {
+    return format.format(value)
+}
+
+export function score(value: string | number): number {
+    return Math.round(+value * 100) / 100
+}

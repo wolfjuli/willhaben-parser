@@ -1,3 +1,6 @@
+import json
+
+
 class Listing:
     def __init__(self, _id=-1, attributes={}):
         self.id = _id

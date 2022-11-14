@@ -1,23 +1,18 @@
 <script lang="ts">
 
-    export let content: string
-    export let reducable = content && content.length > 20
+    export let title: string = ""
+    export let expandable: false = $$slots.default
+    export let showFull: boolean = false
 
-    let partValue: string = content.substring(0, 20)
-
-    let showFull = !reducable
-
-    if(content.length > 20){
-        reducable = true
-        content = partValue
-    }
 
 </script>
 
 <td>
-    {showFull ? content : partValue}
-
-    {#if reducable}
+    {@html title}
+    {#if showFull}
+        <slot></slot>
+    {/if}
+    {#if expandable}
         <a href="#" on:click={() => showFull = !showFull}>
             {#if showFull}
                 Less
