@@ -1,4 +1,4 @@
-from python import database
+from python import database, scoring
 from python.configuration import build_configuration
 
 config = build_configuration()
@@ -6,5 +6,7 @@ db = database.db(config)
 
 # 'ADDITIONAL_COST/FEE'
 
-for listing in db.listings.values():
-    print(listing)
+listing = db.listings["580116899"]
+
+print(scoring.score(listing).calculated_scores)
+print(scoring.score(listing).calculated_prices)

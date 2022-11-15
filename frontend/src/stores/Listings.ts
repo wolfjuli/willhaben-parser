@@ -14,7 +14,6 @@ class Listings extends BaseRequestStoreStore<Listing[]> {
         return data['data']
     }
 
-
 }
 
 export const listings = new Listings()

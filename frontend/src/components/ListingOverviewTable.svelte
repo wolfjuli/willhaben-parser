@@ -7,6 +7,7 @@
     import TD from "./table/TD.svelte";
     import {price, score} from "../modules/Extensions";
     import ListingTable from "./ListingTable.svelte";
+    import PropertyTable from "./PropertyTable.svelte";
 
     let _listings: ListingOverview[] = []
 
@@ -40,7 +41,7 @@
             <tbody>
             {#each _listings as listing}
                 <tr>
-                    <td>
+                    <td id={listing.id}>
                         <a target="_blank"
                            href="https://www.willhaben.at/iad/object?adId={listing.id}">
                             {listing.id}
@@ -49,14 +50,18 @@
                     <TD title="{listing.name}">
                         <ListingTable id={listing.id}></ListingTable>
                     </TD>
-                    <td>{score(Object.values(listing.userScores).reduce((acc, curr) => acc + curr, 0) )}</td>
-                    <td>{score(Object.values(listing.calculatedScores).reduce((acc, curr) => acc + curr, 0))}</td>
-                    <td>{price(Object.values(listing.calculatedPrices).reduce((acc, curr) => acc + curr, 0))}</td>
+                    <TD title={score(Object.values(listing.userScores).reduce((acc, curr) => acc + curr, 0) )}></TD>
+                    <TD title={score(Object.values(listing.calculatedScores).reduce((acc, curr) => acc + curr, 0))}>
+                        <PropertyTable object={listing.calculatedScores}></PropertyTable>
+                    </TD>
+                    <TD title={price(Object.values(listing.calculatedPrices).reduce((acc, curr) => acc + curr, 0))}>
+                        <PropertyTable object={listing.calculatedPrices}></PropertyTable>
+                    </TD>
                 </tr>
             {/each}
             </tbody>
         </table>
     {:else}
-        <strong> No Data found</strong>
+        <strong>Loading...</strong>
     {/if}
 </div>

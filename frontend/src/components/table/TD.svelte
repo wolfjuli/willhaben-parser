@@ -9,16 +9,17 @@
 
 <td>
     {@html title}
-    {#if showFull}
-        <slot></slot>
-    {/if}
     {#if expandable}
-        <a href="#" on:click={() => showFull = !showFull}>
+        <a on:click={() => showFull = !showFull}>
             {#if showFull}
                 Less
             {:else }
                 More...
             {/if}
         </a>
+    {/if}
+    {#if showFull}
+        <slot></slot>
+        <a href="#" on:click={() => showFull = !showFull}> Less </a>
     {/if}
 </td>

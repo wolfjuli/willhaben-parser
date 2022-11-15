@@ -1,7 +1,9 @@
-from http.server import BaseHTTPRequestHandler, HTTPServer
-import time
-import jsonpickle
 import cgi
+import re
+import time
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
+import json
 
 from python.configuration import build_configuration
 from python.database import db
@@ -19,13 +21,15 @@ def listing_overviews():
         "calculatedScores": score.calculated_scores,
         "userScores": score.user_scores,
         "calculatedPrices": score.calculated_prices,
-    } for score in db.scores.values()], key=lambda it: sum(it['userScores'].values()) * 1000 + sum(it['calculatedScores'].values()), reverse=True)
+    } for score in db.scores.values()],
+        key=lambda it: sum(it['userScores'].values()) * 1000 + sum(it['calculatedScores'].values()), reverse=True)
 
 
 routes = {
-    '/listings': lambda: [a.__dict__ for a in db.listings.values()],
-    '/attributes': lambda: [a.__dict__ for a in db.attributes.values()],
-    '/listing-overviews': listing_overviews
+    '/listings/{id}': lambda params: db.listing(params['id']).__dict__,
+    '/listings': lambda _: [a.__dict__ for a in db.listings.values()],
+    '/attributes': lambda _: [a.__dict__ for a in db.attributes.values()],
+    '/listing-overviews': lambda _: listing_overviews()
 }
 frontend_path = "frontend/public"
 
@@ -58,21 +62,30 @@ class Server(BaseHTTPRequestHandler):
             db.reload()
             last_refresh = now
 
-    # GET sends back a Hello world message
+    param_regex = re.compile("\{([^}]+)\}")
+
+    def __regex_path(self, path):
+        return re.sub(self.param_regex, "(?P<\\1>[^/])", path)
+
     def do_GET(self):
         self.__refresh_db()
         if self.path.startswith("/api"):
             path = self.path[4:]
-
             self._set_json_headers()
-            if path not in routes:
-                self.wfile.write(bytes(jsonpickle.encode({'error': f'Unknown Path: {path}'}), encoding="utf-8"))
-            else:
-                try :
-                    self.wfile.write(bytes(jsonpickle.encode({'data': routes[path]()}), encoding="utf-8"))
-                except Exception as e:
-                    print(f"Path: {path}")
-                    raise e
+
+            for target_path in routes:
+                regex = self.__regex_path(target_path)
+                match = re.match(regex, path)
+                if match:
+                    try:
+                        self.wfile.write(bytes(json.dumps({'data': routes[path](match.groupdict())}), encoding="utf-8"))
+                    except Exception as e:
+                        print(f"Path: {path}")
+                        raise e
+                    return
+
+            self.wfile.write(bytes(json.dumps({'error': f'Unknown Path: {path}'}), encoding="utf-8"))
+
         else:
             self._set_html_headers()
             if self.path == "/":

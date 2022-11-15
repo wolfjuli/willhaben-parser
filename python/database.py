@@ -2,7 +2,7 @@ import os.path
 import pickle
 
 from configuration import Configuration
-from python.data.structs import Listing, AttributeDef, Score, LatLong, Distance
+from python.data.structs import Listing, AttributeDef, Distance
 
 
 class Database:
@@ -30,7 +30,6 @@ class Database:
 
         return ret
 
-
     def create_listing(self, _id):
         if _id not in self.listings:
             self.listings[_id] = Listing(_id)
@@ -41,6 +40,13 @@ class Database:
     def update_listing(self, _id, attributes=None):
         listing = self.create_listing(_id)
         listing.attributes = attributes if attributes else listing.attributes
+        listing.attributes = dict([
+            (
+                key,
+                listing.attributes[key].__dict__ if hasattr(listing.attributes[key], '__dict__') else
+                listing.attributes[key]
+            ) for key in listing.attributes
+        ])
 
         self.__dirty()
         return listing
@@ -129,6 +135,3 @@ def db(config: Configuration = None):
             __data.flush()
 
     return __data
-
-
-

@@ -1,7 +1,6 @@
 import math
 
-from python import mapbox
-from python.data.structs import Score, LatLong
+from python.data.structs import Score
 from python.mapbox import graz_hauptplatz, soeding
 
 target_price = 450000
@@ -9,7 +8,6 @@ estate_size = 140
 plot_area = 1200
 
 dealer_price_add = 0.036
-
 
 condition = {
     "Sehr gut/gut": 5,
@@ -60,6 +58,7 @@ distances_to = {
     soeding.name: 10000
 }
 
+
 def score(listing):
     calculated_prices = {'PRICE': listing.float_attribute('PRICE')}
     if listing.float_attribute('DEALER'):
@@ -93,12 +92,15 @@ def score(listing):
         elif key in listing.attributes['raw']['description']:
             calc_scores[key] = property_type_score[key]
 
-    distances = listing.list_attribute('distances') or []
+    distances = listing.list_attribute('DISTANCES') or []
     for d in distances:
-        if d.to.name in distances_to:
-            calc_scores[d.to.name] = math.atan(distances_to[d.to.name] - d.distance) * distance_score
+        if d['to']['name'] in distances_to:
+            distance_delta = distances_to[d['to']['name']] - d['distance']
+            print(d['distance'], distance_delta)
+            print(distance_delta / 30000 * 7)
+            calc_scores[d['to']['name']] = math.atan(distance_delta / 30000 * 7) * distance_score / (math.pi / 2)
 
-    calculated_price = sum( calculated_prices.values())
+    calculated_price = sum(calculated_prices.values())
     calc_scores["PRICE"] = math.atan(target_price - calculated_price) * 10
 
     return Score(

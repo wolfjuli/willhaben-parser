@@ -58,3 +58,10 @@ class Distance:
         self.frm = frm
         self.to = to
         self.distance = distance
+
+    def dict(self):
+        return {
+            "frm": self.frm.__dict__,
+            "to": self.to.__dict__,
+            "distance": self.distance
+        }

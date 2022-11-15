@@ -53,12 +53,13 @@ def add_distances(db, for_ids):
                 for d in dists:
                     db.update_distance(d)
 
-                listing.attributes['distances'] = db.distances[frm]
+                listing.attributes['DISTANCES'] = list(map(lambda d: d.__dict__, db.distances[frm]))
                 db.update_attribute(listing.id, listing.attributes)
 
             print(f"{id} - {math.floor((idx + 1) / len(for_ids) * 100)}%")
 
         db.flush()
+
 
 def add_new_scores(db, for_ids):
     if len(for_ids) > 0:
@@ -78,7 +79,7 @@ def add_new_listings(db):
     known = db.listing_ids()
     ids = willhaben.get_ids(config)
     unknown = [id for id in ids if id not in known]
-    #unknown = known
+    # unknown = known
 
     add_new_listings(db, unknown)
     add_new_attributes(db, unknown)
@@ -91,14 +92,22 @@ def recalculate_scores(db):
     add_new_scores(db, known)
 
 
+def update_attributes(db: database.Database):
+    for listing in db.listings.values():
+        if 'distances' in listing.attributes:
+            listing.attributes['DISTANCES'] = list(map(lambda d: d.dict(), listing.list_attribute('distances')))
+            listing.attributes.pop('distances')
+
+            db.update_listing(listing.id, listing.attributes)
+
+    db.flush()
+
+
 if __name__ == '__main__':
     config = build_configuration()
     db = database.db(config)
 
-    recalculate_scores(db)
-
-
-
-
+    #recalculate_scores(db)
+    update_attributes(db)
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
