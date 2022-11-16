@@ -3,7 +3,7 @@ import type {Subscriber} from "svelte/types/runtime/store";
 let debugEnabled: boolean = true
 
 
-export function logDebug(...obj: any) {
+export function logDebug(...obj: any ) {
     if (debugEnabled)
         console.log(...obj)
 }
@@ -34,7 +34,7 @@ export function trickleCopy<T>(sourceList: T[], callbacks: Subscriber<T[]>[], st
 let format = Intl.NumberFormat('de-DE', {style: "currency", currency: "EUR"})
 
 export function price(value: string | number): string {
-    return format.format(value)
+    return format.format(+value)
 }
 
 export function score(value: string | number): number {

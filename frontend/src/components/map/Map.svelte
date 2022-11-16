@@ -13,8 +13,6 @@
         L.tileLayer(
             'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
             {
-                attribution: `&copy;<a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>,
-	        &copy;<a href="https://carto.com/attributions" target="_blank">CARTO</a>`,
                 subdomains: 'abcd',
                 maxZoom: 25,
             }
@@ -85,6 +83,7 @@
 
         return marker;
     }
+
     //
     // function createLines() {
     //     return L.polyline(markerLocations, {color: '#E4E', opacity: 0.5});
@@ -99,7 +98,7 @@
 
         markerLayers = L.layerGroup()
         let m = createMarker(initialView);
-		markerLayers.addLayer(m);
+        markerLayers.addLayer(m);
 
         //lineLayers = createLines();
         //
@@ -118,25 +117,25 @@
     // We could do these in the toolbar's click handler but this is an example
     // of modifying the map with reactive syntax.
     $: if (markerLayers && map) {
-        if (eye) {
+        if (eye)
             markerLayers.addTo(map);
-        } else {
+        else
             markerLayers.remove();
-        }
+
     }
 
     $: if (lineLayers && map) {
-        if (lines) {
+        if (lines)
             lineLayers.addTo(map);
-        } else {
+        else
             lineLayers.remove();
-        }
+
     }
 
     function resizeMap() {
-        if (map) {
+        if (map)
             map.invalidateSize();
-        }
+
     }
 
 </script>

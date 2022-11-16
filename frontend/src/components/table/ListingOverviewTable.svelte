@@ -1,26 +1,24 @@
 <script lang="ts">
 
-    import {attributes} from "../stores/Attributes";
     import {onMount} from "svelte";
-    import {listingOverviews} from "../stores/ListingOverviews";
-    import {ListingOverview} from "../types/ListingOverview";
-    import TD from "./table/TD.svelte";
-    import {price, score} from "../modules/Extensions";
+    import {listingOverviews} from "../../stores/ListingOverviews";
+    import {ListingOverview} from "../../types/ListingOverview";
+    import TD from "./TD.svelte";
+    import {price, score} from "../../modules/Extensions";
     import ListingTable from "./ListingTable.svelte";
-    import PropertyTable from "./PropertyTable.svelte";
+    import PropertyTable from "../PropertyTable.svelte";
 
     let _listings: ListingOverview[] = []
+
+    let expanded = {}
 
     listingOverviews.subscribe(ls => {
         _listings = ls
     })
 
     onMount(() => {
-        attributes.refresh()
         listingOverviews.refresh()
     })
-
-
 
 </script>
 
@@ -47,14 +45,18 @@
                             {listing.id}
                         </a>
                     </td>
-                    <TD title="{listing.name}">
+                    <TD bind:showFull={expanded[listing.id]}
+                        title="{listing.name}">
                         <ListingTable id={listing.id}></ListingTable>
                     </TD>
-                    <TD title={score(Object.values(listing.userScores).reduce((acc, curr) => acc + curr, 0) )}></TD>
-                    <TD title={score(Object.values(listing.calculatedScores).reduce((acc, curr) => acc + curr, 0))}>
+                    <TD bind:showFull={expanded[listing.id]}
+                        title={score(Object.values(listing.userScores).reduce((acc, curr) => acc + curr, 0) )}></TD>
+                    <TD bind:showFull={expanded[listing.id]}
+                        title={score(Object.values(listing.calculatedScores).reduce((acc, curr) => acc + curr, 0))}>
                         <PropertyTable object={listing.calculatedScores}></PropertyTable>
                     </TD>
-                    <TD title={price(Object.values(listing.calculatedPrices).reduce((acc, curr) => acc + curr, 0))}>
+                    <TD bind:showFull={expanded[listing.id]}
+                        title={price(Object.values(listing.calculatedPrices).reduce((acc, curr) => acc + curr, 0))}>
                         <PropertyTable object={listing.calculatedPrices}></PropertyTable>
                     </TD>
                 </tr>

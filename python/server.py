@@ -78,7 +78,8 @@ class Server(BaseHTTPRequestHandler):
                 match = re.match(regex, path)
                 if match:
                     try:
-                        self.wfile.write(bytes(json.dumps({'data': routes[path](match.groupdict())}), encoding="utf-8"))
+                        j = json.dumps({'data': routes[path](match.groupdict())})
+                        self.wfile.write(bytes(j, encoding="utf-8"))
                     except Exception as e:
                         print(f"Path: {path}")
                         raise e

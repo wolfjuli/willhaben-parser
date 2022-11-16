@@ -1,8 +1,8 @@
 <script lang="ts">
-    import {Listing} from "../types/Listing";
-    import {listings} from "../stores/Listings";
-    import {logDebug} from "../modules/Extensions";
-    import Map from "./Map.svelte";
+    import {Listing} from "../../types/Listing";
+    import {listings} from "../../stores/Listings";
+    import {logDebug} from "../../modules/Extensions";
+    import Map from "../map/Map.svelte";
 
     export let id: string = ""
 
@@ -38,4 +38,6 @@
         {/each}
         </tbody>
     </table>
+{:else}
+    Loading...
 {/if}
