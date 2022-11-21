@@ -1,4 +1,7 @@
+import pkgutil
+
 from python.data.Distance import Distance
+from python.data.Patch import Patch
 
 
 class IBaseDatabase:
@@ -41,3 +44,7 @@ class IBaseDatabase:
 
     def upgrade(self):
         """Upgrade schema to a newer version"""
+
+    def __all_patches(self, package):
+        name_parts = [[name] + name.split("_") for _, name, _ in pkgutil.iter_modules([f'database/patches/{package}'])]
+        return [Patch(int(parts[1]), "_".join(parts[2:]), parts[0]) for parts in name_parts]

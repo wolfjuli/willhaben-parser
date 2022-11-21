@@ -4,12 +4,16 @@ import sqlite3
 from python.data.configuration import Configuration
 from python.data import Listing, AttributeDef, Distance
 from python.database.IBaseDatabase import IBaseDatabase
+from python.database.patches import IBasePatch
 
 
 class SQLite(IBaseDatabase):
     def __init__(self, db_path):
         self.db_path = db_path
         self.__db = sqlite3.connect(db_path, detect_types=True)
+
+    def cursor(self):
+        return self.__db.cursor()
 
     def listing_ids(self):
         for a in self.__db.execute("SELECT * from listings").fetchall():
@@ -93,14 +97,7 @@ class SQLite(IBaseDatabase):
             self.flush()
 
     def flush(self):
-        if not self.db_path:
-            raise Exception("There is no database path defined")
-
-        os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
-        with open(self.db_path, 'wb') as f:
-            pickle.dump(self, f)
-
-        self.__dirty_counter = 0
+        pass
 
     def reload(self):
         if os.path.exists(self.db_path):
@@ -112,25 +109,32 @@ class SQLite(IBaseDatabase):
             self.attributes = data.attributes
 
     def upgrade(self):
-        patches = [name for _, name, _ in pkgutil.iter_modules(['testpkg'])]
+        try:
+            cursor = self.__db.execute("SELECT max(id) as id FROM schema_versions").fetchall()
+            max = cursor.pop()[0]
+        except Exception as e:
+            max = -1
+
+        all_patches = [patch for patch in self.__all_patches("sqlite") if patch.number > max]
+
+        if len(all_patches) > 0:
+            module = __import__("python.database.patches.sqlite")
+            for patch in sorted(all_patches):
+                class_ = getattr(module, patch.file_name)
+                instance: IBasePatch = class_()
+                instance.run(self)
+
+
+
+
 
 
 def db(config: Configuration = None):
-    data = Memory("")
+    if not config:
+        raise Exception("DB needs to be initialized with a config")
 
-    if not data.db_path:
-        if not config:
-            raise Exception("DB needs to be initialized with a config")
-
-        if os.path.exists(config.database_path):
-            with open(config.database_path, 'rb') as f:
-                data = pickle.load(f)
-
-            data.db_path = config.database_path
-            data.upgrade()
-
-        else:
-            data = Memory(config.database_path)
-            data.flush()
+    data = SQLite(config.database_path)
+    data.upgrade()
+    data.flush()
 
     return data

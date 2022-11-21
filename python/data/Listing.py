@@ -1,8 +1,12 @@
 
 class Listing:
-    def __init__(self, _id=-1, attributes={}):
+    def __init__(self, _id=-1, name = "", description = ""):
         self.id = _id
-        self.attributes = attributes
+        self.attributes = {}
+        self.distances = []
+        self.name = name
+        self.descriptionn = description
+        self.prices = []
 
     def list_attribute(self, attribute):
         return self.attributes[attribute] if attribute in self.attributes else []

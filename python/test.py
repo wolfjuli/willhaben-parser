@@ -1,13 +1,10 @@
 import pkgutil
 
-from python import database
 from python.data.configuration import build_configuration
+from python.database.sqlite import db
 
 config = build_configuration()
-_db = database.db(config)
+_db = db(config)
 
-# 'ADDITIONAL_COST/FEE'
 
-listing = _db.listings["580116899"]
-
-print([name for _, name, _ in pkgutil.iter_modules(['patches'])])
+patches = (_db.all_patches("sqlite"))
