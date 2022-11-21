@@ -1,5 +1,6 @@
 import os.path
 import pickle
+import json
 
 from python.defintions import configuration_file, database_file, area_ids
 
@@ -12,16 +13,24 @@ class Configuration:
         self.database_path = db_path
         self.areas = areas
 
+    def from_dict(self, dict):
+        self.__dict__.update(dict)
+
 
 def build_configuration():
     global __instance
 
+    __instance = Configuration()
+
     if not __instance:
         if os.path.exists(__file):
-            with open(__file, 'rb') as f:
-                __instance = pickle.load(f)
+            with open(__file, 'r') as f:
+                try:
+                    conf_dict = json.load(f)
+                    __instance.from_dict(conf_dict)
+                except:
+                    flush()
         else:
-            __instance = Configuration()
             flush()
 
     return __instance
@@ -32,5 +41,5 @@ def flush():
     global __instance
 
     os.makedirs(os.path.dirname(__file), exist_ok=True)
-    with open(__file, 'wb') as f:
-        pickle.dump(__instance, f)
+    with open(__file, 'w') as f:
+        json.dump(__instance.__dict__, f)

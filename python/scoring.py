@@ -1,6 +1,6 @@
 import math
 
-from python.data.structs import Score
+from python.data import Score
 from python.mapbox import graz_hauptplatz, soeding
 
 target_price = 450000

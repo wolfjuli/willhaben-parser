@@ -4,7 +4,8 @@ import time
 import requests
 from python import defintions
 
-from python.data.structs import LatLong, Distance
+from python.data.LatLong import LatLong
+from python.data.Distance import Distance
 
 with open(f"{defintions.base_path}/mapbox-api-key", 'r') as f:
     access_token = f.read().replace("\n", "")

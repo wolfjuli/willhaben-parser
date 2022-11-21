@@ -1,4 +1,4 @@
-from python.types import LatLong
+from python.data import LatLong
 
 
 class Distance:

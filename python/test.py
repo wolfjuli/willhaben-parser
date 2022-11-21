@@ -1,12 +1,13 @@
-from python import database, scoring
-from python.types.configuration import build_configuration
+import pkgutil
+
+from python import database
+from python.data.configuration import build_configuration
 
 config = build_configuration()
-db = database.db(config)
+_db = database.db(config)
 
 # 'ADDITIONAL_COST/FEE'
 
-listing = db.listings["580116899"]
+listing = _db.listings["580116899"]
 
-print(scoring.score(listing).calculated_scores)
-print(scoring.score(listing).calculated_prices)
+print([name for _, name, _ in pkgutil.iter_modules(['patches'])])

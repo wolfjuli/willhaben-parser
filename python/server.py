@@ -5,7 +5,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 
 import json
 
-from python.types.configuration import build_configuration
+from python.data.configuration import build_configuration
 from python.database import db
 
 config = build_configuration()

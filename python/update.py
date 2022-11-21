@@ -3,9 +3,9 @@ import math
 
 import database
 import willhaben
-from python.types.configuration import build_configuration
+from python.data.LatLong import LatLong
+from python.data.configuration import build_configuration
 from python import mapbox
-from python.data.structs import LatLong
 from python.scoring import score, distances_to
 
 

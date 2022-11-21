@@ -4,7 +4,7 @@ import math
 import requests
 from bs4 import BeautifulSoup
 
-from python.types.configuration import Configuration
+from python.data.configuration import Configuration
 from python.defintions import headers
 
 session = requests.Session()

@@ -1,11 +1,13 @@
 import os.path
 import pickle
+import pkgutil
 
-from python.types.configuration import Configuration
-from python.types import Listing, AttributeDef, Distance
+from python.data.configuration import Configuration
+from python.data import Listing, AttributeDef, Distance
+from python.database.IBaseDatabase import IBaseDatabase
 
 
-class Database:
+class Memory(IBaseDatabase):
     def __init__(self, db_path):
         self.listings = {}
         self.scores = {}
@@ -115,9 +117,12 @@ class Database:
             self.scores = data.scores
             self.attributes = data.attributes
 
+    def upgrade(self):
+        patches = [name for _, name, _ in pkgutil.iter_modules(['testpkg'])]
+
 
 def db(config: Configuration = None):
-    data = Database("")
+    data = Memory("")
 
     if not data.db_path:
         if not config:
@@ -131,7 +136,7 @@ def db(config: Configuration = None):
             data.upgrade()
 
         else:
-            data = Database(config.database_path)
+            data = Memory(config.database_path)
             data.flush()
 
     return data
