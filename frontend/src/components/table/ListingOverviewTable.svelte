@@ -6,7 +6,7 @@
     import TD from "./TD.svelte";
     import {price, score} from "../../modules/Extensions";
     import ListingTable from "./ListingTable.svelte";
-    import PropertyTable from "../PropertyTable.svelte";
+    import PropertyTable from "./PropertyTable.svelte";
 
     let _listings: ListingOverview[] = []
 

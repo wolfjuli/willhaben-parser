@@ -1,6 +1,7 @@
 <script lang="ts">
 
     import ListingTable from "./components/table/ListingOverviewTable.svelte";
+    import Filter from "./components/filter/Filter.svelte";
 
     export let name: string;
 
@@ -8,7 +9,7 @@
 <link rel = "stylesheet" href = "http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
 
 <main>
-
+    <Filter />
     <ListingTable />
 </main>
 
