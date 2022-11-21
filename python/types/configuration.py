@@ -1,7 +1,7 @@
 import os.path
 import pickle
 
-from defintions import configuration_file, database_file, area_ids
+from python.defintions import configuration_file, database_file, area_ids
 
 __file = configuration_file
 __instance = None

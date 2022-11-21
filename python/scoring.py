@@ -53,7 +53,13 @@ property_type_score = {
 }
 
 distance_score = 10
-distances_to = {
+
+distances_to = [
+    graz_hauptplatz,
+    soeding
+]
+
+score_distances_to = {
     graz_hauptplatz.name: 10000,
     soeding.name: 10000
 }

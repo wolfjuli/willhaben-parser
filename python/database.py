@@ -1,8 +1,8 @@
 import os.path
 import pickle
 
-from configuration import Configuration
-from python.data.structs import Listing, AttributeDef, Distance
+from python.types.configuration import Configuration
+from python.types import Listing, AttributeDef, Distance
 
 
 class Database:
@@ -11,6 +11,7 @@ class Database:
         self.scores = {}
         self.attributes = {}
         self.distances = {}
+        self.schema_version = {}
 
         self.__dirty_counter = 0
         self.db_path = db_path
@@ -115,23 +116,22 @@ class Database:
             self.attributes = data.attributes
 
 
-__data = Database("")
-
-
 def db(config: Configuration = None):
-    global __data
+    data = Database("")
 
-    if not __data.db_path:
+    if not data.db_path:
         if not config:
             raise Exception("DB needs to be initialized with a config")
 
         if os.path.exists(config.database_path):
             with open(config.database_path, 'rb') as f:
-                __data = pickle.load(f)
+                data = pickle.load(f)
 
-            __data.db_path = config.database_path
+            data.db_path = config.database_path
+            data.upgrade()
+
         else:
-            __data = Database(config.database_path)
-            __data.flush()
+            data = Database(config.database_path)
+            data.flush()
 
-    return __data
+    return data

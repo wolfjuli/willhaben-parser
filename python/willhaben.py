@@ -4,8 +4,8 @@ import math
 import requests
 from bs4 import BeautifulSoup
 
-from configuration import Configuration
-from defintions import headers
+from python.types.configuration import Configuration
+from python.defintions import headers
 
 session = requests.Session()
 session.headers.update(headers)

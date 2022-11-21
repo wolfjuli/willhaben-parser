@@ -3,7 +3,7 @@ import math
 
 import database
 import willhaben
-from configuration import build_configuration
+from python.types.configuration import build_configuration
 from python import mapbox
 from python.data.structs import LatLong
 from python.scoring import score, distances_to
@@ -75,14 +75,14 @@ def add_new_scores(db, for_ids):
         db.flush()
 
 
-def add_new_listings(db):
+def add_new_objects(db):
     known = db.listing_ids()
     ids = willhaben.get_ids(config)
-    unknown = [id for id in ids if id not in known]
-    # unknown = known
+    #unknown = [id for id in ids if id not in known]
+    unknown = known
 
-    add_new_listings(db, unknown)
-    add_new_attributes(db, unknown)
+    #add_new_listings(db, unknown)
+    #add_new_attributes(db, unknown)
     add_distances(db, unknown)
     add_new_scores(db, unknown)
 
@@ -107,7 +107,8 @@ if __name__ == '__main__':
     config = build_configuration()
     db = database.db(config)
 
+    add_new_objects(db)
     #recalculate_scores(db)
-    update_attributes(db)
+    #update_attributes(db)
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

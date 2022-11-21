@@ -1,5 +1,5 @@
 from python import database, scoring
-from python.configuration import build_configuration
+from python.types.configuration import build_configuration
 
 config = build_configuration()
 db = database.db(config)

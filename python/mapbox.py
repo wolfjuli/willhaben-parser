@@ -2,15 +2,13 @@ import json
 import time
 
 import requests
-import defintions
+from python import defintions
 
 from python.data.structs import LatLong, Distance
 
 with open(f"{defintions.base_path}/mapbox-api-key", 'r') as f:
-    access_token = f.read()
+    access_token = f.read().replace("\n", "")
 
-st_peter_hauptstrasse = LatLong(47.0751271, 15.4527669)
-merangasse = LatLong(47.041213, 15.488587,)
 graz_hauptplatz = LatLong(47.0711759, 15.4383532, "Graz Hauptplatz")
 soeding = LatLong(47.011235, 15.274204, "Söding")
 
@@ -18,6 +16,7 @@ session = requests.session()
 
 
 def __mapbox_url(*coords: LatLong):
+    global access_token
     cs = ";".join([f"{c.long},{c.lat}" for c in coords])
     return f"https://api.mapbox.com/directions-matrix/v1/mapbox/driving/{cs}?annotations=distance&access_token={access_token}"
 
@@ -38,7 +37,11 @@ def distance(from_coord, to_coords):
             break
 
         for i, to in enumerate(unknown):
-            distances[(from_coord, to)] = raw['distances'][0][i + 1]
+            try:
+                distances[(from_coord, to)] = raw['distances'][0][i + 1]
+            except Exception as e:
+                print("mapbox result did not follow the known structure: ", raw)
+                raise e
 
     return [Distance(
         from_coord,
