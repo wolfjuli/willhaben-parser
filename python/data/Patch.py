@@ -3,3 +3,4 @@ class Patch:
         self.number = number
         self.name = name
         self.file_name = file_name
+        self.module_name = file_name.replace(".py", "")

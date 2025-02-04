@@ -1,0 +1,546 @@
+{
+    "unreleased": [
+        "Bugfix: Origin View respects enabled features",
+        "Bugfix: Non-Clickable empty Origin View Areas"
+    ],
+    "released": {
+        "2025.1.0": {
+            "timestamp": "2025-01-22T08:13:30",
+            "changes": [
+                "Feature: Realtime service configurable sites",
+                "Feature: Visitor Quantiles in Origin Map View",
+                "Bugfix: KW1-2025 clickable"
+            ]
+        },
+        "2024.4.0": {
+            "changes": [
+                "Feature: First version of mobile view",
+                "Hotfix: Transform existing data on origin quantile",
+                "Bugfix: Faulty legends in multiple charts",
+                "Bugfix: Input field sizes",
+                "Bugfix: Show KPI Card description in Root Map",
+                "Bugfix: Origin Quantile on date change"
+            ],
+            "timestamp": "2024-12-04T14:21:46"
+        },
+        "2024.3.3": {
+            "changes": [
+                "Bugfix: Fix inconsistent application menu behavior",
+                "Bugfix: Fix visitor origin quantile geometry aggregation"
+            ],
+            "timestamp": "2024-11-27T14:50:55"
+        },
+        "2024.3.2": {
+            "changes": [
+                "Feature: Application Engine 1.4.2",
+                "Feature: Matomo proxy",
+                "Bugfix: Scrollable App selector",
+                "Bugfix: W01-W09 clickable now",
+                "Bugfix: Table Download with MacOS friendly name",
+                "Bugfix: Inspect call",
+                "Bugfix: Remove time slider from DE dashboards",
+                "Bugfix: Multiple small fixes in charts/tool tips on special cases"
+            ],
+            "timestamp": "2024-11-11T09:21:48"
+        },
+        "2024.3.1": {
+            "changes": [
+                "Feature: Optimize all table downloads (values + file naming)",
+                "Feature: Show DSGVO info message on maps",
+                "Bugfix: Fix arriving/departing visitors chart",
+                "Bugfix: Optimize zoom level on maps",
+                "Bugfix: Remove 'Average values are shown' message from date picker",
+                "Bugfix: Show '<20' instead of 10 in pdf report",
+                "Bugfix: Fix displaying of opening hours with '+' in KPI card"
+            ],
+            "timestamp": "2024-10-23T11:46:01"
+        },
+        "2024.3.0": {
+            "changes": [
+                "New Frontend",
+                "Feature: New landing page",
+                "Feature: Extended Matomo Support",
+                "Feature: Notes field",
+                "Feature: Dark mode support",
+                "Feature: Total Stay duration feature configurable",
+                "Feature: PDF Report download via websockets + fixed selection (no white paper)",
+                "Feature: Overhauled comparison view - much more user friendly",
+                "Feature: Tooltips for all KPI Cards",
+                "Feature: SVG Download for all charts",
+                "Feature: Optimize visitor flow charts in interactions",
+                "Feature: Scaling cards for screensize (big screen view)",
+                "Feature: Improved Accessibility (keyboard support)",
+                "Bugfix: XLS Download improved - correct data type per column",
+                "Bugfix: General optimizations for tables and maps",
+                "Change: Preparations for Realtime and Mobility view"
+            ],
+            "timestamp": "2024-10-09T07:14:46"
+        },
+        "2024.2.1": {
+            "changes": [
+                "Feature: Remove unnecessary caching in analytics"
+            ],
+            "timestamp": "2024-10-02T13:03:31"
+        },
+        "2024.2.0": {
+            "changes": [
+                "Update to Spark 3"
+            ],
+            "timestamp": "2024-09-04T09:10:54"
+        },
+        "2024.1.6": {
+            "changes": [
+                "Update platform version to 1.15.1"
+            ],
+            "timestamp": "2024-06-05T13:24:02"
+        },
+        "2024.1.5": {
+            "changes": [
+                "Hotfix: Performance of Catchment areas",
+                "Hotfix: Correct reference-data-blocks function"
+            ],
+            "timestamp": "2024-04-17T08:45:10"
+        },
+        "2024.1.4": {
+            "changes": [
+                "Bugfix: SQL Performance Improvement",
+                "Change: Upgrade application engine to version 1.3.1"
+            ],
+            "timestamp": "2024-04-16T11:34:11"
+        },
+        "2024.1.3": {
+            "changes": [
+                "Bugfix: Support for RHEL 8|9 packages"
+            ],
+            "timestamp": "2024-04-10T09:19:25"
+        },
+        "2024.1.2": {
+            "changes": [
+                "Change: Update analytics platform version to 1.14.2"
+            ],
+            "timestamp": "2024-01-31T11:44:57"
+        },
+        "2024.1.1": {
+            "changes": [
+                "Change: Upgrade application engine to version 1.1.6",
+                "Change: Set search path after database creation"
+            ],
+            "timestamp": "2024-01-26T11:35:12"
+        },
+        "2024.1.0": {
+            "changes": [
+                "Change: Update analytics platform version to 1.14.1",
+                "Change: Dynamically format cumulative duration on overview page",
+                "Fix: Speed-up path resolution on Azure"
+            ],
+            "timestamp": "2024-01-23T12:49:08"
+        },
+        "2023.1.19": {
+            "changes": [
+                "Remove countries with NULL country codes from database"
+            ],
+            "timestamp": "2023-11-29T11:37:42"
+        },
+        "2023.1.18": {
+            "changes": [
+                "Fix: Sites closed on school holidays"
+            ],
+            "timestamp": "2023-11-16T15:08:02"
+        },
+        "2023.1.17": {
+            "changes": [
+                "Change: Update analytics platform version to 1.13.4",
+                "Fix: Public holidays where shops are open are should not be considered public holidays"
+            ],
+            "timestamp": "2023-11-06T09:44:27"
+        },
+        "2023.1.16": {
+            "changes": [
+                "Change: Switch to common GraphQL API",
+                "Change: Infer amount of foreign visitors from nationality distribution"
+            ],
+            "timestamp": "2023-11-02T07:48:49"
+        },
+        "2023.1.15": {
+            "changes": [
+                "Fix: Correct wrong country codes of Great Britain and Greece",
+                "Fix: Correct wrong average calculation in report",
+                "Fix: Fix ClassCastException in data fetcher when generating report"
+            ],
+            "timestamp": "2023-10-09T14:37:43"
+        },
+        "2023.1.14": {
+            "changes": [
+                "Feature: Relative Origin distribution table in report",
+                "Fix: Min/Max query ignored opening hours"
+            ],
+            "timestamp": "2023-10-04T13:44:44"
+        },
+        "2023.1.13": {
+            "changes": [
+                "Change: Relative Trend/Index is no longer calculated on absolute but relative delta",
+                "Fix: Correct alignment of VPD Report graph",
+                "Fix: Use SMALLINT consistently for change_id database",
+                "Fix: Backup and restore is now working properly",
+                "Fix: Resolutions less than one minute are now supported on analytics"
+            ],
+            "timestamp": "2023-09-27T11:33:41"
+        },
+        "2023.1.12": {
+            "changes": [
+                "Feature: Country-specific data quality indicator",
+                "Feature: Include country in job name",
+                "Fix: Correct from/to calculation in Report",
+                "Fix: Data quality shown again in calendar",
+                "Fix: Fix deleting of data block IDs",
+                "Fix: Report doesn't break on missing sociodemographic data",
+                "Fix: Remove data quality indicators from overview page",
+                "Fix: Show all servable application instances in applications menu",
+                "Fix: Show short name of location in details even if only one location",
+                "Fix: Update effective site opening hours in DB that are closed on public holidays",
+                "Fix: Wrong bin size used in analytics"
+            ],
+            "timestamp": "2023-09-22T09:54:14"
+        },
+        "2023.1.11": {
+            "changes": [
+                "Feature: Added 'completed' column in 'dateranges' dataset",
+                "Feature: Use Per-Site reduced Dates in Calendar",
+                "Fix: Use Time Profile according to opening hours on disabled Time Filter"
+            ],
+            "timestamp": "2023-09-06T11:42:40"
+        },
+        "2023.1.10": {
+            "changes": [
+                "Fix: Fix incorrect 'count_days' function in database"
+            ],
+            "timestamp": "2023-09-01T08:43:39"
+        },
+        "2023.1.9": {
+            "changes": [
+                "Fix: Include holiday files from data library based on country of site instead of operating country",
+                "Fix: Fix broken interaction page when site 'short_name' is missing",
+                "Fix: Fix wrong computation of base data block IDs in database"
+            ],
+            "timestamp": "2023-08-29T16:05:59"
+        },
+        "2023.1.8": {
+            "changes": [
+                "Fix: Add missing column alias in dataset query",
+                "Fix: Fix broken recomputation of data block IDs",
+                "Fix: Fix broken GraphQL dateranges fetcher"
+            ],
+            "timestamp": "2023-08-24T07:40:14"
+        },
+        "2023.1.7": {
+            "changes": [
+                "Fix: Mitigate report timeout issues",
+                "Fix: Correct calendar navigation",
+                "Fix: Ensure report also shows interactions to inaccessible sites",
+                "Fix: Visitor origin quantiles shows only site location",
+                "Fix: GSS should ignore stay duration as key column"
+            ],
+            "timestamp": "2023-08-23T11:53:40"
+        },
+        "2023.1.6": {
+            "changes": [
+                "Fix: Correct trend computation in dashboard",
+                "Fix: Visitor trend visualization in report",
+                "Fix: Filter site statistics per area of origin by time profile",
+                "Fix: Ensure only accessible sites are displayed on overview page"
+            ],
+            "timestamp": "2023-08-21T18:49:53"
+        },
+        "2023.1.5": {
+            "changes": [
+                "Fix: Correct data block lookup",
+                "Fix: Correct missing data query"
+            ],
+            "timestamp": "2023-08-17T12:39:49"
+        },
+        "2023.1.4": {
+            "changes": [
+                "Fix: Use correct translation keys in reports",
+                "Fix: Correct opening hours with new platform release"
+            ],
+            "timestamp": "2023-08-17T06:47:52"
+        },
+        "2023.1.3": {
+            "changes": [
+                "Fix: Correct Database schema modernization",
+                "Fix: Correct site statistics per area of origin dataset query",
+                "Fix: Correct BaseLayers and CatchmentAreas import behavior when updating"
+            ],
+            "timestamp": "2023-08-11T05:08:20"
+        },
+        "2023.1.2": {
+            "changes": [
+                "Fix: Correct computation of time profiles for over-midnight visits"
+            ],
+            "timestamp": "2023-08-08T15:58:42"
+        },
+        "2023.1.1": {
+            "changes": [
+                "Feature: Analytics Platform 1.13.2",
+                "Fix: Correct time slider behavior in dashboard",
+                "Fix: Correct handling of opening hours with unspecified closing time",
+                "Fix: Correct handling of midnight-crossing opening hours",
+                "Fix: Display of correct weather for site",
+                "Fix: Correct replacement of '_' with '-' in site IDs in database patch"
+            ],
+            "timestamp": "2023-08-08T08:52:38"
+        },
+        "2023.1.0": {
+            "changes": [
+                "Feature: Analytics Platform 1.12.1",
+                "Feature: Application Engine 1.0.6",
+                "Feature: Automatic country detection for sites",
+                "Feature: Change-dependent site extrapolation factors",
+                "Feature: Configurable intervals for time-based charts",
+                "Feature: Downloadable product configuration template",
+                "Feature: Filtering by time profile in all visualizations",
+                "Feature: Improved performance through spatial prefiltering of trajectories",
+                "Feature: New opening hours format",
+                "Feature: New report with comparison mode",
+                "Feature: Partitioning of statistics tables in database",
+                "Feature: Query optimizations",
+                "Feature: Stability improvements",
+                "Feature: Streamlined product configuration",
+                "Feature: Support for Azure Synapse",
+                "Feature: Support for opening hours crossing day boundaries",
+                "Feature: Validation of product configuration",
+                "Fix: Consistent statistics when computing distributions with GSS",
+                "Fix: Consistent translations for English, German, Slovenian and Serbian",
+                "Fix: Cosmetic changes in frontend",
+                "Fix: UI/UX fixes in calendar and various charts",
+                "Fix: Various bug fixes in analytics",
+                "Internal: Alignment of container images and NFPM packages",
+                "Internal: Correct initialization of runtime directories",
+                "Internal: GraphQL interface",
+                "Internal: OS Packaging via NFPM",
+                "Internal: Support for both Docker and Podman in build",
+                "Internal: Tooling improvements",
+                "Internal: Upgrade Node to version 18"
+            ],
+            "timestamp": "2023-07-26T14:32:09"
+        },
+        "2022.1.12": {
+            "changes": [
+                "Fix: Application menu no longer overflows in case of many application instances",
+                "Fix: Corrected some wrong translations for English and Slovenian"
+            ],
+            "timestamp": "2022-11-28T10:07:32"
+        },
+        "2022.1.11": {
+            "changes": [
+                "Fix: TimeProfileFactory now treats end of opening hour aka timeRange as inclusive"
+            ],
+            "timestamp": "2022-10-21T07:10:41"
+        },
+        "2022.1.10": {
+            "changes": [
+                "Feature: Update translations"
+            ],
+            "timestamp": "2022-10-20T13:24:56"
+        },
+        "2022.1.9": {
+            "changes": [
+                "Fix: Do not write rows with 'n' = 0 to database"
+            ],
+            "timestamp": "2022-10-19T04:59:26"
+        },
+        "2022.1.8": {
+            "changes": [
+                "Fix: TimeProfileFactory truncates minutes in timeRanges to zero to avoid wrong TimeProfile creation"
+            ],
+            "timestamp": "2022-10-11T14:18:00"
+        },
+        "2022.1.7": {
+            "changes": [
+                "Replace 'null' country_codes in output files from analytics with empty string"
+            ],
+            "timestamp": "2022-10-10T09:09:03"
+        },
+        "2022.1.6": {
+            "changes": [
+                "Fix import error due to missing type for 'country_code'"
+            ],
+            "timestamp": "2022-10-06T09:54:32"
+        },
+        "2022.1.5": {
+            "changes": [
+                "Bugfix: Consistent handling of country codes",
+                "Allow to configure GSS action name in configuration"
+            ],
+            "timestamp": "2022-10-05T12:40:24"
+        },
+        "2022.1.4": {
+            "changes": [
+                "Bugfix: Correct merging of aggregation strategy configuration"
+            ],
+            "timestamp": "2022-09-30T08:56:44"
+        },
+        "2022.1.3": {
+            "changes": [
+                "Bugfix: Prevent integer overflow in site_statistics_per_country_of_origin and site_statistics_per_area_of_origin"
+            ],
+            "timestamp": "2022-09-28T10:52:01"
+        },
+        "2022.1.2": {
+            "changes": [
+                "Fix: Correct database schema"
+            ],
+            "timestamp": "2022-09-22T09:42:48"
+        },
+        "2022.1.1": {
+            "changes": [
+                "Fix: Inconsistent data block ID behavior",
+                "Fix: Mark date as imported even if statistics tables are missing"
+            ],
+            "timestamp": "2022-09-21T11:54:34"
+        },
+        "2022.1.0": {
+            "changes": [
+                "Use new extrapolation based on platform 1.9.4",
+                "Fix: Integer overflow for avg_duration_of_stay col in site_statistics table",
+                "Disable duration of stay selector via enabled_features",
+                "Replace packageSuffix correctly when building RPM and DEB packages"
+            ],
+            "timestamp": "2022-09-20T06:12:43"
+        },
+        "2.3.2": {
+            "changes": [
+                "Fix: Show application switcher even with only one application"
+            ],
+            "timestamp": "2022-06-28T12:19:45"
+        },
+        "2.3.1": {
+            "changes": [
+                "Skip aggregations that are not used by enabled features"
+            ],
+            "timestamp": "2022-06-20T09:02:29"
+        },
+        "2.3.0": {
+            "changes": [
+                "Add support for Cloudera 7",
+                "Add support for Group Statistics Service (GSS)",
+                "Disable duration of stay selector via enabled_features"
+            ],
+            "timestamp": "2022-05-31T09:42:11"
+        },
+        "2.2.1": {
+            "changes": [
+                "Fix bug in computation of date ranges to recompute"
+            ],
+            "timestamp": "2022-03-09T07:25:57"
+        },
+        "2.2.0": {
+            "changes": [
+                "Allow multiple analysis dateranges"
+            ],
+            "timestamp": "2022-03-07T11:01:07"
+        },
+        "2.1.6": {
+            "changes": [
+                "Fix bug in site opening hours query",
+                "Improve performance of site opening hours query"
+            ],
+            "timestamp": "2022-03-03T13:50:19"
+        },
+        "2.1.5": {
+            "changes": [
+                "Allow ceasing computation by clearing enabled sites in change.json"
+            ],
+            "timestamp": "2022-03-02T12:00:17"
+        },
+        "2.1.4": {
+            "changes": [
+                "Fix import order of enabled sites",
+                "Make import of date ranges more robust",
+                "Do not update aggregations on base data import"
+            ],
+            "timestamp": "2022-02-28T17:01:37"
+        },
+        "2.1.3": {
+            "changes": [
+                "Use application instance name as customer name in report"
+            ],
+            "timestamp": "2022-02-24T11:18:46"
+        },
+        "2.1.2": {
+            "changes": [
+                "Bugfix(backend): Fix query in site-statistics-per-area-of-origin.sql",
+                "Bugfix(backend): Fix trends",
+                "Bugfix(backend): Fix data-quality csv files are not imported on daily jobs"
+            ],
+            "timestamp": "2022-02-21T12:32:44"
+        },
+        "2.1.1": {
+            "changes": [
+                "No changes"
+            ],
+            "timestamp": "2022-02-17T18:56:54"
+        },
+        "2.1.0": {
+            "changes": [
+                "Update to Application Engine 0.9.2",
+                "Add shared configuration GraphQL endpoint",
+                "Make POI scores, site opening hours and enabled sites dependent on change number"
+            ],
+            "timestamp": "2022-02-16T11:47:12"
+        },
+        "2.0.7": {
+            "changes": [
+                "Package suffix Support",
+                "Fix: Ensure weather data is imported correctly"
+            ],
+            "timestamp": "2022-01-18T13:23:12"
+        },
+        "2.0.6": {
+            "changes": [
+                "Fix: Expand analysis daterange for inclusion of proper files in job archive"
+            ],
+            "timestamp": "2021-12-15T11:51:23"
+        },
+        "2.0.5": {
+            "changes": [
+                "Fix: Import of sites, competitor sites and POI scores now works as expected",
+                "Fix: Switching between layers in origin analysis is working now",
+                "Fix: Correct hover behavior in map view"
+            ],
+            "timestamp": "2021-12-09T14:09:08"
+        },
+        "2.0.4": {
+            "changes": [
+                "Fix: Trigger page reload if API call returns HTTP 401"
+            ],
+            "timestamp": "2021-11-18T08:19:55"
+        },
+        "2.0.3": {
+            "changes": [
+                "Fix: Missing-Data and all-data with future end date only returns block ids up to date::now()"
+            ],
+            "timestamp": "2021-11-17T11:08:14"
+        },
+        "2.0.2": {
+            "changes": [
+                "Fix: Ensure management-summary binary is executable",
+                "Fix: Ensure enabled sites are imported correctly"
+            ],
+            "timestamp": "2021-11-16T18:51:51"
+        },
+        "2.0.1": {
+            "changes": [
+                "Fix: Add missing report files in RPM",
+                "Fix: Correct regionsForExtrapolation default value"
+            ],
+            "timestamp": "2021-11-11T09:18:38"
+        },
+        "2.0.0": {
+            "changes": [
+                "Initial Release"
+            ],
+            "timestamp": "2021-11-10T11:51:44"
+        }
+    }
+}

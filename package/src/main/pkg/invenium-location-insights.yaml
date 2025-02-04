@@ -1,0 +1,75 @@
+name: "invenium-location-insights${PACKAGE_SUFFIX}"
+arch: "amd64"
+platform: "linux"
+version: "${VERSION}"
+release: "${RELEASE}"
+section: "default"
+priority: "extra"
+maintainer: "Invenium Data Insights <devops@invenium.io>"
+description: |
+  This package provides the Invenium Location Insights Application.
+vendor: "Invenium Data Insights GMBH"
+homepage: "https://www.invenium.io"
+license: Proprietary
+#changelog: "changelog.yaml"
+disable_globbing: false
+contents:
+  # dashboard
+  - src: ./location-insights.jar
+    dst: /usr/share/invenium/location-insights${PACKAGE_SUFFIX}/location-insights.jar
+
+  - src: ./contrib/application.yml
+    dst: /etc/invenium/location-insights${PACKAGE_SUFFIX}/application.yml
+    type: config|noreplace
+
+  - src: ./contrib/sysconfig-invenium-location-insights
+    dst: /etc/sysconfig/invenium-location-insights${PACKAGE_SUFFIX}
+    type: config|noreplace
+
+  - src: ./contrib/invenium-location-insights.service
+    dst: /lib/systemd/system/invenium-location-insights${PACKAGE_SUFFIX}.service
+
+  - src: ./contrib/98-invenium-location-insights.preset
+    dst: /usr/lib/systemd/system-preset/98-invenium-location-insights${PACKAGE_SUFFIX}.preset
+
+  # analytics
+  - src: ./contrib/location-insights-analytics-job-template.json
+    dst: /usr/share/invenium/analytics/doc/location-insights-analytics-job-template${PACKAGE_SUFFIX}.json
+
+  - src: ./location-insights-analytics-spark-job.jar
+    dst: /usr/share/invenium/analytics/location-insights-analytics-spark-job${PACKAGE_SUFFIX}.jar
+
+  # report
+  - src: ./report-model-generator/location-insights-model-generator-linux
+    dst: /usr/share/invenium/location-insights${PACKAGE_SUFFIX}/report-model-generator
+    file_info:
+      mode: 0755
+
+  - src: ./report-generator/location-insights-report-generator-linux
+    dst: /usr/share/invenium/location-insights${PACKAGE_SUFFIX}/report-generator
+    file_info:
+      mode: 0755
+
+  # container image specific
+  - src: ./contrib/run-location-insights.sh
+    dst: /usr/share/invenium/run-location-insights${PACKAGE_SUFFIX}.sh
+    file_info:
+      mode: 0755
+
+
+# Scripts to run at specific stages. (overridable)
+scripts:
+  preinstall: ./scripts/preinstall.sh
+  postinstall: ./scripts/postinstall.sh
+  postremove: ./scripts/postremove.sh
+
+
+overrides:
+  deb:
+    depends:
+      - default-jre (>= 2:1.11)
+      - postgresql-client (>= 14)
+  rpm:
+    depends:
+      - jre-11
+      - postgresql >= 14.0

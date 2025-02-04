@@ -1,9 +1,9 @@
 import os.path
 import sqlite3
 
-from python.data.configuration import Configuration
 from python.data import Listing, AttributeDef, Distance
-from python.database.IBaseDatabase import IBaseDatabase
+from python.data.configuration import Configuration
+from python.database.IBaseDatabase import IBaseDatabase, all_patches
 from python.database.patches import IBasePatch
 
 
@@ -115,18 +115,14 @@ class SQLite(IBaseDatabase):
         except Exception as e:
             max = -1
 
-        all_patches = [patch for patch in self.__all_patches("sqlite") if patch.number > max]
+        ps = [patch for patch in all_patches("sqlite") if patch.number > max]
 
-        if len(all_patches) > 0:
-            module = __import__("python.database.patches.sqlite")
-            for patch in sorted(all_patches):
-                class_ = getattr(module, patch.file_name)
+        if len(ps) > 0:
+            for patch in sorted(ps, key=lambda p: p.number):
+                module = __import__("python.database.patches.sqlite." + patch.module_name)
+                class_ = getattr(module, patch.name)
                 instance: IBasePatch = class_()
                 instance.run(self)
-
-
-
-
 
 
 def db(config: Configuration = None):

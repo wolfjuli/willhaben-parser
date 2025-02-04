@@ -1,0 +1,6 @@
+ktor:
+  application:
+    modules:
+      - solutions.lykos.willhaben.parser.backend.ServerKt.module
+  deployment:
+    port: 8080

@@ -2,15 +2,14 @@ import sqlite3
 
 from python.database.patches.IBasePatch import IBasePatch
 from python.database.sqlite import SQLite
-from python.server import db
-from python.data.configuration import build_configuration
 
 
-class Patch0(IBasePatch):
+class Base(IBasePatch):
     def run(self, db: SQLite):
         print("running Patch 0")
         c = db.cursor()
         sql = ";\n".join([
+            self.schema_versions,
             self.listings,
             self.distances,
             self.attribute_keys,
@@ -21,7 +20,9 @@ class Patch0(IBasePatch):
         try:
             c.executescript(f"""
             BEGIN;
-                {sql}
+                {sql};
+
+                INSERT INTO schema_versions(id, name) values (0, 'Init');
             COMMIT;
             """)
         except sqlite3.Error as e:
@@ -29,6 +30,12 @@ class Patch0(IBasePatch):
             c.rollback()
 
     def __init__(self):
+        self.schema_versions = """
+        CREATE TABLE schema_versions(
+            id INT NOT NULL PRIMARY KEY ,
+            name TEXT,
+            created timestamp DEFAULT current_timestamp
+        )"""
         self.listings = """
         CREATE TABLE listings(
             id int primary key autoincrement ,
@@ -52,7 +59,7 @@ class Patch0(IBasePatch):
         to_lat real not null,
         to_long real not null,
         to_address text,
-        distance int not null        
+        distance int not null
         )
         """
         self.attributes = """
