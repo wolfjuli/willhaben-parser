@@ -28,6 +28,7 @@
         <graphql.version>7.0.2</graphql.version>
         <indriya.version>2.1.4</indriya.version>
         <javax.json.version>1.1.4</javax.json.version>
+        <javax.measure.version>2.2</javax.measure.version>
         <jaxb-runtime.version>2.3.8</jaxb-runtime.version>
         <jetty.version>11.0.12</jetty.version>
         <jts.version>1.19.0</jts.version>

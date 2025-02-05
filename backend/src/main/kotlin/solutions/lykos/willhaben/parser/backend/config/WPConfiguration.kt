@@ -5,5 +5,7 @@ import solutions.lykos.willhaben.parser.backend.config.logging.LoggingConfigurat
 class WPConfiguration {
     lateinit var server: ConnectorConfiguration
     lateinit var database: DatabaseConfiguration
+    var crawler: CrawlerConfiguration = CrawlerConfiguration()
     var logger: LoggingConfiguration = LoggingConfiguration()
+
 }

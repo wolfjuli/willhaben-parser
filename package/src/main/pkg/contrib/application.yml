@@ -1,24 +1,21 @@
 server:
-  application:
-    host: 127.0.0.1
-    portRangeFrom: 9000
-    portRangeTo: 9500
+  host: 127.0.0.1
+  port: 9191
 
+database:
+  host: localhost
+  name: willhaben
+  user: willhaben
+  password: willhaben
   admin:
-    host: 127.0.0.1
-    portRangeFrom: 9000
-    portRangeTo: 9500
+    user: postgres
+    password: postgres
 
-applicationEngine:
-  application:
-    host: 127.0.0.1
-    port: 8080
-  admin:
-    host: 127.0.0.1
-    port: 8081
-  requestTimeoutInSeconds: 0
-  socketTimeoutInSeconds: 0
-  connectTimeoutInSeconds: 10
+
+crawler:
+  interval:
+    - 60 # Minutes
+    - 180 # Minutes
 
 logger:
   level: INFO
@@ -26,108 +23,3 @@ logger:
     - type: console
       filters:
         - all #lowercase!
-
-databaseAdminCredentials:
-  - /etc/invenium/application-engine/database-admin-credentials.yml
-
-job:
-  jar: /usr/share/invenium/analytics/location-insights-analytics-spark-job${PACKAGE_SUFFIX}.jar
-  preset: standard
-  runtime: analytics-platform/{platformVersion}
-  gssActionName: resolve-gss-data-2023.1
-  asanaURL: https://app.asana.com/0/1201113265071950/1209191661722596/f
-  defaultParameters:
-    legacyMode: false
-    arrivalAndDepartureResolution: 60 min
-    visitorsOverTimeResolution: 10 min
-    visitorReturnInterval: 60 min
-    stayDurationResolution: 10 min
-    minStayDuration: 15 min
-    maxStayDuration: 5 h
-    mergeThreshold: 120 min
-    defaultPoiScore: 0.5
-    weightSpeed: 5.0
-    weightDistance: 150.0
-    minScore: 0.1
-    maxDistanceToSite: 800 m
-    speedWindowSize: 4
-
-dataLibrary:
-  local:
-    dir: /var/lib/invenium/shared/data-library
-    layout:
-      layers:
-        - layers/{country}/{layer}-{fromDate}--{toDate}.geojson
-        - layers/{layer}-{fromDate}--{toDate}.geojson
-      holidays:
-        regions: holidays/holiday-regions/{country}/holiday-regions-infinite--infinite.geojson
-        public: holidays/public-holidays/{platformVersion}/{country}/public-holidays-infinite--infinite.csv
-
-clusterPaths:
-  trajectories:
-    - operatingCountry: AT
-      operator: A1 Telekom Austria
-      path: data-library:/configurations/pipelines/{pipeline}/{country}/{operator}/{platformVersion}/configuration.json
-    - operatingCountry: SI
-      operator: A1 Slovenija
-      path: data-library:/configurations/pipelines/{pipeline}/{country}/{operator}/{platformVersion}/configuration.json
-    - operatingCountry: DE
-      operator: Telefonica
-      path: data-library:/configurations/pipelines/{pipeline}/{country}/{operator}/{platformVersion}/configuration.json
-  weatherMeasurements:
-    - shared-data:/weather/weather_measurements/{country}/{year}/{month}/{day}/weather_measurements.csv
-  dataQuality:
-    - shared-data:/data_quality/{country}/{year}/{month}/{day}/data_quality.csv
-
-aggregationStrategies:
-  DE:
-    Telefonica: GSS
-
-tilesets:
-  - id: default-vector-light
-    name: Default Light Vector Tileset
-    type: VECTOR
-    url: https://tiles.mobilityinsights.at/styles/positron/style.json
-  - id: default-vector-dark
-    name: Default Dark Vector Tileset
-    type: VECTOR
-    url: https://tiles.mobilityinsights.at/styles/dark-matter/style.json
-  - id: default-raster-light
-    name: Default Light Raster Tileset
-    type: RASTER
-    url: https://tiles.mobilityinsights.at/styles/positron/{z}/{x}/{y}.png
-  - id: default-raster-dark
-    name: Default Dark Raster Tileset
-    type: RASTER
-    url: https://tiles.mobilityinsights.at/styles/dark-matter/{z}/{x}/{y}.png
-
-defaultTilesets:
-  dashboard-light: default-vector-light
-  dashboard-dark: default-vector-dark
-  report: default-vector-light
-
-report:
-  modelGenerator: /usr/share/invenium/location-insights${PACKAGE_SUFFIX}/report-model-generator
-  reportGenerator: /usr/share/invenium/location-insights${PACKAGE_SUFFIX}/report-generator
-  # proxy: zproxy.a1.inside:443
-  # keepTempDir: true
-  # verbose: true
-  templates:
-    dir: /usr/share/invenium/shared/templates/report
-    introduction:
-      - "{country}/{operator}/terms-and-conditions-{locale}.md"
-      - "{country}/{operator}/method-{locale}.md"
-
-visitorAggregationInterval: 10
-visitorAggregationMinimum: 20
-numberOfReferencePeriods: 3
-concurrentReportDownloads: 5
-trendThreshold: 0.02
-
-#realtime:
-#  interval: '1 min'
-#  retention: '25 h'
-#  targetUrl: 'https://rmqs.mobilityinsights.at/api/graphql'
-#  user: 'invenium'
-#  password: 'PASSWORD'
-#  extrapolationFactor: 1.22
