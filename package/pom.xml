@@ -5,87 +5,17 @@
     <modelVersion>4.0.0</modelVersion>
 
     <name>Location Insights: Package</name>
-    <artifactId>location-insights-package</artifactId>
+    <artifactId>willhaben-parser-package</artifactId>
     <parent>
-        <groupId>io.invenium.locationinsights</groupId>
-        <artifactId>location-insights-parent</artifactId>
-        <version>2025.1.1-SNAPSHOT</version>
+        <groupId>solutions.lykos.willhaben.parser</groupId>
+        <artifactId>willhaben-parser-parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
     <packaging>jar</packaging>
 
     <build>
         <testSourceDirectory>src/test/kotlin</testSourceDirectory>
         <plugins>
-            <plugin>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>copy</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${project.build.directory}</outputDirectory>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>io.invenium.locationinsights</groupId>
-                                    <artifactId>location-insights-backend</artifactId>
-                                    <version>${project.version}</version>
-                                    <type>jar</type>
-                                    <classifier>shaded</classifier>
-                                    <destFileName>location-insights.jar</destFileName>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>io.invenium.locationinsights</groupId>
-                                    <artifactId>location-insights-analytics</artifactId>
-                                    <version>${project.version}</version>
-                                    <type>jar</type>
-                                    <classifier>shaded</classifier>
-                                    <destFileName>location-insights-analytics-spark-job.jar</destFileName>
-                                </artifactItem>
-                            </artifactItems>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>copy-analytics-to-test</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>copy</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${project.build.testOutputDirectory}</outputDirectory>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>io.invenium.locationinsights</groupId>
-                                    <artifactId>location-insights-analytics</artifactId>
-                                    <version>${project.version}</version>
-                                    <type>jar</type>
-                                    <classifier>shaded</classifier>
-                                    <destFileName>location-insights-analytics-spark-job.jar</destFileName>
-                                </artifactItem>
-                            </artifactItems>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>copy-job-dependencies</id>
-                        <goals>
-                            <goal>unpack</goal>
-                        </goals>
-                        <phase>pre-integration-test</phase>
-                        <configuration>
-                            <outputDirectory>${project.build.directory}/job-dependencies</outputDirectory>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>io.invenium.locationinsights</groupId>
-                                    <artifactId>location-insights-analytics-dependencies</artifactId>
-                                    <version>${project.version}</version>
-                                    <type>zip</type>
-                                </artifactItem>
-                            </artifactItems>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
@@ -106,47 +36,7 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>${exec-maven-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <id>copy-report-binary</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                        <configuration>
-                            <executable>cp</executable>
-                            <arguments>
-                                <argument>-r</argument>
-                                <argument>${project.parent.basedir}/frontend/legacy/report-generator/pkg/</argument>
-                                <argument>
-                                    ${project.build.directory}/report-generator
-                                </argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>copy-model-generator-binary</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                        <configuration>
-                            <executable>cp</executable>
-                            <arguments>
-                                <argument>-r</argument>
-                                <argument>${project.parent.basedir}/frontend/legacy/model-generator/pkg/</argument>
-                                <argument>
-                                    ${project.build.directory}/report-model-generator
-                                </argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+
 
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
@@ -217,12 +107,13 @@
                                     <executable>mkdir</executable>
                                     <workingDirectory>${project.basedir}/target/</workingDirectory>
                                     <arguments>
+                                        <argument>-pv</argument>
                                         <argument>os-pkg</argument>
                                     </arguments>
                                 </configuration>
                             </execution>
                             <execution>
-                                <id>package-os-location-insights</id>
+                                <id>package-os-willhaben-parser</id>
                                 <phase>package</phase>
                                 <goals>
                                     <goal>exec</goal>
@@ -234,22 +125,14 @@
                                         <argument>--content</argument>
                                         <argument>src/main/pkg/contrib#contrib</argument>
                                         <argument>src/main/pkg/scripts#scripts</argument>
-                                        <argument>src/main/pkg/invenium-location-insights.yaml#nfpm.yaml</argument>
-                                        <argument>target/location-insights.jar#location-insights.jar</argument>
-                                        <argument>
-                                            target/location-insights-analytics-spark-job.jar#location-insights-analytics-spark-job.jar
-                                        </argument>
-                                        <argument>
-                                            target/report-model-generator/location-insights-model-generator-linux#report-model-generator/location-insights-model-generator-linux
-                                        </argument>
-                                        <argument>
-                                            target/report-generator/location-insights-report-generator-linux#report-generator/location-insights-report-generator-linux
+                                        <argument>src/main/pkg/willhaben-parser.yaml#nfpm.yaml</argument>
+                                        <argument>target/willhaben-parser-${project.version}.jar#willhaben-parser.jar
                                         </argument>
                                         <argument>--version</argument>
                                         <argument>${project.version}</argument>
                                         <argument>--variables</argument>
                                         <argument>PACKAGE_SUFFIX=${packageSuffix}</argument>
-                                        <argument>PACKAGE_NAME=invenium-location-insights</argument>
+                                        <argument>PACKAGE_NAME=willhaben-parser</argument>
                                         <argument>--commands</argument>
                                         <argument>nfpm pkg --packager rpm --target ${project.basedir}/target/os-pkg
                                         </argument>
@@ -315,7 +198,7 @@
                                 </configuration>
                             </execution>
                             <execution>
-                                <id>package-os-location-insights-container</id>
+                                <id>package-os-willhaben-parser-container</id>
                                 <phase>package</phase>
                                 <goals>
                                     <goal>exec</goal>
@@ -327,22 +210,13 @@
                                         <argument>--content</argument>
                                         <argument>src/main/pkg/contrib#contrib</argument>
                                         <argument>src/main/pkg/scripts#scripts</argument>
-                                        <argument>src/main/pkg/invenium-location-insights.yaml#nfpm.yaml</argument>
-                                        <argument>target/location-insights.jar#location-insights.jar</argument>
-                                        <argument>
-                                            target/location-insights-analytics-spark-job.jar#location-insights-analytics-spark-job.jar
-                                        </argument>
-                                        <argument>
-                                            target/report-model-generator/location-insights-model-generator-linux#report-model-generator/location-insights-model-generator-linux
-                                        </argument>
-                                        <argument>
-                                            target/report-generator/location-insights-report-generator-linux#report-generator/location-insights-report-generator-linux
-                                        </argument>
+                                        <argument>src/main/pkg/invenium-willhaben-parser.yaml#nfpm.yaml</argument>
+                                        <argument>target/willhaben-parser.jar#willhaben-parser.jar</argument>
                                         <argument>--version</argument>
                                         <argument>${project.version}</argument>
                                         <argument>--variables</argument>
                                         <argument>PACKAGE_SUFFIX=${packageSuffix}</argument>
-                                        <argument>PACKAGE_NAME=invenium-location-insights</argument>
+                                        <argument>PACKAGE_NAME=invenium-willhaben-parser</argument>
                                         <argument>--commands</argument>
                                         <argument>nfpm pkg --packager deb --target ${project.basedir}/target/container
                                         </argument>
@@ -391,9 +265,9 @@
                             </authConfig>
                             <images>
                                 <image>
-                                    <alias>location-insights</alias>
+                                    <alias>willhaben-parser</alias>
                                     <name>
-                                        ${docker-registry-invenium.host}/invenium/location-insights:${dockerImageTag}
+                                        ${docker-registry-invenium.host}/invenium/willhaben-parser:${dockerImageTag}
                                     </name>
                                     <build>
                                         <contextDir>${project.build.directory}</contextDir>

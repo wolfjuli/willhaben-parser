@@ -1,0 +1,57 @@
+name: "willhaben-parser${PACKAGE_SUFFIX}"
+arch: "amd64"
+platform: "linux"
+version: "${VERSION}"
+release: "${RELEASE}"
+section: "default"
+priority: "extra"
+maintainer: "Julian Wolf"
+description: |
+  This package provides the Lykos Solutions WillHabenParser
+vendor: "Lykos Solutions"
+homepage: "https://lykos.solutions"
+license: Proprietary
+#changelog: "changelog.yaml"
+disable_globbing: false
+contents:
+  # dashboard
+  - src: ./willhaben-parser.jar
+    dst: /usr/share/lykos/willhaben-parser${PACKAGE_SUFFIX}/willhaben-parser.jar
+
+  - src: ./contrib/application.yml
+    dst: /etc/lykos/willhaben-parser${PACKAGE_SUFFIX}/application.yml
+    type: config|noreplace
+
+  - src: ./contrib/sysconfig-willhaben-parser
+    dst: /etc/sysconfig/willhaben-parser${PACKAGE_SUFFIX}
+    type: config|noreplace
+
+  - src: ./contrib/willhaben-parser.service
+    dst: /lib/systemd/system/willhaben-parser${PACKAGE_SUFFIX}.service
+
+  - src: ./contrib/98-willhaben-parser.preset
+    dst: /usr/lib/systemd/system-preset/98-willhaben-parser${PACKAGE_SUFFIX}.preset
+
+  # container image specific
+  - src: ./contrib/run-willhaben-parser.sh
+    dst: /usr/share/lykos/run-willhaben-parser${PACKAGE_SUFFIX}.sh
+    file_info:
+      mode: 0755
+
+
+# Scripts to run at specific stages. (overridable)
+scripts:
+  preinstall: ./scripts/preinstall.sh
+  postinstall: ./scripts/postinstall.sh
+  postremove: ./scripts/postremove.sh
+
+
+overrides:
+  deb:
+    depends:
+      - default-jre (>= 2:1.11)
+      - postgresql-client (>= 14)
+  rpm:
+    depends:
+      - jre-11
+      - postgresql >= 14.0

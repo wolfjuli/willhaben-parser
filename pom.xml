@@ -355,33 +355,5 @@
                 <dockerImageTag>${env.BRANCH_INFO}</dockerImageTag>
             </properties>
         </profile>
-        <profile>
-            <id>check-lts-version</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>exec-maven-plugin</artifactId>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <version>1.6.0</version>
-                        <inherited>false</inherited>
-                        <executions>
-                            <execution>
-                                <id>Check LTS Version</id>
-                                <phase>validate</phase>
-                                <goals>
-                                    <goal>exec</goal>
-                                </goals>
-                                <configuration>
-                                    <executable>check-lts-version.sh</executable>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
     </profiles>
 </project>
