@@ -17,6 +17,7 @@ import solutions.lykos.willhaben.parser.backend.config.ConnectorConfiguration
 import solutions.lykos.willhaben.parser.backend.config.CrawlerConfiguration
 import solutions.lykos.willhaben.parser.backend.config.WPConfiguration
 import solutions.lykos.willhaben.parser.backend.crawler.Crawler
+import solutions.lykos.willhaben.parser.backend.postgresql.DatabaseManager
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -26,6 +27,22 @@ object Server {
     @JvmStatic
     fun main(args: Array<String>) {
         val configuration = readConfiguration(args)
+        val databaseManager =
+            DatabaseManager(
+                javaClass.classLoader.getResource("solutions/lykos/willhaben/parser/sql")!!,
+                listOf("postgis", "pgcrypto")
+            )
+
+        if (args.contains("setup")) {
+            databaseManager.setup(configuration.database)
+            return
+        }
+
+        if (args.contains("destroy")) {
+            databaseManager.destroy(configuration.database)
+            return
+        }
+
         val server = createServer(configuration)
         val crawler = Crawler(configuration)
 
@@ -105,7 +122,7 @@ object Server {
                 call.respond(mapOf("error" to "Use /api/v1 or have a look at /documentation"))
             }
             get("/api/v1") {
-                call.respond(CrawlerConfiguration().apply { interval = emptyList() })
+                call.respond(CrawlerConfiguration())
             }
         }
     }

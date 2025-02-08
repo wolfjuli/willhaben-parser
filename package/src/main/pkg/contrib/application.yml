@@ -12,11 +12,6 @@ database:
     password: postgres
 
 
-crawler:
-  interval:
-    - 60 # Minutes
-    - 180 # Minutes
-
 logger:
   level: INFO
   appenders:

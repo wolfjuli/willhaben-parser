@@ -1,7 +1,11 @@
 package solutions.lykos.willhaben.parser.backend.crawler
 
-import org.postgresql.ds.PGSimpleDataSource
+import org.slf4j.LoggerFactory
 import solutions.lykos.willhaben.parser.backend.config.WPConfiguration
+import solutions.lykos.willhaben.parser.backend.jsonObjectMapper
+import solutions.lykos.willhaben.parser.backend.parser.parse
+import solutions.lykos.willhaben.parser.backend.postgresql.DataSource
+import java.io.File
 import kotlin.concurrent.thread
 
 class Crawler(
@@ -10,15 +14,10 @@ class Crawler(
     private var currentThread: Thread? = null
     private var stop: Boolean = false
 
-    private val dataSource = with(configuration) {
-        PGSimpleDataSource().apply {
-            serverNames = arrayOf(database.host)
-            portNumbers = intArrayOf(database.port)
-            databaseName = database.name
-            user = database.user
-            password = database.password
-        }
-    }
+    private val dataSource = DataSource(configuration.database)
+
+    private val logger = LoggerFactory.getLogger(this::class.java)
+
 
     fun start() {
         if (currentThread != null)
@@ -28,8 +27,8 @@ class Crawler(
 
         currentThread = thread {
             while (!stop) {
-                val data = check()
-                write(data)
+                val data = run()
+                //write(data)
                 sleep()
             }
         }
@@ -45,19 +44,28 @@ class Crawler(
         currentThread = null
     }
 
-    private fun check(): CrawlerData {
+    private fun run(): CrawlerData {
+        val data = dataSource.get
+            .watchLists()
+            .parse()
+            .toList()
+
+        val mapper = jsonObjectMapper()
+
+        mapper.writeValue(File("/Users/jwolf/tmp/wh_all.json"), data)
+
+//             .write(
+//                 dataSource.connection
+//             )
+
+
+        logger.debug(data.toString())
         return CrawlerData(emptyList())
     }
 
-    private fun write(data: CrawlerData) {
-
-    }
 
     private fun sleep() {
-        val durationStart = configuration.crawler.interval.first().toLong() * 60 * 1000
-        val durationEnd = configuration.crawler.interval.last().toLong() * 60 * 1000
-
-        val wait = durationStart.rangeTo(durationEnd).random()
+        val wait = 0.rangeTo(configuration.crawler.maxTimeout).random().toLong() * 1000
 
         generateSequence(0) { (it + 500).takeIf { it < wait } }.forEach { _ ->
             Thread.sleep(wait)

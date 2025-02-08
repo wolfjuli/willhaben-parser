@@ -5,6 +5,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.postgresql.ds.PGSimpleDataSource
 import solutions.lykos.willhaben.parser.backend.config.DatabaseConfiguration
+import solutions.lykos.willhaben.parser.backend.config.DatabaseCredentials
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.io.OutputStream
@@ -28,25 +29,21 @@ class DatabaseManager(
         }
 
     private val patchesUrl: URL
-    private val schemaUrl: URL
 
     init {
         val externalForm = baseUrl.toExternalForm().removeSuffix("/")
         patchesUrl = URL("$externalForm/patches")
-        schemaUrl = URL("$externalForm/schema.sql")
     }
 
     fun setup(
-        databaseConfiguration: DatabaseConfiguration,
-        adminCredentials: DatabaseCredentials
+        databaseConfiguration: DatabaseConfiguration
     ): Boolean =
-        create(databaseConfiguration, adminCredentials) &&
-                createDatabaseExtensions(databaseConfiguration, adminCredentials) &&
+        create(databaseConfiguration, databaseConfiguration.admin) &&
+                createDatabaseExtensions(databaseConfiguration, databaseConfiguration.admin) &&
                 createSchema(databaseConfiguration)
 
     fun destroy(
-        databaseConfiguration: DatabaseConfiguration,
-        adminCredentials: DatabaseCredentials
+        databaseConfiguration: DatabaseConfiguration
     ): Boolean {
         System.err.println("Destroying database...")
         val database = databaseConfiguration.name.lowercase().escapeSql()
@@ -58,8 +55,8 @@ class DatabaseManager(
                     runPsql(
                         databaseConfiguration.host,
                         databaseConfiguration.port,
-                        adminCredentials.user,
-                        adminCredentials.password,
+                        databaseConfiguration.admin.user,
+                        databaseConfiguration.admin.password,
                         quiet = true,
                         stdout = stdout
                     ) {
@@ -78,8 +75,8 @@ class DatabaseManager(
                 runPsql(
                     databaseConfiguration.host,
                     databaseConfiguration.port,
-                    adminCredentials.user,
-                    adminCredentials.password
+                    databaseConfiguration.admin.user,
+                    databaseConfiguration.admin.password
                 ) {
                     """
                 REVOKE CONNECT ON DATABASE "$database" FROM PUBLIC;
@@ -98,8 +95,8 @@ class DatabaseManager(
         return runPsql(
             databaseConfiguration.host,
             databaseConfiguration.port,
-            adminCredentials.user,
-            adminCredentials.password
+            databaseConfiguration.admin.user,
+            databaseConfiguration.admin.password
         ) {
             """
             DROP DATABASE IF EXISTS "$database";
@@ -197,6 +194,8 @@ class DatabaseManager(
     }
 
     private fun createSchema(databaseConfiguration: DatabaseConfiguration): Boolean =
+
+        (if (databaseConfiguration.searchPath.contains(","))
         runPsql(
             databaseConfiguration.host,
             databaseConfiguration.port,
@@ -204,6 +203,7 @@ class DatabaseManager(
             databaseConfiguration.password,
             databaseConfiguration.name
         ) {
+
             inputStreamOf(
                 Supplier {
                     val schema =
@@ -211,12 +211,12 @@ class DatabaseManager(
                             .substringBefore(',')
                             .trim()
                             .escapeSql()
-                    "BEGIN;\n\nCREATE SCHEMA $schema\n\n;".byteInputStream()
-                },
-                Supplier { schemaUrl.openStream() },
-                Supplier { "COMMIT;\n\n".byteInputStream() }
+                    "\n\nCREATE SCHEMA $schema\n\n;".byteInputStream()
+                }
             )
-        }
+        } else true) && upgrade(databaseConfiguration, false)
+
+
 
     private fun createDatabaseExtensions(
         databaseConfiguration: DatabaseConfiguration,
@@ -232,7 +232,7 @@ class DatabaseManager(
             extensions.joinToString("") { "CREATE EXTENSION IF NOT EXISTS $it;\n" }.byteInputStream()
         }
 
-    private fun fetchCurrentPatchLevel(databaseConfiguration: DatabaseConfiguration): Int =
+    private fun fetchCurrentPatchLevel(databaseConfiguration: DatabaseConfiguration): Int = try {
         PGSimpleDataSource()
             .apply {
                 databaseName = databaseConfiguration.name
@@ -248,6 +248,9 @@ class DatabaseManager(
                     }
                 }
             }
+    } catch (e: Exception) {
+        0
+    }
 
     private fun runPsql(
         host: String,

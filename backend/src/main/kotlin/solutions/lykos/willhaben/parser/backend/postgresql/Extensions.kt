@@ -2,6 +2,11 @@ package solutions.lykos.willhaben.parser.backend.postgresql
 
 import java.io.InputStream
 import java.io.SequenceInputStream
+import java.sql.ResultSet
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.util.*
 import java.util.function.Supplier
 
@@ -33,3 +38,25 @@ fun String.escapeSql(): String =
             else -> throw IllegalArgumentException("Unhandled character sequence to escape: ${matchResult.value}")
         }
     }
+
+
+inline operator fun <reified T> ResultSet.get(
+    columnName: String,
+    timeZone: ZoneId? = null
+): T =
+    when (T::class) {
+        Boolean::class -> getBoolean(columnName)
+        String::class -> getString(columnName)
+        Int::class -> getInt(columnName)
+        Long::class -> getLong(columnName)
+        Float::class -> getFloat(columnName)
+        ByteArray::class -> getBytes(columnName)
+        LocalDate::class -> LocalDate.parse(getString(columnName))
+        LocalDateTime::class -> LocalDateTime.parse(getString(columnName).replace(" ", "T"))
+        ZonedDateTime::class ->
+            getTimestamp(columnName)
+                .toInstant()
+                .atZone(timeZone ?: ZoneId.systemDefault())
+
+        else -> throw IllegalArgumentException("Unsupported column type ${T::class.qualifiedName}")
+    } as T

@@ -109,6 +109,16 @@
             <artifactId>indriya</artifactId>
             <version>${indriya.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.mohamedrejeb.ksoup</groupId>
+            <artifactId>ksoup-html-jvm</artifactId>
+            <version>${ksoup.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.mohamedrejeb.ksoup</groupId>
+            <artifactId>ksoup-entities-jvm</artifactId>
+            <version>${ksoup.version}</version>
+        </dependency>
 
         <!-- Test Dependencies -->
         <dependency>

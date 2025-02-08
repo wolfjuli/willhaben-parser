@@ -4,10 +4,27 @@ import java.sql.Connection
 import java.sql.ResultSet
 
 class StatementExecutor(
-    basePath: String = "/io/invenium/lamar/backend/postgresql"
+    basePath: String = "/solutions/lykos/willhaben/parser/queries"
 ) {
     private val templateProvider =
         QueryTemplateProvider(javaClass.getResource(basePath)!!)
+
+
+    inline fun <reified T> upsert(
+        connection: Connection,
+        templatePath: String,
+        objects: List<T>,
+        queryParameters: Map<String, Any?> = emptyMap(),
+        noinline transform: (ResultSet) -> T
+    ) {
+
+        execute(
+            connection,
+            templatePath,
+            emptyMap(),
+            queryParameters, transform
+        )
+    }
 
     fun <T> execute(
         connection: Connection,

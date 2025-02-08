@@ -32,7 +32,8 @@
         <jaxb-runtime.version>2.3.8</jaxb-runtime.version>
         <jetty.version>11.0.12</jetty.version>
         <jts.version>1.19.0</jts.version>
-        <kotlin.analytics.version>1.9.10</kotlin.analytics.version>
+        <ksoup.version>0.5.0</ksoup.version>
+        <kotlin.version>2.1.0</kotlin.version>
         <okhttp.version>2.3.4</okhttp.version>
         <pdfbox.version>2.0.8</pdfbox.version>
         <postgis-jdbc.version>2021.1.0</postgis-jdbc.version>
@@ -82,7 +83,6 @@
         <!-- Library versions -->
         <junit-jupiter.version>5.10.0</junit-jupiter.version>
         <junit-platform.version>1.10.0</junit-platform.version>
-        <kotlin.version>1.9.10</kotlin.version>
     </properties>
 
 

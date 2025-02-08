@@ -1,6 +1,6 @@
 package solutions.lykos.willhaben.parser.backend.config
 
-class DatabaseConfiguration : Credentials() {
+class DatabaseConfiguration : DatabaseCredentials() {
     lateinit var name: String
     lateinit var host: String
     var port = 5432
@@ -9,11 +9,5 @@ class DatabaseConfiguration : Credentials() {
     var maximumPoolSize: Int = 10
     var idleTimeout: Int = 300
 
-    lateinit var admin: Credentials
-}
-
-open class Credentials {
-
-    lateinit var user: String
-    lateinit var password: String
+    lateinit var admin: DatabaseCredentials
 }
