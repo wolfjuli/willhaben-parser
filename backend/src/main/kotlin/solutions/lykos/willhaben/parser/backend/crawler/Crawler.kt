@@ -1,10 +1,12 @@
 package solutions.lykos.willhaben.parser.backend.crawler
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import org.slf4j.LoggerFactory
+import solutions.lykos.willhaben.parser.backend.api.wh.WHAdvertSummary
 import solutions.lykos.willhaben.parser.backend.config.WPConfiguration
 import solutions.lykos.willhaben.parser.backend.jsonObjectMapper
-import solutions.lykos.willhaben.parser.backend.parser.parse
 import solutions.lykos.willhaben.parser.backend.postgresql.DataSource
+import solutions.lykos.willhaben.parser.backend.postgresql.useTransaction
 import java.io.File
 import kotlin.concurrent.thread
 
@@ -18,14 +20,13 @@ class Crawler(
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-
     fun start() {
         if (currentThread != null)
             error("Crawler.start called twice")
 
         stop = false
 
-        currentThread = thread {
+        currentThread = thread(name = "Crawler") {
             while (!stop) {
                 val data = run()
                 //write(data)
@@ -44,24 +45,18 @@ class Crawler(
         currentThread = null
     }
 
-    private fun run(): CrawlerData {
-        val data = dataSource.get
-            .watchLists()
-            .parse()
-            .toList()
+    private fun run() {
+        //val currentVersions = dataSource.get.currentVersions()
+        dataSource.connection.useTransaction { transaction ->
 
-        val mapper = jsonObjectMapper()
-
-        mapper.writeValue(File("/Users/jwolf/tmp/wh_all.json"), data)
-
-//             .write(
-//                 dataSource.connection
-//             )
-
-
-        logger.debug(data.toString())
-        return CrawlerData(emptyList())
+//        dataSource.get.watchLists().parse()
+            jsonObjectMapper().readValue<List<WHAdvertSummary>>(File("/Users/jwolf/tmp/wh_all.json"))
+                .asSequence()
+            //.write(transaction)
+        }
     }
+
+
 
 
     private fun sleep() {

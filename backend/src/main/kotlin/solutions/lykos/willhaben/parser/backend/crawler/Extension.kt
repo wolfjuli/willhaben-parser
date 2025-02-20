@@ -1,21 +1,8 @@
 package solutions.lykos.willhaben.parser.backend.crawler
 
-import solutions.lykos.willhaben.parser.backend.api.WHAdvertSummary
-import solutions.lykos.willhaben.parser.backend.jsonObjectMapper
-import solutions.lykos.willhaben.parser.backend.postgresql.useTransaction
-import java.sql.Connection
+import solutions.lykos.willhaben.parser.backend.importer.pipelines.PipelineMessage
+import java.util.*
 
 
-fun Sequence<WHAdvertSummary>.write(connection: Connection) {
-    val mapper = jsonObjectMapper()
-
-    val values = joinToString(",\n") {
-        """(${it.id}, '${it.advertStatus.id}', '${mapper.writeValueAsString(it)}')"""
-    }
-
-    connection.useTransaction {
-
-    }
-
-
-}
+private val writeFlags = EnumSet.of(PipelineMessage.Flags.WRITE)
+private val resolveFlags = EnumSet.noneOf(PipelineMessage.Flags::class.java)

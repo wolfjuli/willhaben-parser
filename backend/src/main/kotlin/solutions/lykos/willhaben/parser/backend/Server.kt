@@ -13,6 +13,8 @@ import io.ktor.server.plugins.openapi.*
 import io.ktor.server.plugins.swagger.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import solutions.lykos.willhaben.parser.backend.assets.AssetProvider
+import solutions.lykos.willhaben.parser.backend.assets.Svelte
 import solutions.lykos.willhaben.parser.backend.config.ConnectorConfiguration
 import solutions.lykos.willhaben.parser.backend.config.CrawlerConfiguration
 import solutions.lykos.willhaben.parser.backend.config.WPConfiguration
@@ -30,7 +32,7 @@ object Server {
         val databaseManager =
             DatabaseManager(
                 javaClass.classLoader.getResource("solutions/lykos/willhaben/parser/sql")!!,
-                listOf("postgis", "pgcrypto")
+                listOf("postgis", "pgcrypto", "postgis_raster")
             )
 
         if (args.contains("setup")) {
@@ -117,10 +119,14 @@ object Server {
     }
 
     private fun Application.configureRouting() {
-        routing {
-            get("/") {
-                call.respond(mapOf("error" to "Use /api/v1 or have a look at /documentation"))
+        install(AssetProvider) {
+            layout = Svelte
+            resourcePath {
+                "solutions/lykos/willhaben/parser/frontend"
             }
+        }
+
+        routing {
             get("/api/v1") {
                 call.respond(CrawlerConfiguration())
             }

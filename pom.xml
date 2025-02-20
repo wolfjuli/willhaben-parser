@@ -36,7 +36,7 @@
         <kotlin.version>2.1.0</kotlin.version>
         <okhttp.version>2.3.4</okhttp.version>
         <pdfbox.version>2.0.8</pdfbox.version>
-        <postgis-jdbc.version>2021.1.0</postgis-jdbc.version>
+        <postgis-jdbc.version>2024.1.0</postgis-jdbc.version>
         <postgresql-jdbc.version>42.5.0</postgresql-jdbc.version>
         <servers-maven-extension.version>1.3.1</servers-maven-extension.version>
         <tyrus.version>2.1.1</tyrus.version>
@@ -256,6 +256,7 @@
                     <skip>true</skip>
                 </configuration>
             </plugin>
+
         </plugins>
     </build>
 

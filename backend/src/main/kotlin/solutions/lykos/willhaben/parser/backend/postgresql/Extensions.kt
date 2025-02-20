@@ -12,6 +12,10 @@ import java.util.function.Supplier
 
 private val sqlEscapeRegex = Regex("['\"\\\\]")
 
+@JvmName("ListStringPgString")
+fun List<String>.toPgString() = joinToString(separator = ",", "{", "}") { "'$it'" }
+fun List<Int>.toPgString() = joinToString(separator = ",", "{", "}")
+
 private class SequenceWrapper<E>(
     sequence: Sequence<E>
 ) : Enumeration<E> {

@@ -2,9 +2,9 @@ package solutions.lykos.willhaben.parser.backend.parser
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.mohamedrejeb.ksoup.html.parser.KsoupHtmlParser
-import solutions.lykos.willhaben.parser.backend.api.WHAdvertSummary
-import solutions.lykos.willhaben.parser.backend.api.WHSite
 import solutions.lykos.willhaben.parser.backend.api.WatchList
+import solutions.lykos.willhaben.parser.backend.api.wh.WHAdvertSummary
+import solutions.lykos.willhaben.parser.backend.api.wh.WHSite
 import solutions.lykos.willhaben.parser.backend.ceilToInt
 import solutions.lykos.willhaben.parser.backend.jsonObjectMapper
 import java.net.URL
