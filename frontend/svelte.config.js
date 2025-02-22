@@ -21,6 +21,12 @@ const config = {
             base,
             relative: true,
         },
+        csp: {
+            directives: {
+                'script-src': ['self', 'maps.googleapis.com'],
+                'connect-src': ['self', 'maps.googleapis.com']
+            }
+        }
     },
 }
 

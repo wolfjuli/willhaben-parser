@@ -1,19 +1,23 @@
 <script lang="ts">
-	import { Scheme } from '$lib/colorScheme.svelte'
-	const SCHEME_NAMES = { fromdark: '🌝', fromlight: '🌚' }
+	import GoogleMap from '$lib/components/Map/GoogleMap.svelte'
+	import Table from '$lib/components/Table/Table.svelte'
 
-	const scheme = new Scheme()
+	let tableData= [
+		{
+			a: 1,
+			b: "Hello",
+			c: "nope"
+		},
+		{
+			a: 2,
+			b: "World",
+			c: "Still nopw"
+		}
+	]
 </script>
 
-<svelte:head>
-	<link rel="stylesheet" href={`${scheme.current}.css`} />
-</svelte:head>
-
-<h1>Welcome to MobiX</h1>
-<button onclick={() => scheme.switch()}>{SCHEME_NAMES[`from${scheme.current}`]}</button>
-
-<style>
-	button {
-		font-size: 30px;
-	}
-</style>
+<Table {tableData} a="" >
+	{#snippet b(val, obj)}
+		Render it with addition text: {val}
+	{/snippet}
+</Table>
