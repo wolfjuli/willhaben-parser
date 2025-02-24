@@ -5,7 +5,7 @@ import solutions.lykos.willhaben.parser.backend.importer.annotations.IdField
 import java.time.ZonedDateTime
 
 data class DataBlock(
-    val content: Content,
+    val listing: Listing,
 
     @HashField
     val timestamp: ZonedDateTime,
@@ -14,6 +14,5 @@ data class DataBlock(
     var id: Int? = null,
 ) : Node {
     @HashField
-    val contentId get() = content.id
-
+    val listingId get() = listing.id
 }

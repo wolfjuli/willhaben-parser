@@ -4,6 +4,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import org.slf4j.LoggerFactory
 import solutions.lykos.willhaben.parser.backend.api.wh.WHAdvertSummary
 import solutions.lykos.willhaben.parser.backend.config.WPConfiguration
+import solutions.lykos.willhaben.parser.backend.crawler.writers.write
 import solutions.lykos.willhaben.parser.backend.jsonObjectMapper
 import solutions.lykos.willhaben.parser.backend.postgresql.DataSource
 import solutions.lykos.willhaben.parser.backend.postgresql.useTransaction
@@ -52,7 +53,7 @@ class Crawler(
 //        dataSource.get.watchLists().parse()
             jsonObjectMapper().readValue<List<WHAdvertSummary>>(File("/Users/jwolf/tmp/wh_all.json"))
                 .asSequence()
-            //.write(transaction)
+                .write(transaction)
         }
     }
 

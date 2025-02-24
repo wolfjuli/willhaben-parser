@@ -33,7 +33,6 @@ abstract class Action<T : Node> {
             }
 
             is PipelineMessage.Payload<T> -> {
-                debug { "run" }
                 run(message, transaction)
             }
 

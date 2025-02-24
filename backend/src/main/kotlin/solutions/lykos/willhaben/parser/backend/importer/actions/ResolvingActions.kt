@@ -19,13 +19,11 @@ class ResolvingActions<T : Node, K : MutableMap<*, *>>(
         val result: PipelineMessage<T> = resolver(message, transaction)
         //If resolver sends stop, it couldn't resolve. Add to our pipeline for writing
         if (result is PipelineMessage.Stop) {
-            debug { "Resolve failed " }
             if (message.hasWriteFlag) {
                 debug { "hasWrite - passing on to actions" }
                 super.run(message, transaction)
             }
-        } else
-            debug { "Resolve OK" }
+        }
 
         return result
     }

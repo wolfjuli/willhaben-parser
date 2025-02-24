@@ -1,13 +1,12 @@
 package solutions.lykos.willhaben.parser.backend.importer.actions.writers.copy
 
-import solutions.lykos.willhaben.parser.backend.importer.basedata.Content
-import solutions.lykos.willhaben.parser.backend.postgresql.escapeSql
+import solutions.lykos.willhaben.parser.backend.importer.basedata.Listing
 
-class ContentCopyWriter : CopyWriter<Content>("contents", true) {
+class ContentCopyWriter : CopyWriter<Listing>("contents", true) {
 
-    override val columns: Map<String, ValueDef<Content>> = mapOf(
-        "id" to PGInteger { id.toString() },
+    override val columns: Map<String, ValueDef<Listing>> = mapOf(
+        "id" to PGInteger { willhabenId.toString() },
         "hash" to PGString { hash },
-        "raw" to PGJsonb { raw.escapeSql() }
+        "raw" to PGJsonb { raw.toJson() }
     )
 }

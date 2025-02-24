@@ -2,8 +2,7 @@ package solutions.lykos.willhaben.parser.backend.api.wh
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import io.ktor.util.*
-import solutions.lykos.willhaben.parser.backend.importer.basedata.Content
-import solutions.lykos.willhaben.parser.backend.jsonObjectMapper
+import solutions.lykos.willhaben.parser.backend.importer.basedata.Listing
 
 data class WHAdvertSummary(
     val id: Int, // "1332426850",
@@ -106,21 +105,16 @@ data class WHAdvertSummary(
     val url get() = attributeMap["SEO_URL"]?.firstOrNull()
 
     @OptIn(ExperimentalStdlibApi::class)
-    @get:JsonIgnore
-    val hash
-        get() = sha1(
-            """$id$state$location$address$price$isHouse$isFlat$rooms$url""".toByteArray()
-        ).joinToString("") { it.toHexString() }
-
-    @get:JsonIgnore
-    val raw get() = mapper.writeValueAsString(this)
-
-    fun toNode() = Content(
+    fun toNode() = Listing(
         id,
-        hash,
+        sha1(
+            """$id$state$location$address$price$isHouse$isFlat$rooms$url""".toByteArray()
+        ).joinToString("") { it.toHexString() },
+        sha1(
+            """$state$location$address$price$isHouse$isFlat$rooms""".toByteArray()
+        ).joinToString("") { it.toHexString() },
         url ?: error("Could not retrieve url from Listing id $id"),
-        raw
+        this
     )
 }
 
-private val mapper = jsonObjectMapper()

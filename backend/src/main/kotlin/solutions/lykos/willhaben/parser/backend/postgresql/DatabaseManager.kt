@@ -32,7 +32,7 @@ class DatabaseManager(
 
     init {
         val externalForm = baseUrl.toExternalForm().removeSuffix("/")
-        patchesUrl = URL("$externalForm/patches")
+        patchesUrl = URL(externalForm)
     }
 
     fun setup(

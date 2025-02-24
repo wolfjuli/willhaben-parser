@@ -19,6 +19,7 @@ import solutions.lykos.willhaben.parser.backend.config.ConnectorConfiguration
 import solutions.lykos.willhaben.parser.backend.config.CrawlerConfiguration
 import solutions.lykos.willhaben.parser.backend.config.WPConfiguration
 import solutions.lykos.willhaben.parser.backend.crawler.Crawler
+import solutions.lykos.willhaben.parser.backend.logging.LoggingConfigurator
 import solutions.lykos.willhaben.parser.backend.postgresql.DatabaseManager
 import java.io.File
 import java.nio.file.Files
@@ -29,6 +30,8 @@ object Server {
     @JvmStatic
     fun main(args: Array<String>) {
         val configuration = readConfiguration(args)
+        LoggingConfigurator.configure(configuration.logger)
+
         val databaseManager =
             DatabaseManager(
                 javaClass.classLoader.getResource("solutions/lykos/willhaben/parser/sql")!!,

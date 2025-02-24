@@ -129,7 +129,7 @@ abstract class Writer<T : Node>(protected val tableName: String) : Action<T>() {
     }
 
     protected fun Any?.toJson() =
-        mapper.writeValueAsString(this).replace("'", "\\'")
+        mapper.writeValueAsString(this).replace("'", "''")
 
     @Deprecated("Causes potential memory leak when used for batch insert")
     protected fun Transaction.execute(

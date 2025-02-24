@@ -6,15 +6,17 @@ import solutions.lykos.willhaben.parser.backend.importer.actions.ActionSequence
 import solutions.lykos.willhaben.parser.backend.importer.actions.Communicator
 import solutions.lykos.willhaben.parser.backend.importer.actions.ResolvingActions
 import solutions.lykos.willhaben.parser.backend.importer.actions.resolvers.AttributeResolver
-import solutions.lykos.willhaben.parser.backend.importer.actions.resolvers.ContentResolver
-import solutions.lykos.willhaben.parser.backend.importer.actions.resolvers.DataBlockResolver
+import solutions.lykos.willhaben.parser.backend.importer.actions.resolvers.ListingResolver
+import solutions.lykos.willhaben.parser.backend.importer.actions.transformers.ListingAttributeMultiplier
+import solutions.lykos.willhaben.parser.backend.importer.actions.transformers.PipeTo
 import solutions.lykos.willhaben.parser.backend.importer.actions.writers.AttributesWriter
-import solutions.lykos.willhaben.parser.backend.importer.actions.writers.ContentAttributesWriter
-import solutions.lykos.willhaben.parser.backend.importer.actions.writers.ContentWriter
 import solutions.lykos.willhaben.parser.backend.importer.actions.writers.DataBlockWriter
+import solutions.lykos.willhaben.parser.backend.importer.actions.writers.ListingAttributesWriter
+import solutions.lykos.willhaben.parser.backend.importer.actions.writers.ListingWriter
 import solutions.lykos.willhaben.parser.backend.importer.basedata.Attribute
-import solutions.lykos.willhaben.parser.backend.importer.basedata.ContentAttribute
 import solutions.lykos.willhaben.parser.backend.importer.basedata.DataBlock
+import solutions.lykos.willhaben.parser.backend.importer.basedata.Listing
+import solutions.lykos.willhaben.parser.backend.importer.basedata.ListingAttribute
 import solutions.lykos.willhaben.parser.backend.importer.pipelines.Pipeline
 import solutions.lykos.willhaben.parser.backend.importer.pipelines.PipelineMessage
 import solutions.lykos.willhaben.parser.backend.postgresql.Transaction
@@ -28,72 +30,78 @@ private val resolveFlags = EnumSet.noneOf(PipelineMessage.Flags::class.java)
 fun Sequence<WHAdvertSummary>.write(transaction: Transaction) {
     val now = ZonedDateTime.now()
 
-    val contentActions = ResolvingActions(
-        ContentResolver(),
-        ContentWriter()
-    )
-
-    val dataBlockActions = ResolvingActions(
-        DataBlockResolver(),
-        Communicator(
-            contentActions,
-            { content },
-            { me, _ -> me },
-            writeFlags
-        ),
-        DataBlockWriter()
-    )
-
     val attributeActions = ResolvingActions(
+        AttributeResolver(),
+        AttributesWriter()
+    )
+
+    val locationActions = ResolvingActions(
         AttributeResolver()
     )
 
-    val contentAttributeActions = Pipeline(
+    val listingAttributeActions =
         ActionSequence(
+            ListingAttributeMultiplier(),
             Communicator(
                 attributeActions,
                 { attribute },
                 { me, res -> me.also { it.attribute.id = res.id } },
-                resolveFlags
-            ),
-            Communicator(
-                dataBlockActions,
-                { dataBlock },
-                { me, res -> me.also { it.dataBlock.id = res.id } },
                 writeFlags
             ),
-            ContentAttributesWriter()
+            ListingAttributesWriter()
         )
-    )
 
-    val writeAttributes = Pipeline(
+    val listingLocationActions =
         ActionSequence(
-            AttributesWriter()
+            Communicator(
+                locationActions,
+                { attribute },
+                { me, res -> me.also { it.attribute.id = res.id } },
+                writeFlags
+            ),
+            ListingAttributesWriter()
         )
+
+    val dataBlockActions = ActionSequence(
+        DataBlockWriter()
+    )
+
+    val listingActions = ResolvingActions(
+        ListingResolver(),
+        ListingWriter()
     )
 
 
-    contentAttributeActions.initialize(transaction)
+    val listingPipeline = Pipeline(
+        ActionSequence<Listing>(
+            Communicator(
+                listingActions,
+                { this },
+                { _, res -> res },
+                writeFlags
+            ),
+            PipeTo(
+                listingAttributeActions,
+                { ListingAttribute(this, Attribute(""), emptyList()) }
+            ),
+            PipeTo(
+                dataBlockActions,
+                { DataBlock(this, now) }
+            )
+        )
+    )
+
+    listingPipeline.initialize(transaction)
     onEachIndexed { idx, it ->
         logger.info("working on $idx ")
     }
-        .chunked(100)
-        .forEach { chunk ->
-            val attributes = chunk.flatMap { it.attributes.attribute.map { it.name } }.toSet().map { Attribute(it) }
-            writeAttributes.offer(attributes)
-
-            chunk.forEach { content ->
-                content.attributes.attribute.forEach { attribute ->
-                    contentAttributeActions.offer(
-                        ContentAttribute(
-                            DataBlock(content.toNode(), now),
-                            Attribute(attribute.name),
-                            attribute.values?.filterNotNull() ?: emptyList()
-                        )
-                    )
-                }
-            }
+        .forEach { content ->
+            listingPipeline.offer(content.toNode())
         }
-    contentAttributeActions.close()
+
+    (0..10).forEach {
+        if (listingPipeline.close() is PipelineMessage.Close) return@forEach
+    }
+
     logger.info("Done")
 }
