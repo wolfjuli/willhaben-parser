@@ -11,12 +11,11 @@ import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.openapi.*
 import io.ktor.server.plugins.swagger.*
-import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import solutions.lykos.willhaben.parser.backend.api.API
 import solutions.lykos.willhaben.parser.backend.assets.AssetProvider
 import solutions.lykos.willhaben.parser.backend.assets.Svelte
 import solutions.lykos.willhaben.parser.backend.config.ConnectorConfiguration
-import solutions.lykos.willhaben.parser.backend.config.CrawlerConfiguration
 import solutions.lykos.willhaben.parser.backend.config.WPConfiguration
 import solutions.lykos.willhaben.parser.backend.crawler.Crawler
 import solutions.lykos.willhaben.parser.backend.logging.LoggingConfigurator
@@ -77,7 +76,7 @@ object Server {
             install(ContentNegotiation) {
                 jackson()
             }
-            configureRouting()
+            configureRouting(configuration)
             configureSwagger()
         })
     }
@@ -121,18 +120,16 @@ object Server {
         }
     }
 
-    private fun Application.configureRouting() {
+    private fun Application.configureRouting(configuration: WPConfiguration) {
+
         install(AssetProvider) {
             layout = Svelte
             resourcePath {
                 "solutions/lykos/willhaben/parser/frontend"
             }
         }
-
-        routing {
-            get("/api/v1") {
-                call.respond(CrawlerConfiguration())
-            }
+        install(API) {
+            database = configuration.database
         }
     }
 }

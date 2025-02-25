@@ -1,7 +1,10 @@
 package solutions.lykos.willhaben.parser.backend.postgresql
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
+import solutions.lykos.willhaben.parser.backend.camelCase
+import solutions.lykos.willhaben.parser.backend.jsonObjectMapper
 import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
@@ -52,3 +55,20 @@ fun <R : Any> PreparedStatement.useAsSequence(block: (Sequence<ResultSet>) -> R)
 
 fun <R : Any> ResultSet.useAsSequence(block: (Sequence<ResultSet>) -> R) =
     use { block(generateSequence { it.takeIf { it.next() } }) }
+
+val jsonMapper = jsonObjectMapper()
+fun ResultSet.getTypedValue(idx: Int): Any? =
+    when (metaData.getColumnTypeName(idx)?.lowercase()) {
+        "text" -> getString(idx)
+        "serial" -> getInt(idx)
+        "jsonb" -> jsonMapper.readValue<Map<String, Any?>>(getString(idx))
+        "int4" -> getInt(idx)
+        "float4" -> getFloat(idx)
+        else -> error("Cant handle type '${metaData.getColumnTypeName(idx)?.lowercase()}'")
+    }
+
+fun ResultSet.toCamelCaseMap(): Map<String, Any?> =
+    (1..metaData.columnCount).associate {
+        metaData.getColumnName(it).camelCase() to getTypedValue(it)
+    }
+

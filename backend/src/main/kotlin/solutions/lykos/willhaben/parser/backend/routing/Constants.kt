@@ -81,6 +81,8 @@ const val VERSION_FIELD = "version"
 
 const val ADDITIONAL_FIELDS_QUERY = "additionalFields"
 
+const val API_PROVIDER_KEY_ID = "API"
+
 const val ASSET_PROVIDER_KEY_ID = "AssetProvider"
 const val APPLICATION_STATE_FIELD = "applicationState"
 const val BASENAME_FIELD = "basename"
