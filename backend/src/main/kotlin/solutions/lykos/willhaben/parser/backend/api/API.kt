@@ -22,7 +22,7 @@ class API(val configuration: Configuration) {
             val api = API(configuration)
 
             pipeline.routing {
-                route("/api/v1") {
+                route("/api/rest/v1") {
                     apiRoutes(configuration)
                 }
             }

@@ -3,6 +3,7 @@ package solutions.lykos.willhaben.parser.backend.api
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.postgresql.ds.PGSimpleDataSource
+import org.slf4j.LoggerFactory
 import solutions.lykos.willhaben.parser.backend.postgresql.Transaction
 import solutions.lykos.willhaben.parser.backend.postgresql.toCamelCaseMap
 import solutions.lykos.willhaben.parser.backend.postgresql.useAsSequence
@@ -21,6 +22,8 @@ fun Route.apiRoutes(configuration: API.Configuration) {
 
     fun <T : Any?> useTransaction(block: (Transaction) -> T): T = dataSource.connection.useTransaction(block)
 
+    val logger = LoggerFactory.getLogger(this.javaClass)
+
     fun initGet(folder: File) {
         folder
             .walk()
@@ -28,6 +31,7 @@ fun Route.apiRoutes(configuration: API.Configuration) {
             .filter { it.extension == "sql" }
             .forEach { file ->
                 get(file.relativeTo(folder).path.substringBeforeLast(".")) {
+                    logger.info("API Get ${file.name}")
                     val list = useTransaction { transaction ->
                         transaction
                             .prepareStatement(file.readText()).executeQuery().useAsSequence { seq ->

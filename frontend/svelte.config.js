@@ -26,7 +26,13 @@ const config = {
                 'script-src': ['self', 'maps.googleapis.com'],
                 'connect-src': ['self', 'maps.googleapis.com']
             }
-        }
+        },
+        alias: {
+            $houdini: './$houdini',
+            $fonts: './src/lib/assets/fonts',
+            $images: './src/lib/assets/images',
+            $styles: './src/lib/assets/styles',
+        },
     },
 }
 

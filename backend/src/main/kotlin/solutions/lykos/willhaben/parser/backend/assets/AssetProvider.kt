@@ -67,14 +67,6 @@ class AssetProvider(configuration: Configuration) {
     private fun setupRoutes(routing: Routing) {
         val assetProvider = this
         with(routing) {
-            route(INDEX_FILE_NAME) {
-                onApplicationPort {
-                    get {
-                        serveIndex(this)
-                    }
-                }
-            }
-
             route(FAVICON_FILE_NAME) {
                 get {
                     if (serveBrandingResource(call)) {
@@ -146,12 +138,14 @@ class AssetProvider(configuration: Configuration) {
                     }
                 }
                 route("/{static-content-path-parameter...}") {
+
                     onApplicationPort {
                         get {
                             // GET route is required for the interceptor to work
                         }
                         intercept(ApplicationCallPipeline.Fallback) {
-                            if (call.request.httpMethod != HttpMethod.Get) {
+
+                        if (call.request.httpMethod != HttpMethod.Get) {
                                 return@intercept
                             }
 
@@ -165,11 +159,6 @@ class AssetProvider(configuration: Configuration) {
                                         application.environment.classLoader
                                     )
                                 }?.takeIf { it !is JarFileContent || (it.contentLength ?: 0) > 0 }
-                                    ?: call.resolveResource(
-                                        INDEX_FILE_NAME,
-                                        resourcePackage,
-                                        application.environment.classLoader
-                                    )
 
                                 if (content != null) {
                                     content = assetProvider.filterResource(call, content)

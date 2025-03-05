@@ -116,20 +116,21 @@ object Server {
             swaggerUI(path = "documentation")
         }
         routing {
-            openAPI(path = "documentation")
+            openAPI(path = "api/open")
         }
     }
 
     private fun Application.configureRouting(configuration: WPConfiguration) {
+
+        install(API) {
+            database = configuration.database
+        }
 
         install(AssetProvider) {
             layout = Svelte
             resourcePath {
                 "solutions/lykos/willhaben/parser/frontend"
             }
-        }
-        install(API) {
-            database = configuration.database
         }
     }
 }
