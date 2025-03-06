@@ -34,7 +34,7 @@ object Server {
         val databaseManager =
             DatabaseManager(
                 javaClass.classLoader.getResource("solutions/lykos/willhaben/parser/sql")!!,
-                listOf("postgis", "pgcrypto", "postgis_raster")
+                listOf("postgis", "pgcrypto", "postgis_raster", "plv8")
             )
 
         if (args.contains("setup")) {
