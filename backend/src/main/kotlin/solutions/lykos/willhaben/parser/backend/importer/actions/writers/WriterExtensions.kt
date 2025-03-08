@@ -1,8 +1,8 @@
 package solutions.lykos.willhaben.parser.backend.importer.actions.writers
 
+import solutions.lykos.willhaben.parser.backend.database.postgresql.Transaction
 import solutions.lykos.willhaben.parser.backend.importer.TableDefinitions.getTableName
 import solutions.lykos.willhaben.parser.backend.importer.basedata.Node
-import solutions.lykos.willhaben.parser.backend.postgresql.Transaction
 import java.sql.PreparedStatement
 import java.sql.Types
 

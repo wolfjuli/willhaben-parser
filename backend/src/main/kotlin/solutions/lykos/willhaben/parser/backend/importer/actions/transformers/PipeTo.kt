@@ -1,11 +1,11 @@
 package solutions.lykos.willhaben.parser.backend.importer.actions.transformers
 
+import solutions.lykos.willhaben.parser.backend.database.postgresql.Transaction
 import solutions.lykos.willhaben.parser.backend.importer.actions.Action
 import solutions.lykos.willhaben.parser.backend.importer.actions.ActionSequence
 import solutions.lykos.willhaben.parser.backend.importer.basedata.Node
 import solutions.lykos.willhaben.parser.backend.importer.matchType
 import solutions.lykos.willhaben.parser.backend.importer.pipelines.PipelineMessage
-import solutions.lykos.willhaben.parser.backend.postgresql.Transaction
 import java.util.*
 
 class PipeTo<F : Node, T : Node>(

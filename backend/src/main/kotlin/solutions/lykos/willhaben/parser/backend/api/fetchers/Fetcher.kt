@@ -1,6 +1,6 @@
 package solutions.lykos.willhaben.parser.backend.api.fetchers
 
-import solutions.lykos.willhaben.parser.backend.postgresql.Transaction
+import solutions.lykos.willhaben.parser.backend.database.postgresql.Transaction
 
 interface Fetcher<T> {
 

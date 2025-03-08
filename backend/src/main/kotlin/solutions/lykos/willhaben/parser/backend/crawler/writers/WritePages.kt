@@ -1,6 +1,7 @@
 package solutions.lykos.willhaben.parser.backend.crawler.writers
 
 import solutions.lykos.willhaben.parser.backend.api.wh.WHAdvertSummary
+import solutions.lykos.willhaben.parser.backend.database.postgresql.Transaction
 import solutions.lykos.willhaben.parser.backend.importer.ImporterFetcher.logger
 import solutions.lykos.willhaben.parser.backend.importer.actions.ActionSequence
 import solutions.lykos.willhaben.parser.backend.importer.actions.Communicator
@@ -19,7 +20,6 @@ import solutions.lykos.willhaben.parser.backend.importer.basedata.Listing
 import solutions.lykos.willhaben.parser.backend.importer.basedata.ListingAttribute
 import solutions.lykos.willhaben.parser.backend.importer.pipelines.Pipeline
 import solutions.lykos.willhaben.parser.backend.importer.pipelines.PipelineMessage
-import solutions.lykos.willhaben.parser.backend.postgresql.Transaction
 import java.time.ZonedDateTime
 import java.util.*
 

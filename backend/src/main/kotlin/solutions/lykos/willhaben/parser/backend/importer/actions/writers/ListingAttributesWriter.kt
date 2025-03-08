@@ -1,11 +1,11 @@
 package solutions.lykos.willhaben.parser.backend.importer.actions.writers
 
+import solutions.lykos.willhaben.parser.backend.database.postgresql.Transaction
+import solutions.lykos.willhaben.parser.backend.database.postgresql.toPgString
 import solutions.lykos.willhaben.parser.backend.importer.basedata.ListingAttribute
 import solutions.lykos.willhaben.parser.backend.importer.getOrError
 import solutions.lykos.willhaben.parser.backend.importer.orNotResolved
 import solutions.lykos.willhaben.parser.backend.importer.pipelines.PipelineMessage
-import solutions.lykos.willhaben.parser.backend.postgresql.Transaction
-import solutions.lykos.willhaben.parser.backend.postgresql.toPgString
 
 class ListingAttributesWriter : Writer<ListingAttribute>("") {
     override val columnMappings: Map<String, String>

@@ -1,4 +1,4 @@
-package solutions.lykos.willhaben.parser.backend.postgresql
+package solutions.lykos.willhaben.parser.backend.database.postgresql
 
 import org.postgresql.ds.PGSimpleDataSource
 import solutions.lykos.willhaben.parser.backend.api.WatchList

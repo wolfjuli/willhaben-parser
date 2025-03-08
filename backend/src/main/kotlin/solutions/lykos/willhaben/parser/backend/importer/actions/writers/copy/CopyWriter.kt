@@ -3,10 +3,10 @@ package solutions.lykos.willhaben.parser.backend.importer.actions.writers.copy
 import org.postgresql.copy.CopyIn
 import org.postgresql.copy.CopyManager
 import org.postgresql.core.BaseConnection
+import solutions.lykos.willhaben.parser.backend.database.postgresql.Transaction
 import solutions.lykos.willhaben.parser.backend.importer.actions.writers.Writer
 import solutions.lykos.willhaben.parser.backend.importer.basedata.Node
 import solutions.lykos.willhaben.parser.backend.importer.pipelines.PipelineMessage
-import solutions.lykos.willhaben.parser.backend.postgresql.Transaction
 import java.nio.CharBuffer
 import java.util.*
 import java.util.concurrent.atomic.AtomicLong

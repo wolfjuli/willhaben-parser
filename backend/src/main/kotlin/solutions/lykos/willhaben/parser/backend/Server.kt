@@ -18,8 +18,8 @@ import solutions.lykos.willhaben.parser.backend.assets.Svelte
 import solutions.lykos.willhaben.parser.backend.config.ConnectorConfiguration
 import solutions.lykos.willhaben.parser.backend.config.WPConfiguration
 import solutions.lykos.willhaben.parser.backend.crawler.Crawler
+import solutions.lykos.willhaben.parser.backend.database.postgresql.DatabaseManager
 import solutions.lykos.willhaben.parser.backend.logging.LoggingConfigurator
-import solutions.lykos.willhaben.parser.backend.postgresql.DatabaseManager
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths

@@ -1,14 +1,15 @@
 package solutions.lykos.willhaben.parser.backend.api
 
+import com.fasterxml.jackson.module.kotlin.readValue
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.util.*
 import org.postgresql.ds.PGSimpleDataSource
+import org.postgresql.util.PSQLException
 import org.slf4j.LoggerFactory
-import solutions.lykos.willhaben.parser.backend.postgresql.Transaction
-import solutions.lykos.willhaben.parser.backend.postgresql.toCamelCaseMap
-import solutions.lykos.willhaben.parser.backend.postgresql.useAsSequence
-import solutions.lykos.willhaben.parser.backend.postgresql.useTransaction
-import java.io.File
+import solutions.lykos.willhaben.parser.backend.database.Database
+import solutions.lykos.willhaben.parser.backend.database.postgresql.*
 
 
 fun Route.apiRoutes(configuration: API.Configuration) {
@@ -20,43 +21,102 @@ fun Route.apiRoutes(configuration: API.Configuration) {
         password = configuration.database.password
     }
 
-    fun <T : Any?> useTransaction(block: (Transaction) -> T): T = dataSource.connection.useTransaction(block)
-
     val logger = LoggerFactory.getLogger(this.javaClass)
 
-    fun initGet(folder: File) {
-        folder
-            .walk()
-            .filter { it.isFile }
-            .filter { it.extension == "sql" }
-            .forEach { file ->
-                get(file.relativeTo(folder).path.substringBeforeLast(".")) {
-                    logger.info("API Get ${file.name}")
-                    val list = useTransaction { transaction ->
-                        transaction
-                            .prepareStatement(file.readText()).executeQuery().useAsSequence { seq ->
-                                seq.map { it.toCamelCaseMap() }.toList()
-                            }
-                    }
+    val database = Database { dataSource.connection }
 
-                    call.respond(list)
-                }
+    //GET requests for tables and views
+    database.tables.forEach { (tableName, tableDef) ->
+        get(tableName) {
+            logger.info("API Get $tableName")
+
+            val params = call.request.queryParameters.toMap()
+
+            val list = dataSource.connection.useTransaction { transaction ->
+                QueryBuilder(transaction)
+                    .append(database.selectQuery(tableDef))
+                    .build(params)
+                    .executeQuery()
+                    .useAsSequence { seq ->
+                        seq.map { it.toCamelCaseMap() }.toList()
+                    }
             }
+
+            call.respond(list)
+        }
     }
 
-    val basePath = "/solutions/lykos/willhaben/parser/queries"
-    File(this::class.java.getResource(basePath)?.toURI() ?: error("Resource not found: $basePath"))
-        .listFiles()?.forEach { folder ->
-            if (folder.isDirectory) {
-                when (folder.name) {
-                    "get" -> {
-                        initGet(folder)
-                    }
+    //POST requests for tables only
+    database.tables.filter { it.value.type == "BASE TABLE" }.forEach { (tableName, tableDef) ->
+        post(tableName) {
+            logger.info("API POST $tableName")
+
+            val new: Map<String, Any?> = jsonMapper.readValue(call.receiveText())
+
+            val obj: Map<String, Any?> = dataSource.connection.useTransaction { transaction ->
+                val stmt = QueryBuilder(transaction)
+                    .append(database.insertQuery(tableDef))
+                    .build(new)
+                try {
+                    stmt
+                        .executeQuery()
+                        .useAsSequence { seq ->
+                            seq.map { it.toCamelCaseMap() }.first()
+                        }
+                } catch (e: PSQLException) {
+                    logger.error("Query: $stmt")
+                    throw e
                 }
             }
+
+            call.respond(obj)
         }
+    }
+
+    //PUT requests for tables only
+    database.tables.filter { it.value.type == "BASE TABLE" }.forEach { (tableName, tableDef) ->
+        put(tableName) {
+            logger.info("API PUT $tableName")
+
+            val new: Map<String, Any?> = jsonMapper.readValue(call.receiveText())
+
+            val obj: Map<String, Any?> = dataSource.connection.useTransaction { transaction ->
+                val stmt = QueryBuilder(transaction)
+                    .append(database.updateQuery(tableDef))
+                    .build(new)
+                try {
+                    stmt.executeQuery()
+                        .useAsSequence { seq ->
+                            seq.map { it.toCamelCaseMap() }.first()
+                    }
+                } catch (e: PSQLException) {
+                    logger.error("Query: $stmt")
+                    throw e
+                }
+            }
+
+            call.respond(obj)
+        }
+    }
 
 
+    //DELETE requests for tables only
+    database.tables.filter { it.value.type == "BASE TABLE" }.forEach { (tableName, tableDef) ->
+        delete(tableName) {
+            logger.info("API DELETE $tableName")
+
+            val params = call.request.queryParameters.toMap()
+
+            val obj: Int = dataSource.connection.useTransaction { transaction ->
+                QueryBuilder(transaction)
+                    .append(database.deleteQuery(tableDef))
+                    .build(params)
+                    .executeUpdate()
+            }
+
+            call.respond(obj)
+        }
+    }
 }
 
 

@@ -1,4 +1,4 @@
-package solutions.lykos.willhaben.parser.backend.postgresql
+package solutions.lykos.willhaben.parser.backend.database.postgresql
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotlinx.coroutines.runBlocking
@@ -57,13 +57,16 @@ fun <R : Any> ResultSet.useAsSequence(block: (Sequence<ResultSet>) -> R) =
     use { block(generateSequence { it.takeIf { it.next() } }) }
 
 val jsonMapper = jsonObjectMapper()
-fun ResultSet.getTypedValue(idx: Int): Any? =
+inline fun <reified R : Any> ResultSet.getTypedValue(idx: Int): R? =
     when (metaData.getColumnTypeName(idx)?.lowercase()) {
-        "text" -> getString(idx)
-        "serial" -> getInt(idx)
-        "jsonb" -> jsonMapper.readValue<Map<String, Any?>>(getString(idx))
-        "int4" -> getInt(idx)
-        "float4" -> getFloat(idx)
+        "text" -> getString(idx) as R?
+        "serial" -> getInt(idx) as R?
+        "smallserial" -> getInt(idx) as R?
+        "jsonb" -> jsonMapper.readValue<R?>(getString(idx))
+        "int4" -> getInt(idx) as R?
+        "int2" -> getInt(idx) as R?
+        "float4" -> getFloat(idx) as R?
+        "float8" -> getFloat(idx) as R?
         else -> error("Cant handle type '${metaData.getColumnTypeName(idx)?.lowercase()}'")
     }
 

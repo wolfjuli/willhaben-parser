@@ -1,12 +1,12 @@
 package solutions.lykos.willhaben.parser.backend.importer.actions
 
+import solutions.lykos.willhaben.parser.backend.database.postgresql.Transaction
 import solutions.lykos.willhaben.parser.backend.importer.ImporterConstants
 import solutions.lykos.willhaben.parser.backend.importer.basedata.Node
 import solutions.lykos.willhaben.parser.backend.importer.emptyBufferList
 import solutions.lykos.willhaben.parser.backend.importer.matchType
 import solutions.lykos.willhaben.parser.backend.importer.pipelines.PipelineMessage
 import solutions.lykos.willhaben.parser.backend.importer.toBulk
-import solutions.lykos.willhaben.parser.backend.postgresql.Transaction
 import java.util.*
 
 class Communicator<F : Node, T : Node, K : MutableMap<*, *>>(

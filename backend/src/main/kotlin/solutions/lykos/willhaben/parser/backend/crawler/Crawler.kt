@@ -4,9 +4,9 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import org.slf4j.LoggerFactory
 import solutions.lykos.willhaben.parser.backend.api.wh.WHAdvertSummary
 import solutions.lykos.willhaben.parser.backend.config.WPConfiguration
+import solutions.lykos.willhaben.parser.backend.database.postgresql.DataSource
+import solutions.lykos.willhaben.parser.backend.database.postgresql.useTransaction
 import solutions.lykos.willhaben.parser.backend.jsonObjectMapper
-import solutions.lykos.willhaben.parser.backend.postgresql.DataSource
-import solutions.lykos.willhaben.parser.backend.postgresql.useTransaction
 import java.io.File
 import kotlin.concurrent.thread
 
@@ -48,8 +48,7 @@ class Crawler(
     private fun run() {
         //val currentVersions = dataSource.get.currentVersions()
         dataSource.connection.useTransaction { transaction ->
-
-//        dataSource.get.watchLists().parse()
+            //dataSource.get.watchLists().parse()
             jsonObjectMapper().readValue<List<WHAdvertSummary>>(File("/Users/jwolf/tmp/wh_all.json"))
                 .asSequence()
             //.write(transaction)

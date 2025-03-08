@@ -2,13 +2,13 @@ package solutions.lykos.willhaben.parser.backend.importer
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import solutions.lykos.willhaben.parser.backend.database.postgresql.Transaction
+import solutions.lykos.willhaben.parser.backend.database.postgresql.useAsSequence
 import solutions.lykos.willhaben.parser.backend.importer.TableDefinitions.getTableName
 import solutions.lykos.willhaben.parser.backend.importer.basedata.HashedObject
 import solutions.lykos.willhaben.parser.backend.importer.basedata.Node
 import solutions.lykos.willhaben.parser.backend.importer.basedata.hashFields
 import solutions.lykos.willhaben.parser.backend.importer.basedata.idFields
-import solutions.lykos.willhaben.parser.backend.postgresql.Transaction
-import solutions.lykos.willhaben.parser.backend.postgresql.useAsSequence
 
 object ImporterFetcher {
     val logger: Logger by lazy { LoggerFactory.getLogger(javaClass.simpleName) }

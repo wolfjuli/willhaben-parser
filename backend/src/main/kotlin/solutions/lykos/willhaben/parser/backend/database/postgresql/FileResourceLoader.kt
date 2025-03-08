@@ -1,4 +1,4 @@
-package solutions.lykos.willhaben.parser.backend.postgresql
+package solutions.lykos.willhaben.parser.backend.database.postgresql
 
 import java.io.File
 import java.net.URL

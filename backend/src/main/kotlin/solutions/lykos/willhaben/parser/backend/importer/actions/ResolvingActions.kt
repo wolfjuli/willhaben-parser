@@ -1,9 +1,9 @@
 package solutions.lykos.willhaben.parser.backend.importer.actions
 
+import solutions.lykos.willhaben.parser.backend.database.postgresql.Transaction
 import solutions.lykos.willhaben.parser.backend.importer.actions.resolvers.Resolver
 import solutions.lykos.willhaben.parser.backend.importer.basedata.Node
 import solutions.lykos.willhaben.parser.backend.importer.pipelines.PipelineMessage
-import solutions.lykos.willhaben.parser.backend.postgresql.Transaction
 import java.util.*
 
 class ResolvingActions<T : Node, K : MutableMap<*, *>>(

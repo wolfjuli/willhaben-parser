@@ -1,9 +1,9 @@
 package solutions.lykos.willhaben.parser.backend.importer.actions.transformers
 
+import solutions.lykos.willhaben.parser.backend.database.postgresql.Transaction
 import solutions.lykos.willhaben.parser.backend.importer.actions.Action
 import solutions.lykos.willhaben.parser.backend.importer.basedata.Node
 import solutions.lykos.willhaben.parser.backend.importer.pipelines.PipelineMessage
-import solutions.lykos.willhaben.parser.backend.postgresql.Transaction
 
 
 abstract class Transformer<T : Node> : Action<T>() {

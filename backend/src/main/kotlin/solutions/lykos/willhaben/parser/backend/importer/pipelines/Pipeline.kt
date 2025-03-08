@@ -2,9 +2,9 @@ package solutions.lykos.willhaben.parser.backend.importer.pipelines
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import solutions.lykos.willhaben.parser.backend.database.postgresql.Transaction
 import solutions.lykos.willhaben.parser.backend.importer.actions.ActionSequence
 import solutions.lykos.willhaben.parser.backend.importer.basedata.Node
-import solutions.lykos.willhaben.parser.backend.postgresql.Transaction
 import java.io.Writer
 import java.util.*
 import java.util.concurrent.CancellationException

@@ -1,4 +1,4 @@
-package solutions.lykos.willhaben.parser.backend.postgresql
+package solutions.lykos.willhaben.parser.backend.database.postgresql
 
 import solutions.lykos.willhaben.parser.backend.snakeCase
 import java.sql.Connection
@@ -49,7 +49,7 @@ object DefaultStatementExecutor {
         }
 
         val template = """
-            INSERT INTO $tableName (
+            INSERT INTO $tableName
         """.trimIndent()
 
         return try {

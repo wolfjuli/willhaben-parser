@@ -1,8 +1,8 @@
 package solutions.lykos.willhaben.parser.backend.importer.actions.transformers
 
+import solutions.lykos.willhaben.parser.backend.database.postgresql.Transaction
 import solutions.lykos.willhaben.parser.backend.importer.basedata.Attribute
 import solutions.lykos.willhaben.parser.backend.importer.basedata.ListingAttribute
-import solutions.lykos.willhaben.parser.backend.postgresql.Transaction
 
 class ListingAttributeMultiplier : Multiplier<ListingAttribute>() {
     override fun multiply(

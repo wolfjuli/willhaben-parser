@@ -1,10 +1,10 @@
 package solutions.lykos.willhaben.parser.backend.importer.actions.writers
 
+import solutions.lykos.willhaben.parser.backend.database.postgresql.Transaction
 import solutions.lykos.willhaben.parser.backend.importer.TableDefinitions
 import solutions.lykos.willhaben.parser.backend.importer.basedata.Attribute
 import solutions.lykos.willhaben.parser.backend.importer.getOrError
 import solutions.lykos.willhaben.parser.backend.importer.pipelines.PipelineMessage
-import solutions.lykos.willhaben.parser.backend.postgresql.Transaction
 
 class AttributesWriter() : Writer<Attribute>(TableDefinitions.getTableName<Attribute>()) {
     override val columnMappings: Map<String, String>
