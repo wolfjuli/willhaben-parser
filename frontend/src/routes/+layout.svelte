@@ -1,26 +1,34 @@
 <script lang="ts">
-    let {children} = $props()   
-	import { Scheme } from '$lib/colorScheme.svelte'
-	const SCHEME_NAMES = { fromdark: '🌝', fromlight: '🌚' }
+    let {children} = $props()
+    import {Scheme} from '$lib/colorScheme.svelte'
+    import '@picocss/pico'
 
-	const scheme = new Scheme()
+    const SCHEME_NAMES = {fromdark: '🌝', fromlight: '🌚'}
+
+    const scheme = new Scheme()
 </script>
 
 <svelte:head>
-	<link rel="stylesheet" href={`${scheme.current}.css`} />
+    <link rel="stylesheet" href={`${scheme.current}.css`}/>
 </svelte:head>
 
-<h1>
-	WillHaben Parser<small
-		><button onclick={() => scheme.switch()}>{SCHEME_NAMES[`from${scheme.current}`]}</button
-		></small
-	>
-</h1>
+<main class="container">
+    <nav>
+        <ul>
+            <li><strong>WillHaben Parser</strong></li>
+        </ul>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/functions">Functions</a></li>
+        </ul>
+    </nav>
+
+</main>
 
 <style>
-	button {
-		font-size: 30px;
-	}
+    button {
+        font-size: 30px;
+    }
 </style>
 
 

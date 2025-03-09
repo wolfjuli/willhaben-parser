@@ -2,18 +2,18 @@
     import {type Snippet} from 'svelte'
 
     type PropsType = {
-        colspan: number, 
-        property: string , 
-        row: T , 
-        right: boolean , 
+        colspan: number,
+        property: string ,
+        row: T ,
+        right: boolean ,
         formatter: ((value: number) => string) | undefined ,
         onclick: (() => void) | undefined,
         render: Snippet
     }
 
     let {
-        colspan = 1, 
-        right = false, 
+        colspan = 1,
+        right = false,
         onclick = undefined,
         render
     } : PropsType = $props()
@@ -28,6 +28,7 @@
 </td>
 
 <style>
+    /*
     td {
         border-bottom: 1px solid var(--md-sys-color-surface-container-high);
         text-align: left;
@@ -52,4 +53,7 @@
         outline: 3px solid var(--md-sys-color-primary);
         outline-offset: -3px;
     }
+
+     */
 </style>
+

@@ -77,7 +77,7 @@ open class Database(
     fun selectQuery(table: TableDef) = """
         SELECT ${table.columns.joinToString(",") { it.name }}
         FROM ${table.name}
-        WHERE ${table.columns.joinToString(" AND ") { "(${'$'}{${it.name.camelCase()}}::${it.type} IS NULL OR ${it.name} = ${'$'}{${it.name.camelCase()}})" }}
+        WHERE ${table.columns.joinToString(" AND ") { "(${'$'}{${it.name.camelCase()}}::${it.type}[] IS NULL OR ${it.name} = ANY(${'$'}{${it.name.camelCase()}}::${it.type}[]))" }}
     """.trimIndent()
 
     fun insertQuery(table: TableDef) = """
@@ -106,7 +106,7 @@ open class Database(
         WHERE ${
         table.columns.filter { it.isId }
             .joinToString(" AND ") { "${it.name} = ${'$'}{${it.name.camelCase()}}::${it.type}" }
-    })
+    }
     """.trimIndent()
 
 }

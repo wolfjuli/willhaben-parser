@@ -6,7 +6,7 @@
     import {ListingsStore} from '$lib/stores/listings.svelte'
     import {page} from '$app/state'
     import {goto} from '$app/navigation'
-    import type {Listing} from "$lib/types/listing";
+    import type {Listing} from "$lib/types/Listing";
 
     let currentPage = $derived(+(page.url.searchParams.get('page') ?? 1));
     let config = ConfigurationStore
@@ -68,8 +68,6 @@
         sortFn = sorting(key as keyof Listing)
     }
 
-    $effect(() => console.log(listings))
-
 </script>
 
 <button onclick={() => goto("?page=" + (currentPage -1))} disabled={currentPage <= 1}>{"<"}</button>
@@ -111,15 +109,3 @@ Page {currentPage}
     {/snippet}
 
 </Table>
-
-<style>
-
-    img {
-        height: 14vh
-    }
-
-    .even {
-        background-color: #ddd;
-    }
-
-</style>

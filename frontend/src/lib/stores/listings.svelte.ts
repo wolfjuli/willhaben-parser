@@ -1,4 +1,4 @@
-import {type Listing, type RawListing} from '../types/listing';
+import {type Listing, type RawListing} from '../types/Listing';
 import {objectKeys, using} from "$lib/utils/object";
 
 
@@ -35,7 +35,7 @@ function transform(data: RawListing[]) {
 
 export const ListingsStore = $state<{ value: Listing[] | undefined }>({value: undefined})
 
-fetch("/api/rest/v1/listings")
+fetch("/api/rest/v1/fe_listings")
     .then((response) => {
         return response.json()
     })

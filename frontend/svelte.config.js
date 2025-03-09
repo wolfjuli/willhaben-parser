@@ -23,7 +23,7 @@ const config = {
         },
         csp: {
             directives: {
-                'script-src': ['self', 'maps.googleapis.com'],
+                'script-src': ['self', 'maps.googleapis.com', 'unsafe-eval'],
                 'connect-src': ['self', 'maps.googleapis.com']
             }
         },

@@ -1,6 +1,7 @@
 package solutions.lykos.willhaben.parser.backend.api
 
 import com.fasterxml.jackson.module.kotlin.readValue
+import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -24,6 +25,20 @@ fun Route.apiRoutes(configuration: API.Configuration) {
     val logger = LoggerFactory.getLogger(this.javaClass)
 
     val database = Database { dataSource.connection }
+
+    get("functions.js") {
+        val list = dataSource.connection.useTransaction { transaction ->
+            QueryBuilder(transaction)
+                .append("""SELECT 'const fun' || id || ' = ' || function as fun FROM functions""")
+                .build(emptyMap())
+                .executeQuery()
+                .useAsSequence { seq ->
+                    seq.joinToString(";\n", postfix = ";") { it.getString("fun") }
+                }
+        }
+
+        call.respondText(list, ContentType.Text.JavaScript)
+    }
 
     //GET requests for tables and views
     database.tables.forEach { (tableName, tableDef) ->
@@ -105,12 +120,12 @@ fun Route.apiRoutes(configuration: API.Configuration) {
         delete(tableName) {
             logger.info("API DELETE $tableName")
 
-            val params = call.request.queryParameters.toMap()
+            val del: Map<String, Any?> = jsonMapper.readValue(call.receiveText())
 
             val obj: Int = dataSource.connection.useTransaction { transaction ->
                 QueryBuilder(transaction)
                     .append(database.deleteQuery(tableDef))
-                    .build(params)
+                    .build(del)
                     .executeUpdate()
             }
 

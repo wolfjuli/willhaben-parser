@@ -4,7 +4,7 @@
 	let {tableData, thead, row}: TableProps = $props()
 </script>
 
-<table>
+<table class="striped">
 	{#if thead}
 		<thead>
 			{@render thead()}

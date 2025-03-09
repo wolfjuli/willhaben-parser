@@ -1,4 +1,4 @@
-import {type Configuration} from '../types/configuration';
+import {type Configuration} from '../types/Configuration';
 
 
 function transform(data: Configuration[]) {
@@ -6,9 +6,9 @@ function transform(data: Configuration[]) {
 }
 
 
-export const ConfigurationStore = $state<{ value: Configuration | undefined }>({})
+export const ConfigurationStore = $state<{ value: Configuration | undefined }>({value: undefined})
 
-fetch("/api/rest/v1/configuration")
+fetch("/api/rest/v1/fe_configuration")
     .then((response) => response.json())
     .then((data) => transform(data))
     .then((data) => {
