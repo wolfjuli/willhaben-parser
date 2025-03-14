@@ -3,18 +3,13 @@ import {objectKeys, using} from "$lib/utils/object";
 
 
 function transform(data: RawListing[]) {
-    const numberFields = ["PRICE", "ESTATE_SIZE", "POSTCODE", "PUBLISHED", "ESTATE_SIZE/LIVING_AREA", "ESTATE_PRICE/PRICE_SUGGESTION", "FREE_AREA/FREE_AREA_AREA_TOTAL"]
-    const booleanFields = ["ISPRIVATE", "IS_BUMPED", "PROPERTY_TYPE_FLAT"]
-    const fieldMapping = {
-        "FREE_AREA/FREE_AREA_AREA_TOTAL": "FREE_AREA_AREA_TOTAL",
-        "ESTATE_PRICE/PRICE_SUGGESTION": "PRICE_SUGGESTION",
-        "ESTATE_SIZE/LIVING_AREA": "ESTATE_SIZE_LIVING_AREA"
-    }
+    const numberFields = ["price", "estateSize", "postcode", "published", "livingArea", "priceSuggestion", "freeAreaAreaTotal"]
+    const booleanFields = ["isprivate", "isBumped", "propertyTypeFlat"]
 
-    const isNumberField = (field: string | number): boolean => numberFields.indexOf(field) > -1
-    const isBooleanField = (field: string | number): boolean => booleanFields.indexOf(field) > -1
+    const isNumberField = (field: string): boolean => numberFields.indexOf(field) > -1
+    const isBooleanField = (field: string): boolean => booleanFields.indexOf(field) > -1
 
-    const convertValue = (field: string | number, val: string): string | boolean | number => {
+    const convertValue = (field: string, val: string): string | boolean | number => {
         if (isNumberField(field))
             return using(+val, (v) => isNaN(v) ? -1 : v)
         else if (isBooleanField(field))
@@ -25,12 +20,12 @@ function transform(data: RawListing[]) {
 
     return data.map(d => ({
         willhabenId: d.willhabenId,
+        points: Math.round(d.points * 100) / 100,
         ...objectKeys(d.attributes).reduce((acc, curr) => {
-            acc[fieldMapping[curr] ?? curr] = convertValue(curr, d.attributes[curr][0])
+            acc[curr] = convertValue(curr.toString(), d.attributes[curr][0])
             return acc
-        }, {})
+        }, {} as { [key: string]: any })
     }))
-
 }
 
 export const ListingsStore = $state<{ value: Listing[] | undefined }>({value: undefined})

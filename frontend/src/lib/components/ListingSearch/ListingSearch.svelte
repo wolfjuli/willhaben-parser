@@ -1,17 +1,14 @@
 <script lang="ts">
     import type {ListingSearchProps} from "$lib/components/ListingSearch/ListingSearch";
     import type {Listing} from "$lib/types/Listing";
+    import {listingFilter} from "$lib/utils/listingFilter";
 
     let {listings, onselect}: ListingSearchProps = $props()
 
     let searchTerm = $state("")
 
     let listingsMapping: {[key: number]: Listing} = $derived(listings
-        .filter(l => l.willhabenId.toString().includes(searchTerm) ||
-            (l.price?.toString()?.includes(searchTerm) ?? false) ||
-            (l.heading?.toString()?.includes(searchTerm) ?? false) ||
-            (l.bodyDyn?.toString()?.includes(searchTerm) ?? false)
-        )
+        .filter(listingFilter(searchTerm))
         .reduce((acc, l) => {
             acc[l.willhabenId] = l
             return acc
@@ -33,6 +30,7 @@
 
 <select size="5" onclick={onselected}>
     {#each Object.keys(listingsMapping).toSorted() as willHabenId }
-        <option value={willHabenId} >{`${willHabenId} - ${listingsMapping[willHabenId].heading} - ${listingsMapping[willHabenId].priceForDisplay}`}</option>
+        <option
+            value={willHabenId}>{`${willHabenId} - ${listingsMapping[willHabenId].heading.slice(0, 30)} - ${listingsMapping[willHabenId].points} - ${listingsMapping[willHabenId].priceForDisplay}`}</option>
     {/each}
 </select>

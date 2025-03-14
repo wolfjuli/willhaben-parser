@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <name>Location Insights: Package</name>
+    <name>Willhaben Parser: Package</name>
     <artifactId>willhaben-parser-package</artifactId>
     <parent>
         <groupId>solutions.lykos.willhaben.parser</groupId>
@@ -126,7 +126,8 @@
                                         <argument>src/main/pkg/contrib#contrib</argument>
                                         <argument>src/main/pkg/scripts#scripts</argument>
                                         <argument>src/main/pkg/willhaben-parser.yaml#nfpm.yaml</argument>
-                                        <argument>target/willhaben-parser-${project.version}.jar#willhaben-parser.jar
+                                        <argument>
+                                            target/willhaben-parser-package-${project.version}.jar#willhaben-parser.jar
                                         </argument>
                                         <argument>--version</argument>
                                         <argument>${project.version}</argument>
@@ -193,6 +194,7 @@
                                     <executable>mkdir</executable>
                                     <workingDirectory>${project.basedir}/target/</workingDirectory>
                                     <arguments>
+                                        <argument>-pv</argument>
                                         <argument>container</argument>
                                     </arguments>
                                 </configuration>
@@ -210,13 +212,15 @@
                                         <argument>--content</argument>
                                         <argument>src/main/pkg/contrib#contrib</argument>
                                         <argument>src/main/pkg/scripts#scripts</argument>
-                                        <argument>src/main/pkg/invenium-willhaben-parser.yaml#nfpm.yaml</argument>
-                                        <argument>target/willhaben-parser.jar#willhaben-parser.jar</argument>
+                                        <argument>src/main/pkg/willhaben-parser.yaml#nfpm.yaml</argument>
+                                        <argument>
+                                            target/willhaben-parser-package-${project.version}.jar#willhaben-parser.jar
+                                        </argument>
                                         <argument>--version</argument>
                                         <argument>${project.version}</argument>
                                         <argument>--variables</argument>
                                         <argument>PACKAGE_SUFFIX=${packageSuffix}</argument>
-                                        <argument>PACKAGE_NAME=invenium-willhaben-parser</argument>
+                                        <argument>PACKAGE_NAME=willhaben-parser</argument>
                                         <argument>--commands</argument>
                                         <argument>nfpm pkg --packager deb --target ${project.basedir}/target/container
                                         </argument>

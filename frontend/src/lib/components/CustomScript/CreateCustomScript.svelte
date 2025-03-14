@@ -1,6 +1,6 @@
 <script lang="ts">
-    import type {CreateScriptProps} from "$lib/components/Script/Script";
-    import {createScript, updateScript} from "$lib/stores/scripts.svelte";
+    import type {CreateScriptProps} from "$lib/components/CustomScript/Script";
+    import {createScript} from "$lib/stores/scripts.svelte";
     import type {ScriptSetDef} from "$lib/types/Script";
     import {randomName} from "$lib/utils/names";
 
@@ -27,11 +27,6 @@
         New Script on attribute:
     </div>
     <div>
-        <select onchange={ev => { script.attributeId = ev.target.value; save()}}>
-            {#each attributes as attribute}
-                <option value={attribute.id}>{attribute.normalized}</option>
-            {/each}
-        </select>
     </div>
 
 </div>

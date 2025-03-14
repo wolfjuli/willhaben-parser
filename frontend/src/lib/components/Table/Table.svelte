@@ -1,7 +1,7 @@
-<script lang="ts">
-	import type { TableProps } from './Table'
+<script generics="T" lang="ts">
+    import type {TableProps} from './Table'
 
-	let {tableData, thead, row}: TableProps = $props()
+    let {tableData, thead, row}: TableProps<T> = $props()
 </script>
 
 <table class="striped">

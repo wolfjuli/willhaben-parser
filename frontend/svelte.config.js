@@ -21,12 +21,6 @@ const config = {
             base,
             relative: true,
         },
-        csp: {
-            directives: {
-                'script-src': ['self', 'maps.googleapis.com', 'unsafe-eval'],
-                'connect-src': ['self', 'maps.googleapis.com']
-            }
-        },
         alias: {
             $houdini: './$houdini',
             $fonts: './src/lib/assets/fonts',

@@ -1,8 +1,8 @@
 <script lang="ts" nonce="nonce-1vRgYShvB7PTBmm1fZ1pSw==">
 
-    import type {ScriptFunctionsProps} from "$lib/components/Script/Script";
+    import type {ScriptFunctionsProps} from "$lib/components/CustomScript/Script";
     import Value from "$lib/components/Value/Value.svelte";
-    import {createScriptFunction, deleteScriptFunction, updateScript} from "$lib/stores/scripts.svelte";
+    import {createScriptFunction, deleteScriptFunction} from "$lib/stores/scripts.svelte";
     import Dropdown from "$lib/components/Function/Dropdown.svelte";
     import type {FunctionDef} from "$lib/types/Function";
     import type {ScriptFunctionDef} from "$lib/types/Script";
@@ -31,7 +31,7 @@
                 }
             ]
         }, [{
-            name: attribute.normalized,
+            name: attribute?.normalized,
             value: attributeValue,
             ord: -1,
             functionId: -1,
@@ -51,22 +51,22 @@
         deleteScriptFunction(fun)
     }
 
-    $effect(() => console.log("Current Script", script))
-
 </script>
 
 
 <details>
 <summary>
-    Function steps {#if listing }- {functionValues[functionValues.length - 1].value} Points {/if}
+    Function steps
+    {#if listing }({functionValues[functionValues.length - 1].value} Points){/if}
 </summary>
 
 <div class="text-center">
     <Value {...functionValues[0]}/>
     {#each functionValues.slice(1) as fv}
         ↓ <br/>
-        <Value {...fv}/>
         <button onclick={() => removeFunction(fv)}>X</button>
+        <Value {...fv}/>
+        <br/>
     {/each}
     <Dropdown {functions} onchange={addFunction}></Dropdown>
 </div>

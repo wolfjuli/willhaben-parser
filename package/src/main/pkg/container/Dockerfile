@@ -1,5 +1,5 @@
 FROM --platform=linux/amd64 debian:12-slim
-MAINTAINER Invenium Data Insights Gmbh <noreply@invenium.io>
+MAINTAINER Julian Wolf <noreply@lykos.solutions>
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG PACKAGE_SUFFIX=""
@@ -9,14 +9,14 @@ RUN apt update && \
     apt -y upgrade
 
 # Install application location-insights
-COPY container/invenium-location-insights*.deb /tmp/invenium-location-insights.deb
+COPY container/willhaben-parser*.deb /tmp/willhaben-parser.deb
 
-RUN apt -y install /tmp/invenium-location-insights.deb && \
+RUN apt -y install /tmp/willhaben-parser.deb && \
     rm -f /tmp/*.deb && \
     apt clean && \
-    mkdir -p "/var/run/invenium/location-insights${PACKAGE_SUFFIX}" && \
-    chown -R "invenium:invenium" /var/run/invenium/ && \
-    ln -s "/usr/share/invenium/run-location-insights${PACKAGE_SUFFIX}.sh" /entrypoint.sh
+    mkdir -p "/var/run/lykos/willhaben-parser${packageSuffix}" && \
+    chown -R "lykos:lykos" /var/run/invenium/ && \
+    ln -s "/usr/share/lykos/run-willhaben-parser${packageSuffix}.sh" /entrypoint.sh
 
-USER invenium
+USER lykos
 ENTRYPOINT ["/entrypoint.sh"]

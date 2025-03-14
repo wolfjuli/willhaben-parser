@@ -11,11 +11,10 @@ import solutions.lykos.willhaben.parser.backend.importer.actions.resolvers.Listi
 import solutions.lykos.willhaben.parser.backend.importer.actions.transformers.ListingAttributeMultiplier
 import solutions.lykos.willhaben.parser.backend.importer.actions.transformers.PipeTo
 import solutions.lykos.willhaben.parser.backend.importer.actions.writers.AttributesWriter
-import solutions.lykos.willhaben.parser.backend.importer.actions.writers.DataBlockWriter
+import solutions.lykos.willhaben.parser.backend.importer.actions.writers.LastSeenWriter
 import solutions.lykos.willhaben.parser.backend.importer.actions.writers.ListingAttributesWriter
 import solutions.lykos.willhaben.parser.backend.importer.actions.writers.ListingWriter
 import solutions.lykos.willhaben.parser.backend.importer.basedata.Attribute
-import solutions.lykos.willhaben.parser.backend.importer.basedata.DataBlock
 import solutions.lykos.willhaben.parser.backend.importer.basedata.Listing
 import solutions.lykos.willhaben.parser.backend.importer.basedata.ListingAttribute
 import solutions.lykos.willhaben.parser.backend.importer.pipelines.Pipeline
@@ -27,9 +26,10 @@ import java.util.*
 private val writeFlags = EnumSet.of(PipelineMessage.Flags.WRITE)
 private val resolveFlags = EnumSet.noneOf(PipelineMessage.Flags::class.java)
 
-fun Sequence<WHAdvertSummary>.write(transaction: Transaction) {
-    val now = ZonedDateTime.now()
+private val now = ZonedDateTime.now()
 
+
+fun Sequence<WHAdvertSummary>.write(transaction: Transaction) {
     val attributeActions = ResolvingActions(
         AttributeResolver(),
         AttributesWriter()
@@ -62,18 +62,14 @@ fun Sequence<WHAdvertSummary>.write(transaction: Transaction) {
             ListingAttributesWriter()
         )
 
-    val dataBlockActions = ActionSequence(
-        DataBlockWriter()
-    )
-
     val listingActions = ResolvingActions(
         ListingResolver(),
         ListingWriter()
     )
 
-
     val listingPipeline = Pipeline(
         ActionSequence<Listing>(
+            LastSeenWriter(),
             Communicator(
                 listingActions,
                 { this },
@@ -83,17 +79,13 @@ fun Sequence<WHAdvertSummary>.write(transaction: Transaction) {
             PipeTo(
                 listingAttributeActions,
                 { ListingAttribute(this, Attribute(""), emptyList()) }
-            ),
-            PipeTo(
-                dataBlockActions,
-                { DataBlock(this, now) }
             )
         )
     )
 
     listingPipeline.initialize(transaction)
-    onEachIndexed { idx, it ->
-        logger.info("working on $idx ")
+    onEachIndexed { idx, _ ->
+        if (idx % 500 == 0) logger.info("working on $idx")
     }
         .forEach { content ->
             listingPipeline.offer(content.toNode())

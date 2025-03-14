@@ -1,19 +1,19 @@
 <script lang="ts">
 
+    import type {PageProps} from "./$types";
 
     import {FunctionsStore} from "$lib/stores/functions.svelte";
     import {ScriptsStore} from "$lib/stores/scripts.svelte";
     import Function from "$lib/components/Function/Function.svelte";
-    import Script from "$lib/components/Script/Script.svelte";
+    import CustomScript from "$lib/components/CustomScript/CustomScript.svelte";
     import {AttributesStore} from "$lib/stores/attributes.svelte";
-    import CreateScript from "$lib/components/Script/CreateScript.svelte";
-    import ScriptFunctions from "$lib/components/Script/ScriptFunctions.svelte";
+    import CreateScript from "$lib/components/CustomScript/CreateCustomScript.svelte";
+    import ScriptFunctions from "$lib/components/CustomScript/ScriptFunctions.svelte";
     import ListingSearch from "$lib/components/ListingSearch/ListingSearch.svelte";
     import {ListingsStore} from "$lib/stores/listings.svelte";
     import type {Listing} from "$lib/types/Listing";
     import CreateFunction from "$lib/components/Function/CreateFunction.svelte";
-
-    const {children} = $props()
+    import ListingDetail from "$lib/components/ListingDetail/ListingDetail.svelte";
 
     const functions = $derived(FunctionsStore.value)
     const scripts = $derived(ScriptsStore.value)
@@ -22,7 +22,8 @@
 
     let selectedListing = $state<Listing | undefined>(undefined)
 
-    $effect(() => console.log(scripts))
+    let {data}: PageProps = $props()
+    let configuration = $derived(data.configuration)
 </script>
 
 <div class="grid">
@@ -32,9 +33,9 @@
             <CreateScript {attributes}/>
             <hr/>
             {#each Object.keys(scripts) as id }
-                <Script script={scripts[id]} {attributes}/>
+                <CustomScript script={scripts[id]} {attributes}/>
                 <ScriptFunctions script={scripts[id]} {attributes} {functions} listing={selectedListing}/>
-                <hr />
+                <hr/>
             {/each}
         {/if}
     </div>
@@ -42,13 +43,17 @@
         <h3>Example Listing</h3>
         <ListingSearch {listings}
                        onselect={(sel:Listing | undefined ) => { selectedListing = sel}}/>
+
+        {#if selectedListing}
+            <ListingDetail listing={selectedListing} {attributes} {configuration}></ListingDetail>
+        {/if}
     </div>
 </div>
 <div class="grid">
     <div>
         {#if functions}
             <h3>Functions</h3>
-            <CreateFunction />
+            <CreateFunction/>
             <hr/>
             {#each Object.keys(functions) as id }
                 <Function fun={functions[id]}/>

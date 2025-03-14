@@ -4,16 +4,18 @@ SELECT 'https://cache.willhaben.at/mmo' AS image_base_url,
 ;
 
 CREATE OR REPLACE VIEW fe_listings AS
-SELECT l.willhaben_id, jsonb_object_agg(a.normalized, la.values) AS attributes
+SELECT l.willhaben_id, coalesce(lp.points, 0) AS points, jsonb_object_agg(a.normalized, la.values) AS attributes
 FROM listings l
-         JOIN data_blocks d
-              ON l.id = d.listing_id
          JOIN listing_attributes la
               ON l.id = la.listing_id
          JOIN attributes a
               ON la.attribute_id = a.id
-WHERE d.timestamp = (SELECT max(timestamp) FROM data_blocks)
-GROUP BY 1
+         LEFT JOIN (SELECT listing_id, sum(points) AS points
+                    FROM listing_points
+                    GROUP BY listing_id) lp
+                   ON l.id = lp.listing_id
+WHERE l.last_seen = (SELECT max(last_seen) FROM listings)
+GROUP BY 1, 2
 ;
 
 CREATE OR REPLACE VIEW fe_scripts AS

@@ -23,22 +23,7 @@ fun Route.apiRoutes(configuration: API.Configuration) {
     }
 
     val logger = LoggerFactory.getLogger(this.javaClass)
-
     val database = Database { dataSource.connection }
-
-    get("functions.js") {
-        val list = dataSource.connection.useTransaction { transaction ->
-            QueryBuilder(transaction)
-                .append("""SELECT 'const fun' || id || ' = ' || function as fun FROM functions""")
-                .build(emptyMap())
-                .executeQuery()
-                .useAsSequence { seq ->
-                    seq.joinToString(";\n", postfix = ";") { it.getString("fun") }
-                }
-        }
-
-        call.respondText(list, ContentType.Text.JavaScript)
-    }
 
     //GET requests for tables and views
     database.tables.forEach { (tableName, tableDef) ->

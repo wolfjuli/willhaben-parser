@@ -16,6 +16,9 @@
     },
     "dependencies": {
         "@picocss/pico": "^2.0.6",
+        "bootstrap": "^5.3.3",
+        "bootstrap-grid": "^3.0.1",
+        "bootstrap-grid-flexbox": "^1.1.2",
         "i": "^0.3.7",
         "npm": "^11.1.0",
         "vitest": "^3.0.0"

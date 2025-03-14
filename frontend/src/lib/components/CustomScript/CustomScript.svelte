@@ -1,6 +1,6 @@
 <script lang="ts">
-    import { deleteScript, updateScript} from "$lib/stores/scripts.svelte";
-    import type {ScriptProps} from "$lib/components/Script/Script";
+    import {deleteScript, updateScript} from "$lib/stores/scripts.svelte";
+    import type {ScriptProps} from "$lib/components/CustomScript/Script";
     import {randomName} from "$lib/utils/names";
 
     let {script, attributes}: ScriptProps = $props()

@@ -67,6 +67,7 @@ inline fun <reified R : Any> ResultSet.getTypedValue(idx: Int): R? =
         "int2" -> getInt(idx) as R?
         "float4" -> getFloat(idx) as R?
         "float8" -> getFloat(idx) as R?
+        "data_type" -> getString(idx) as R?
         else -> error("Cant handle type '${metaData.getColumnTypeName(idx)?.lowercase()}'")
     }
 

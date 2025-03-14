@@ -1,13 +1,8 @@
 import type {Snippet} from "svelte";
 
-interface Data {
-    [key: string]: unknown
-}
-
-
-export interface TableProps {
-    tableData: Data[]
+export interface TableProps<T> {
+    tableData: T[]
     thead: Snippet
-    row: Snippet<[unknown, number]>
+    row: Snippet<[T, number]>
 
 }

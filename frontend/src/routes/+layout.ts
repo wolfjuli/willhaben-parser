@@ -1,8 +1,12 @@
-import {redirect} from "@sveltejs/kit";
-
 export const ssr = false
 
-export const load = (event) => {
-    if (!event.url.searchParams.get("page"))
-        redirect(302, "?page=1")
+export const load = async (event) => {
+    const configuration = await fetch("/api/rest/v1/fe_configuration")
+        .then((response) => response.json())
+        .then((data) => data[0])
+
+
+    return {
+        configuration
+    }
 }

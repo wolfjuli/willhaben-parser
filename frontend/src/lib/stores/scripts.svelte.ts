@@ -71,11 +71,8 @@ export const createScriptFunction = (scriptFun: ScriptFunctionDef) =>
         .then(r => r.json())
         .then(scripts => {
             const script = scripts[0]
-            console.log("found script", script)
             const existing = ScriptsStore.value!![script.id]
-            console.log("existing", existing)
             ScriptsStore.value!![script.id] = {...existing, ...script}
-            console.log("store updated", ScriptsStore.value)
         })
 
 export const deleteScriptFunction = (scriptFun: ScriptFunctionDef) =>

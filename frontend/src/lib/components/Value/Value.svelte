@@ -7,8 +7,8 @@
 </script>
 
 <div>
-    <span>{value ?? ""}</span>
-    <small>{name}</small>
+    <span>{name}</span>
+    <small>{value ?? ""}</small>
 </div>
 
 <style>

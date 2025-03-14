@@ -13,7 +13,7 @@
             <input
                 type="text"
                 placeholder="New Function..."
-                onkeyup= {(ev: KeyboardEvent) => { console.log(ev); if(ev.key === "Enter") {  save(ev.target!!.value); ev.target.value = ""}} }
+                onkeyup={(ev: KeyboardEvent) => { if(ev.key === "Enter") {  save(ev.target!!.value); ev.target.value = ""}} }
             />
 
     </div>

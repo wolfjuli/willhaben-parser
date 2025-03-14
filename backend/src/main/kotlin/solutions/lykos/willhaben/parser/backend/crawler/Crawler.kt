@@ -1,13 +1,11 @@
 package solutions.lykos.willhaben.parser.backend.crawler
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import org.slf4j.LoggerFactory
-import solutions.lykos.willhaben.parser.backend.api.wh.WHAdvertSummary
 import solutions.lykos.willhaben.parser.backend.config.WPConfiguration
+import solutions.lykos.willhaben.parser.backend.crawler.writers.write
 import solutions.lykos.willhaben.parser.backend.database.postgresql.DataSource
 import solutions.lykos.willhaben.parser.backend.database.postgresql.useTransaction
-import solutions.lykos.willhaben.parser.backend.jsonObjectMapper
-import java.io.File
+import solutions.lykos.willhaben.parser.backend.parser.parse
 import kotlin.concurrent.thread
 
 class Crawler(
@@ -46,12 +44,11 @@ class Crawler(
     }
 
     private fun run() {
-        //val currentVersions = dataSource.get.currentVersions()
+
         dataSource.connection.useTransaction { transaction ->
-            //dataSource.get.watchLists().parse()
-            jsonObjectMapper().readValue<List<WHAdvertSummary>>(File("/Users/jwolf/tmp/wh_all.json"))
-                .asSequence()
-            //.write(transaction)
+            dataSource.get.watchLists().parse()
+            //jsonObjectMapper().readValue<List<WHAdvertSummary>>(File("/Users/jwolf/tmp/wh_all.json")).asSequence()
+            .write(transaction)
         }
     }
 
@@ -59,12 +56,14 @@ class Crawler(
 
 
     private fun sleep() {
-        val wait = 0.rangeTo(configuration.crawler.maxTimeout).random().toLong() * 1000
-
+        val wait = configuration.crawler.timeout * 1000L
+        logger.info("Waiting for $wait ms")
         generateSequence(0) { (it + 500).takeIf { it < wait } }.forEach { _ ->
-            Thread.sleep(wait)
+            Thread.sleep(500)
             if (stop)
                 return@forEach
         }
+        logger.info("Finished wait")
+
     }
 }
