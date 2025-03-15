@@ -6,7 +6,6 @@
     import {ScriptsStore} from "$lib/stores/scripts.svelte";
     import Function from "$lib/components/Function/Function.svelte";
     import CustomScript from "$lib/components/CustomScript/CustomScript.svelte";
-    import {AttributesStore} from "$lib/stores/attributes.svelte";
     import CreateScript from "$lib/components/CustomScript/CreateCustomScript.svelte";
     import ScriptFunctions from "$lib/components/CustomScript/ScriptFunctions.svelte";
     import ListingSearch from "$lib/components/ListingSearch/ListingSearch.svelte";
@@ -14,10 +13,11 @@
     import type {Listing} from "$lib/types/Listing";
     import CreateFunction from "$lib/components/Function/CreateFunction.svelte";
     import ListingDetail from "$lib/components/ListingDetail/ListingDetail.svelte";
+    import {mergedAttributes} from "$lib/stores/attributes.svelte";
 
     const functions = $derived(FunctionsStore.value)
     const scripts = $derived(ScriptsStore.value)
-    const attributes = $derived((AttributesStore.value?.toSorted((a, b) => a.normalized.localeCompare(b.normalized)) ?? []))
+    const attributes = $derived((mergedAttributes().value?.toSorted((a, b) => a.normalized.localeCompare(b.normalized)) ?? []))
     const listings = $derived(ListingsStore.value ?? [])
 
     let selectedListing = $state<Listing | undefined>(undefined)
@@ -45,7 +45,7 @@
                        onselect={(sel:Listing | undefined ) => { selectedListing = sel}}/>
 
         {#if selectedListing}
-            <ListingDetail listing={selectedListing} {attributes} {configuration}></ListingDetail>
+            <ListingDetail listing={selectedListing} {attributes} {configuration} {functions}></ListingDetail>
         {/if}
     </div>
 </div>

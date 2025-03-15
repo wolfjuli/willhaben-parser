@@ -7,8 +7,9 @@
     import {page} from "$app/state";
     import {goto} from "$app/navigation";
     import {listingFilter} from "$lib/utils/listingFilter";
+    import {transformListing} from "$lib/utils/transformListing.js";
 
-    let {listings, fields, configuration}: ListingTableProps = $props()
+    let {listings, fields, configuration, functions}: ListingTableProps = $props()
 
     let sortKey: keyof Listing = $state("")
     let searchTerm = $state("")
@@ -16,18 +17,11 @@
     let sortAscending = $state(false)
     let sortFn: (a: Listing, b: Listing) => number = $state(() => 0)
     let tableData = $derived(
-        ((configuration ? listings : []) ?? [])
+        ((functions ? listings : []) ?? [])
             .filter(listingFilter(searchTerm))
+            .map(l => transformListing(l, fields, functions))
             .toSorted(sortFn)
             .slice(100 * (currentPage - 1), 100 * currentPage)
-            .map(l => {
-                    return ({
-                        ...l,
-                        seoUrl: configuration.listingsBaseUrl + "/" + l.seoUrl,
-                        mmo: configuration.imageBaseUrl + "/" + l.mmo
-                    })
-                }
-            )
     )
 
 
@@ -91,11 +85,21 @@
                     <TD>
                         {#snippet render()}
                             {#if field.dataType === "LINK" }
-                                <a href={obj[field.normalized].toString()} target="_blank">
-                                    {obj[field.normalized]}
-                                </a>
+                                {#if typeof obj[field.normalized] === "object" }
+                                    <a href={configuration.listingsBaseUrl + '/' + obj[field.normalized].href.toString()}
+                                       target="_blank">
+                                        {obj[field.normalized].value}
+                                    </a>
+
+                                {:else}
+                                    <a href={configuration.listingsBaseUrl + '/' + obj[field.normalized].toString()}
+                                       target="_blank">
+                                        {obj[field.normalized]}
+                                    </a>
+                                {/if}
                             {:else if field.dataType === "IMAGE"}
-                                <img src={obj[field.normalized].toString()} alt={obj[field.normalized].toString()}/>
+                                <img src={configuration.imageBaseUrl + '/' + obj[field.normalized].toString()}
+                                     alt={obj[field.normalized].toString()}/>
                             {:else}
                                 {obj[field.normalized]}
                             {/if}

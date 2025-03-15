@@ -32,3 +32,6 @@ FROM scripts s
 GROUP BY s.id, a.id, s.name, s.id
 ;
 
+INSERT INTO attributes (attribute, label, data_type)
+VALUES ('POINTS', 'Punkte', 'TEXT'),
+       ('WILLHABEN_ID', 'WillHaben ID', 'TEXT');

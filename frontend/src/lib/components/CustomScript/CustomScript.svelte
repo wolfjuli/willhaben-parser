@@ -2,6 +2,7 @@
     import {deleteScript, updateScript} from "$lib/stores/scripts.svelte";
     import type {ScriptProps} from "$lib/components/CustomScript/Script";
     import {randomName} from "$lib/utils/names";
+    import Dropdown from "$lib/components/Dropdown/Dropdown.svelte";
 
     let {script, attributes}: ScriptProps = $props()
 
@@ -47,12 +48,11 @@
         {/if}
     </div>
     <div>
-        <select onchange={ev => { script.attributeId = ev.target.value; save()}}>
-            {#each attributes as attribute}
-                <option value={attribute.id}
-                        selected={script.attributeId === attribute.id}>{attribute.normalized}</option>
-            {/each}
-        </select>
+        <Dropdown nameSelector={a => a.label} onchange={a => {
+            script.attributeId = a.id
+            save()
+            return false
+        }} preSelected={script.attributeId} values={attributes}/>
     </div>
 </div>
 

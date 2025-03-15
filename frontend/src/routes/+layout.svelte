@@ -17,23 +17,24 @@
     <link rel="stylesheet" href={`${scheme.current}.css`}/>
 </svelte:head>
 
+<nav>
+    <ul>
+        <li><strong>WillHaben Parser</strong></li>
+        <li><a href="/settings">
+            <GearIcon/>
+        </a></li>
+    </ul>
+    <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/functions">Functions</a></li>
+        <li><a href="/attributes">Attributes</a></li>
+    </ul>
+</nav>
+
 <main class="container-fluid">
-    <nav>
-        <ul>
-            <li><strong>WillHaben Parser</strong></li>
-            <li><a href="/settings">
-                <GearIcon/>
-            </a></li>
-        </ul>
-        <ul>
-            <li><a href="/">Home</a></li>
-            <li><a href="/functions">Functions</a></li>
-        </ul>
-    </nav>
-
     {@render children()}
-
 </main>
+
 
 <style>
     button {

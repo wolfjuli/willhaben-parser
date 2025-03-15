@@ -3,6 +3,8 @@
     import {createScript} from "$lib/stores/scripts.svelte";
     import type {ScriptSetDef} from "$lib/types/Script";
     import {randomName} from "$lib/utils/names";
+    import Dropdown from "$lib/components/Dropdown/Dropdown.svelte";
+    import type {Attribute} from "$lib/types/Attribute";
 
     let {attributes}: CreateScriptProps = $props()
 
@@ -19,6 +21,12 @@
         script = newScript()
     }
 
+    function selected(a: Attribute): boolean {
+        script.attributeId = a.id;
+        save()
+        return true
+    }
+
     let script: ScriptSetDef = $state(newScript())
 </script>
 
@@ -27,6 +35,7 @@
         New Script on attribute:
     </div>
     <div>
+        <Dropdown nameSelector={(a) => a.label} onchange={selected} values={attributes}/>
     </div>
 
 </div>

@@ -3,14 +3,15 @@
     import type {ScriptFunctionsProps} from "$lib/components/CustomScript/Script";
     import Value from "$lib/components/Value/Value.svelte";
     import {createScriptFunction, deleteScriptFunction} from "$lib/stores/scripts.svelte";
-    import Dropdown from "$lib/components/Function/Dropdown.svelte";
     import type {FunctionDef} from "$lib/types/Function";
     import type {ScriptFunctionDef} from "$lib/types/Script";
+    import Dropdown from "$lib/components/Dropdown/Dropdown.svelte";
+    import {transformListing} from "$lib/utils/transformListing.js";
 
     let {script, listing, attributes, functions}: ScriptFunctionsProps = $props()
 
     let attribute = $derived(attributes.find(a => a.id === script.attributeId)!!)
-    let attributeValue = $derived(listing?.[attribute.normalized])
+    let attributeValue = $derived((listing ? transformListing(listing, attributes, functions) : undefined)?.[attribute.normalized])
 
     let functionValues = $derived(script
         .functions
@@ -55,19 +56,19 @@
 
 
 <details>
-<summary>
-    Function steps
-    {#if listing }({functionValues[functionValues.length - 1].value} Points){/if}
-</summary>
+    <summary>
+        Function steps
+        {#if listing }({functionValues[functionValues.length - 1].value} Points){/if}
+    </summary>
 
-<div class="text-center">
-    <Value {...functionValues[0]}/>
-    {#each functionValues.slice(1) as fv}
-        ↓ <br/>
-        <button onclick={() => removeFunction(fv)}>X</button>
-        <Value {...fv}/>
-        <br/>
-    {/each}
-    <Dropdown {functions} onchange={addFunction}></Dropdown>
-</div>
+    <div class="text-center">
+        <Value {...functionValues[0]}/>
+        {#each functionValues.slice(1) as fv}
+            ↓ <br/>
+            <button onclick={() => removeFunction(fv)}>X</button>
+            <Value {...fv}/>
+            <br/>
+        {/each}
+        <Dropdown nameSelector={(e) => e.name} onchange={addFunction} values={Object.values(functions)}></Dropdown>
+    </div>
 </details>

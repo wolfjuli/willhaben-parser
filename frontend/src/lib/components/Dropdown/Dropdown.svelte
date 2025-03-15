@@ -7,7 +7,8 @@
     let {
         onchange = () => false, values,
         nameSelector = (v) => v.id,
-        emptyFirstLineText = undefined
+        emptyFirstLineText = "Select...",
+        preSelected
     }: DropdownProps<T> = $props()
 
     let elem: HTMLSelectElement
@@ -16,7 +17,7 @@
         const v = values.find(v => v.id == ev.target.value)!!
         const reset = onchange(v)
         if (reset)
-            elem.selectedIndex = 0
+            elem.selectedIndex = -1
     }
 
 </script>
@@ -24,9 +25,9 @@
 
 <select bind:this={elem} onchange={changed}>
     {#if emptyFirstLineText !== undefined}
-        <option disabled>{emptyFirstLineText}</option>
+        <option disabled selected={!elem || elem?.selectedIndex === -1}>{emptyFirstLineText}</option>
     {/if}
-    {#each values as v}
-        <option value={v.id}>{nameSelector(v)}</option>
+    {#each values.toSorted((a, b) => nameSelector(a).localeCompare(nameSelector(b))) as v}
+        <option value={v.id} selected={v.id === preSelected}>{nameSelector(v)}</option>
     {/each}
 </select>

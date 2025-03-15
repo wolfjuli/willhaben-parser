@@ -83,16 +83,20 @@ fun Sequence<WHAdvertSummary>.write(transaction: Transaction) {
         )
     )
 
+    var max = 0
     listingPipeline.initialize(transaction)
     onEachIndexed { idx, _ ->
         if (idx % 500 == 0) logger.info("working on $idx")
+        max = idx
     }
         .forEach { content ->
             listingPipeline.offer(content.toNode())
         }
+    logger.info("Parsed ${max + 1} entries")
 
-    (0..10).forEach {
+    (1..10).forEach {
         if (listingPipeline.close() is PipelineMessage.Close) return@forEach
+        logger.info("Trying to close again... (attempt $it / 10")
     }
 
     logger.info("Done")

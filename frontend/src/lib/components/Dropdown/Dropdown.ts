@@ -5,4 +5,5 @@ export interface DropdownProps<T extends IDObject> {
     values: T[]
     nameSelector: (v: T) => string
     emptyFirstLineText: string | undefined
+    preSelected: string | number | undefined
 }
