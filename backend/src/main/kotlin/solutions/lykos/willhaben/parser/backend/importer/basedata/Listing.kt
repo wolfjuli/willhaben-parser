@@ -1,6 +1,6 @@
 package solutions.lykos.willhaben.parser.backend.importer.basedata
 
-import solutions.lykos.willhaben.parser.backend.api.wh.WHAdvertSummary
+import solutions.lykos.willhaben.parser.backend.api.wh.WHAdvertSpecification
 import solutions.lykos.willhaben.parser.backend.importer.annotations.HashField
 import solutions.lykos.willhaben.parser.backend.importer.annotations.IdField
 
@@ -10,7 +10,7 @@ data class Listing(
     val hash: String,
     val duplicateHash: String,
     val url: String,
-    val raw: WHAdvertSummary
+    val raw: WHAdvertSpecification
 ) : Node {
     override fun equals(other: Any?): Boolean =
         other is Listing &&

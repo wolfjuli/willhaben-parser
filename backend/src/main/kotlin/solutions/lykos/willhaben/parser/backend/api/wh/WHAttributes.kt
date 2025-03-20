@@ -7,7 +7,7 @@ import java.time.ZonedDateTime
 
 private val zoneId = ZoneId.of("Europe/Vienna")
 data class WHAttributes(
-    val attribute: List<AttributeEntry>
+    val attribute: MutableList<AttributeEntry>
 ) {
     data class AttributeEntry(
         val name: String,

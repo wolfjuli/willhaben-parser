@@ -89,15 +89,20 @@ WHERE l.last_seen = (SELECT max(last_seen) FROM listings)
 GROUP BY 1, 2
 ;
 
-CREATE FUNCTION update_listing_points(willhaben_ids INT[] = NULL,
-                                      attribute_ids SMALLINT[] = NULL,
-                                      listing_ids INT[] = NULL)
-    RETURNS VOID
+DROP FUNCTION IF EXISTS update_listing_points;
+
+CREATE OR REPLACE FUNCTION update_listing_points(willhaben_ids INT[] = NULL,
+                                                 attribute_ids SMALLINT[] = NULL,
+                                                 listing_ids INT[] = NULL)
+    RETURNS INTEGER
     LANGUAGE plpgsql
 AS
 $$
+DECLARE
+    ret INTEGER;
 BEGIN
-    INSERT INTO listing_points (listing_id, attribute_id, script_id, points)
+    WITH ins AS (
+        INSERT INTO listing_points (listing_id, attribute_id, script_id, points)
     SELECT la.listing_id,
            la.attribute_id,
            s.id,
@@ -113,7 +118,13 @@ BEGIN
     WHERE (willhaben_ids IS NULL OR la.listing_id IN (SELECT id FROM listings WHERE willhaben_id = ANY (willhaben_ids)))
       AND (listing_ids IS NULL OR la.listing_id = ANY (listing_ids))
       AND (attribute_ids IS NULL OR la.attribute_id = ANY (attribute_ids))
-    ON CONFLICT(listing_id, attribute_id, script_id) DO UPDATE SET points = excluded.points;
+            ON CONFLICT (listing_id, attribute_id, script_id) DO UPDATE SET points = excluded.points
+            RETURNING listing_id)
+    SELECT count(*)
+    INTO ret
+    FROM ins;
+
+    RETURN ret;
 END;
 $$;
 

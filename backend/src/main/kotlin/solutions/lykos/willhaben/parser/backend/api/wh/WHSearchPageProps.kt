@@ -1,5 +1,5 @@
 package solutions.lykos.willhaben.parser.backend.api.wh
 
-data class WHPageProps(
+data class WHSearchPageProps(
     val searchResult: WHSearchResult
 )

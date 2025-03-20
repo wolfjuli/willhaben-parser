@@ -6,8 +6,8 @@ data class WHAdvertImageList(
 ) {
     data class AdvertImage(
         val id: Int, // 1,
-        val name: String, // "0/133/242/6850_-1767578652.jpg",
-        val selfLink: String, // "https://api.willhaben.at/restapi/v2/atimage/1332426850/1",
+        val name: String?, // "0/133/242/6850_-1767578652.jpg",
+        val selfLink: String?, // "https://api.willhaben.at/restapi/v2/atimage/1332426850/1",
         val description: String?, // "Cover Image",
         val mainImageUrl: String?, // "https://cache.willhaben.at/mmo/0/133/242/6850_-1767578652_hoved.jpg",
         val thumbnailImageUrl: String?, // "https://cache.willhaben.at/mmo/0/133/242/6850_-1767578652_thumb.jpg",

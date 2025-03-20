@@ -51,8 +51,7 @@ class Crawler(
 
         dataSource.connection.useTransaction { transaction ->
             dataSource.get.watchLists().parse()
-            //jsonObjectMapper().readValue<List<WHAdvertSummary>>(File("/Users/jwolf/tmp/wh_all.json")).asSequence()
-            .write(transaction)
+                .write(transaction, configuration.crawler)
         }
     }
 
@@ -63,8 +62,10 @@ class Crawler(
             }
         }
 
-        val wait = (configuration.crawler.timeout * 1000L -
-                Duration.between(lastRun.toLocalDateTime()!!, LocalDateTime.now()).toMillis()).coerceAtLeast(0)
+        val wait = lastRun?.let {
+            (configuration.crawler.timeout * 1000L -
+                    Duration.between(it.toLocalDateTime()!!, LocalDateTime.now()).toMillis()).coerceAtLeast(0)
+        } ?: 0
 
         logger.info("Crawler waiting for $wait ms")
         generateSequence(0) { (it + 500).takeIf { it < wait } }.forEach { _ ->

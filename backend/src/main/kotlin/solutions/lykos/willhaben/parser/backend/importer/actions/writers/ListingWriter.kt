@@ -2,6 +2,7 @@ package solutions.lykos.willhaben.parser.backend.importer.actions.writers
 
 import solutions.lykos.willhaben.parser.backend.database.postgresql.QueryBuilder
 import solutions.lykos.willhaben.parser.backend.database.postgresql.Transaction
+import solutions.lykos.willhaben.parser.backend.database.postgresql.useAsSequence
 import solutions.lykos.willhaben.parser.backend.importer.TableDefinitions
 import solutions.lykos.willhaben.parser.backend.importer.basedata.Listing
 import solutions.lykos.willhaben.parser.backend.importer.getOrError
@@ -38,11 +39,13 @@ class ListingWriter : Writer<Listing>(TableDefinitions.getTableName<Listing>()) 
         val ret = super.close(transaction)
         val amount = QueryBuilder(transaction).append(
             """
-           SELECT update_listing_points(willhaben_ids := ${'$'}{ids}::INT[])
+           SELECT update_listing_points(willhaben_ids := ${'$'}{ids}::INT[]) as count
             """.trimIndent()
         )
             .build(mapOf("ids" to ids.toList()))
-            .execute()
+            .executeQuery().useAsSequence { seq ->
+                seq.map { it.getInt("count") }.first()
+            }
 
         logger.info("Updated $amount listing points")
         ids.clear()

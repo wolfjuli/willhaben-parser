@@ -6,7 +6,7 @@
 
     let searchTerm = $state("")
     let searchType = $state("normal")
-    let selectedAttributes = $state<string[]>(attributes.map(a => a.normalized))
+    let selectedAttributes = $state<string[]>(attributes?.map(a => a.normalized) ?? [])
 
     $effect(() => onchange((listing): boolean => {
         if (searchType === "normal") {
@@ -22,7 +22,7 @@
 
     function invert() {
         selectedAttributes = attributes
-            .map(a => a.normalized)
+            ?.map(a => a.normalized)
             .filter(a => selectedAttributes.find(s => s === a) === undefined)
     }
 </script>

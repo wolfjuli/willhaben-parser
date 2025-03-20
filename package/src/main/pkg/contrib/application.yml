@@ -12,7 +12,7 @@ database:
     password: postgres
 
 logger:
-  level: INFO
+  level: DEBUG
   appenders:
     - type: console
       filters:

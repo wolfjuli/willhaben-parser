@@ -23,7 +23,7 @@ export function mergedAttributes(): { value: (BaseAttribute | CustomAttribute)[]
 }
 
 export function filteredAttributes(normalized: string[]): Attribute[] {
-    return normalized.map(f => mergedAttributes().value?.find(a => a.normalized === f)!!).filter(Boolean)
+    return normalized?.map(f => mergedAttributes().value?.find(a => a.normalized === f)!!).filter(Boolean) ?? []
 }
 
 function updateAttribute(attribute: CreateCustomAttribute) {
