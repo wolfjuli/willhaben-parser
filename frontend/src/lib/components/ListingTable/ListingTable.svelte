@@ -6,19 +6,24 @@
     import type {ListingTableProps} from "$lib/components/ListingTable/ListingTable";
     import {page} from "$app/state";
     import {goto} from "$app/navigation";
-    import {listingFilter} from "$lib/utils/listingFilter";
     import {transformListing} from "$lib/utils/transformListing.js";
+    import ListingValue from "$lib/components/Value/ListingValue.svelte";
+    import type {Attribute} from "$lib/types/Attribute";
+    import {createListingValue, updateListingValue} from "$lib/stores/listings.svelte";
+    import {deleteListingValue} from "$lib/stores/listings.svelte.js";
+    import EditListingValue from "$lib/components/Value/EditListingValue.svelte";
+    import ListingFilter from "$lib/components/ListingFilter/ListingFilter.svelte";
 
-    let {listings, fields, configuration, functions}: ListingTableProps = $props()
+    let {listings, userListings, fields, attributes, configuration, functions}: ListingTableProps = $props()
 
     let sortKey: keyof Listing = $state("")
-    let searchTerm = $state("")
     let currentPage = $derived(+(page.url.searchParams.get('page') ?? 1));
     let sortAscending = $state(false)
     let sortFn: (a: Listing, b: Listing) => number = $state(() => 0)
+    let filterFn = $state((l: Listing) => true)
     let tableData = $derived(
         ((functions ? listings : []) ?? [])
-            .filter(listingFilter(searchTerm))
+            .filter(filterFn)
             .map(l => transformListing(l, fields, functions))
             .toSorted(sortFn)
             .slice(100 * (currentPage - 1), 100 * currentPage)
@@ -46,6 +51,35 @@
         sortFn = sorting(key as keyof Listing)
     }
 
+    function onupdate(newValue: string, listing: Listing, attribute: Attribute) {
+        const n = {
+            listingId: listing.id,
+            attributeId: attribute.id,
+            values: [newValue]
+        }
+        if (!newValue)
+            deleteListingValue(n)
+        else if (listing[attribute.normalized] != newValue)
+            updateListingValue(n)
+
+        editing = -1
+    }
+
+    function oncreate(newValue: string, listing: Listing, attribute: Attribute) {
+        const n = {
+            listingId: listing.id,
+            attributeId: attribute.id,
+            values: [newValue]
+        }
+        if (newValue && newValue != listing[attribute.normalized])
+            createListingValue(n)
+
+        editing = {willhabenId: -1, attributeId: -1}
+    }
+
+
+    let editing = $state({willhabenId: -1, attributeId: -1})
+
 </script>
 
 {#if fields}
@@ -57,12 +91,7 @@
                     disabled={currentPage >= (listings ?? []).length / 100}>{">"}</button>
         </div>
         <div class=col>
-
-            <div role="group">
-                <input type="search" bind:value={searchTerm}/>
-                <button onclick={() => {searchTerm = "" }}>X</button>
-            </div>
-
+            <ListingFilter {listings} {userListings} {attributes} onchange={fn => filterFn = fn}></ListingFilter>
         </div>
     </div>
 
@@ -79,29 +108,19 @@
             {/each}
         {/snippet}
 
-        {#snippet row(obj: Listing, idx)}
+        {#snippet row(listing: Listing, idx)}
             <tr class:even={idx % 2}>
-                {#each fields as field}
+                {#each fields as attribute}
                     <TD>
                         {#snippet render()}
-                            {#if field.dataType === "LINK" }
-                                {#if typeof obj[field.normalized] === "object" }
-                                    <a href={configuration.listingsBaseUrl + '/' + obj[field.normalized].href.toString()}
-                                       target="_blank">
-                                        {obj[field.normalized].value}
-                                    </a>
-
-                                {:else}
-                                    <a href={configuration.listingsBaseUrl + '/' + obj[field.normalized].toString()}
-                                       target="_blank">
-                                        {obj[field.normalized]}
-                                    </a>
-                                {/if}
-                            {:else if field.dataType === "IMAGE"}
-                                <img src={configuration.imageBaseUrl + '/' + obj[field.normalized].toString()}
-                                     alt={obj[field.normalized].toString()}/>
+                            {#if editing.attributeId === attribute.id && editing.willhabenId === listing.willhabenId}
+                                <EditListingValue {listing} userListing={userListings[listing.willhabenId]} {attribute}
+                                                  {oncreate} {onupdate}/>
                             {:else}
-                                {obj[field.normalized]}
+                                <ListingValue {listing} {attribute} {configuration}
+                                              userListing={userListings?.[listing.willhabenId]}
+                                              ondblclick={() => {editing = {willhabenId: listing.willhabenId, attributeId: attribute.id}; console.log(editing)}}
+                                />
                             {/if}
                         {/snippet}
                     </TD>

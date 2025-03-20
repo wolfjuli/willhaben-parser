@@ -7,5 +7,10 @@ export interface FunctionProps {
 
 export interface FunctionDropdownProps {
     functions: FunctionDefMap
-    onchange: (FunctionDef) => void
+    onchange: (fun: FunctionDef) => void
+}
+
+export interface ValueProps {
+    value: unknown | undefined
+    name: string
 }

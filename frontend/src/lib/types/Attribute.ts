@@ -16,3 +16,11 @@ export type CustomAttribute = {
     functionId: number,
     replaces: boolean
 }
+
+export type CreateCustomAttribute = {
+    id: number,
+    normalized: string
+    label: string,
+    dataType: string,
+    functionId: number
+}

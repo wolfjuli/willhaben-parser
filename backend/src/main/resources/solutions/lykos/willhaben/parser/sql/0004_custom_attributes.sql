@@ -51,3 +51,70 @@ FROM scripts s
                    ON s.id = sf.script_id
 GROUP BY s.id, a.id, s.name, s.id
 ;
+
+DROP VIEW fe_listings;
+
+CREATE OR REPLACE VIEW fe_listings AS
+SELECT l.id,
+       l.willhaben_id,
+       coalesce(lp.points, 0)                                         AS points,
+       jsonb_object_agg(a.normalized, coalesce(ua.values, la.values)) AS attributes
+FROM listings l
+         JOIN listing_attributes la
+              ON l.id = la.listing_id
+         JOIN all_attributes a
+              ON la.attribute_id = a.id
+         LEFT JOIN (SELECT listing_id, sum(points) AS points
+                    FROM listing_points
+                    GROUP BY listing_id) lp
+                   ON l.id = lp.listing_id
+         LEFT JOIN user_defined_attributes ua
+                   ON la.listing_id = ua.listing_id
+                       AND la.attribute_id = ua.listing_id
+WHERE l.last_seen = (SELECT max(last_seen) FROM listings)
+GROUP BY 1, 2, 3
+;
+
+DROP VIEW IF EXISTS fe_user_listings;
+CREATE OR REPLACE VIEW fe_user_listings AS
+SELECT l.id                                      AS listing_id,
+       l.willhaben_id,
+       jsonb_object_agg(a.normalized, la.values) AS attributes
+FROM listings l
+         JOIN user_defined_attributes la
+              ON l.id = la.listing_id
+         JOIN all_attributes a
+              ON la.attribute_id = a.id
+WHERE l.last_seen = (SELECT max(last_seen) FROM listings)
+GROUP BY 1, 2
+;
+
+CREATE FUNCTION update_listing_points(willhaben_ids INT[] = NULL,
+                                      attribute_ids SMALLINT[] = NULL,
+                                      listing_ids INT[] = NULL)
+    RETURNS VOID
+    LANGUAGE plpgsql
+AS
+$$
+BEGIN
+    INSERT INTO listing_points (listing_id, attribute_id, script_id, points)
+    SELECT la.listing_id,
+           la.attribute_id,
+           s.id,
+           run_script(s.id, la.attribute_id::SMALLINT, coalesce(ua.values[1], la.values[1]), nl.listing)
+    FROM listing_attributes la
+             JOIN normalized_listings nl
+                  ON nl.listing_id = la.listing_id
+             JOIN scripts s
+                  ON s.attribute_id = la.attribute_id
+             LEFT JOIN user_defined_attributes ua
+                       ON ua.listing_id = la.listing_id
+                           AND ua.attribute_id = la.attribute_id
+    WHERE (willhaben_ids IS NULL OR la.listing_id IN (SELECT id FROM listings WHERE willhaben_id = ANY (willhaben_ids)))
+      AND (listing_ids IS NULL OR la.listing_id = ANY (listing_ids))
+      AND (attribute_ids IS NULL OR la.attribute_id = ANY (attribute_ids))
+    ON CONFLICT(listing_id, attribute_id, script_id) DO UPDATE SET points = excluded.points;
+END;
+$$;
+
+SELECT update_listing_points('{1850951858}'::INT[])

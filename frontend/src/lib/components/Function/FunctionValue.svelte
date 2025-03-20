@@ -1,6 +1,6 @@
 <script lang="ts">
 
-    import type {ValueProps} from "$lib/components/Value/Value";
+    import type {ValueProps} from "$lib/components/Function/Function";
 
     let {value, name}: ValueProps = $props()
 

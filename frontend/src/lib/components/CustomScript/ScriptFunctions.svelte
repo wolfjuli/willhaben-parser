@@ -1,7 +1,7 @@
 <script lang="ts" nonce="nonce-1vRgYShvB7PTBmm1fZ1pSw==">
 
     import type {ScriptFunctionsProps} from "$lib/components/CustomScript/Script";
-    import Value from "$lib/components/Value/Value.svelte";
+    import FunctionValue from "$lib/components/Function/FunctionValue.svelte";
     import {createScriptFunction, deleteScriptFunction} from "$lib/stores/scripts.svelte";
     import type {FunctionDef} from "$lib/types/Function";
     import type {ScriptFunctionDef} from "$lib/types/Script";
@@ -58,15 +58,15 @@
 <details>
     <summary>
         Function steps
-        {#if listing }({functionValues[functionValues.length - 1].value} Points){/if}
+        {#if listing && functionValues }({functionValues[functionValues.length - 1].value} Points){/if}
     </summary>
 
     <div class="text-center">
-        <Value {...functionValues[0]}/>
+        <FunctionValue {...functionValues[0]}/>
         {#each functionValues.slice(1) as fv}
             ↓ <br/>
             <button onclick={() => removeFunction(fv)}>X</button>
-            <Value {...fv}/>
+            <FunctionValue {...fv}/>
             <br/>
         {/each}
         <Dropdown nameSelector={(e) => e.name} onchange={addFunction} values={Object.values(functions)}></Dropdown>

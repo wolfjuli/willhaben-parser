@@ -38,18 +38,7 @@ class ListingWriter : Writer<Listing>(TableDefinitions.getTableName<Listing>()) 
         val ret = super.close(transaction)
         val amount = QueryBuilder(transaction).append(
             """
-           INSERT INTO listing_points (listing_id, attribute_id, script_id, points)
-            SELECT la.listing_id,
-                   la.attribute_id,
-                   s.id,
-                   run_script(s.id, la.attribute_id::SMALLINT, la.values[1], nl.listing)
-            FROM listing_attributes la
-                     JOIN normalized_listings nl
-                          ON nl.listing_id = la.listing_id
-                     JOIN scripts s
-                          ON s.attribute_id = la.attribute_id
-            WHERE la.listing_id IN (SELECT id FROM listings WHERE willhaben_id = ANY(${'$'}{ids}::INT[]))
-            ON CONFLICT(listing_id, attribute_id, script_id) DO UPDATE SET points = excluded.points
+           SELECT update_listing_points(willhaben_ids := ${'$'}{ids}::INT[])
             """.trimIndent()
         )
             .build(mapOf("ids" to ids.toList()))

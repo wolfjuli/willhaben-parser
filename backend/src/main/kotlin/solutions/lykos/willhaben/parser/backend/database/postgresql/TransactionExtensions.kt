@@ -58,7 +58,7 @@ fun <R : Any> ResultSet.useAsSequence(block: (Sequence<ResultSet>) -> R) =
 
 val jsonMapper = jsonObjectMapper()
 inline fun <reified R : Any> ResultSet.getTypedValue(idx: Int): R? =
-    when (metaData.getColumnTypeName(idx)?.lowercase()) {
+    when (metaData.getColumnTypeName(idx)?.lowercase()?.trim('_')) {
         "text" -> getString(idx) as R?
         "serial" -> getInt(idx) as R?
         "smallserial" -> getInt(idx) as R?

@@ -1,4 +1,4 @@
-import type {Attribute, BaseAttribute, CustomAttribute} from "$lib/types/Attribute";
+import type {Attribute, BaseAttribute, CreateCustomAttribute, CustomAttribute} from "$lib/types/Attribute";
 
 
 export const BaseAttributesStore = $state<{ value: BaseAttribute[] | undefined }>({value: undefined})
@@ -26,3 +26,26 @@ export function filteredAttributes(normalized: string[]): Attribute[] {
     return normalized.map(f => mergedAttributes().value?.find(a => a.normalized === f)!!).filter(Boolean)
 }
 
+function updateAttribute(attribute: CreateCustomAttribute) {
+    fetch("/api/rest/v1/custom_attributes", {
+        method: 'put',
+        body: JSON.stringify(attribute)
+    })
+        .then(r => r.json())
+        .then(attr => {
+            const f = CustomAttributesStore.value?.filter(c => c.id != attr.id) ?? []
+            CustomAttributesStore.value = [...f, attr]
+        })
+}
+
+function createAttribute(attribute: CreateCustomAttribute) {
+    fetch("/api/rest/v1/custom_attributes", {
+        method: 'post',
+        body: JSON.stringify(attribute)
+    })
+        .then(r => r.json())
+        .then(attr => {
+            const f = CustomAttributesStore.value?.filter(c => c.id != attr.id) ?? []
+            CustomAttributesStore.value = [...f, attr]
+        })
+}
