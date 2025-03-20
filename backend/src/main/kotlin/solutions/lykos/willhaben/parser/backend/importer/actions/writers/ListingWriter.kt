@@ -42,7 +42,7 @@ class ListingWriter : Writer<Listing>(TableDefinitions.getTableName<Listing>()) 
             """.trimIndent()
         )
             .build(mapOf("ids" to ids.toList()))
-            .executeLargeUpdate()
+            .execute()
 
         logger.info("Updated $amount listing points")
         ids.clear()

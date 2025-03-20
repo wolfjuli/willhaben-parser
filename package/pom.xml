@@ -17,6 +17,30 @@
         <testSourceDirectory>src/test/kotlin</testSourceDirectory>
         <plugins>
             <plugin>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}</outputDirectory>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>solutions.lykos.willhaben.parser</groupId>
+                                    <artifactId>willhaben-parser-backend</artifactId>
+                                    <version>${project.version}</version>
+                                    <type>jar</type>
+                                    <classifier>shaded</classifier>
+                                    <destFileName>willhaben-parser.jar</destFileName>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
                 <executions>
@@ -126,9 +150,7 @@
                                         <argument>src/main/pkg/contrib#contrib</argument>
                                         <argument>src/main/pkg/scripts#scripts</argument>
                                         <argument>src/main/pkg/willhaben-parser.yaml#nfpm.yaml</argument>
-                                        <argument>
-                                            target/willhaben-parser-package-${project.version}.jar#willhaben-parser.jar
-                                        </argument>
+                                        <argument>target/willhaben-parser.jar#willhaben-parser.jar</argument>
                                         <argument>--version</argument>
                                         <argument>${project.version}</argument>
                                         <argument>--variables</argument>

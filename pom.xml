@@ -44,7 +44,6 @@
         <tyrus.version>2.1.1</tyrus.version>
         <ktor.version>2.3.11</ktor.version>
 
-        <main.clas>solutions.lykos.willhaben.parser.backend.Server</main.clas>
 
         <rpm-repository-url>${rpm-snapshot-repository.url}</rpm-repository-url>
         <rpm-repository-username>${settings.servers.server.rpm-snapshot-repository.username}</rpm-repository-username>

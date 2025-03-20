@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <name>WillHaben Parser: Backend</name>
-    <artifactId>willhaben-parser</artifactId>
+    <artifactId>willhaben-parser-backend</artifactId>
     <parent>
         <groupId>solutions.lykos.willhaben.parser</groupId>
         <artifactId>willhaben-parser-parent</artifactId>
@@ -13,6 +13,8 @@
 
     <description>backend</description>
     <properties>
+        <main.class>solutions.lykos.willhaben.parser.backend.Server</main.class>
+
         <kotlin.code.style>official</kotlin.code.style>
         <kotlin_version>2.1.10</kotlin_version>
         <kotlinx_version>1.6.4</kotlinx_version>
@@ -27,6 +29,7 @@
         <jackson.version>2.18.0</jackson.version>
 
         <skipFrontend>false</skipFrontend>
+        <main.class>solutions.lykos.willhaben.parser.backend.Server</main.class>
 
     </properties>
     <repositories>
@@ -174,6 +177,7 @@
         <resources>
             <resource>
                 <directory>${project.basedir}/src/main/resources</directory>
+                <filtering>true</filtering>
             </resource>
         </resources>
 
@@ -267,7 +271,7 @@
                                         implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>solutions.lykos.willhaben.parser.backend.Server</mainClass>
+                                    <mainClass>${main.class}</mainClass>
                                 </transformer>
                             </transformers>
                         </configuration>
@@ -275,6 +279,13 @@
                 </executions>
             </plugin>
         </plugins>
+        <extensions>
+            <extension>
+                <groupId>com.github.shyiko.servers-maven-extension</groupId>
+                <artifactId>servers-maven-extension</artifactId>
+                <version>${servers-maven-extension.version}</version>
+            </extension>
+        </extensions>
     </build>
 
     <profiles>
