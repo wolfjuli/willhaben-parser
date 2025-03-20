@@ -4,8 +4,12 @@ import org.slf4j.LoggerFactory
 import solutions.lykos.willhaben.parser.backend.config.WPConfiguration
 import solutions.lykos.willhaben.parser.backend.crawler.writers.write
 import solutions.lykos.willhaben.parser.backend.database.postgresql.DataSource
+import solutions.lykos.willhaben.parser.backend.database.postgresql.Transaction
+import solutions.lykos.willhaben.parser.backend.database.postgresql.useAsSequence
 import solutions.lykos.willhaben.parser.backend.database.postgresql.useTransaction
 import solutions.lykos.willhaben.parser.backend.parser.parse
+import java.time.Duration
+import java.time.LocalDateTime
 import kotlin.concurrent.thread
 
 class Crawler(
@@ -26,9 +30,9 @@ class Crawler(
 
         currentThread = thread(name = "Crawler") {
             while (!stop) {
-                val data = run()
-                //write(data)
                 sleep()
+                run()
+                //write(data)
             }
         }
     }
@@ -52,18 +56,22 @@ class Crawler(
         }
     }
 
-
-
-
     private fun sleep() {
-        val wait = configuration.crawler.timeout * 1000L
-        logger.info("Waiting for $wait ms")
+        val lastRun = dataSource.connection.useTransaction { transaction: Transaction ->
+            transaction.prepareStatement("""SELECT max(last_seen) AS last FROM listings""").useAsSequence { seq ->
+                seq.map { it.getTimestamp("last") }.first()
+            }
+        }
+
+        val wait = (configuration.crawler.timeout * 1000L -
+                Duration.between(lastRun.toLocalDateTime()!!, LocalDateTime.now()).toMillis()).coerceAtLeast(0)
+
+        logger.info("Crawler waiting for $wait ms")
         generateSequence(0) { (it + 500).takeIf { it < wait } }.forEach { _ ->
             Thread.sleep(500)
             if (stop)
                 return@forEach
         }
         logger.info("Finished wait")
-
     }
 }
