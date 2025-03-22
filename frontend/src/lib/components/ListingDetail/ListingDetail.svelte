@@ -6,7 +6,7 @@
     import {createListingValue, deleteListingValue, updateListingValue} from "$lib/stores/listings.svelte";
     import EditListingValue from "$lib/components/Value/EditListingValue.svelte";
 
-    let {listing, userListing, attributes, configuration}: ListingDetailProps = $props()
+    let {listing, userListing, attributes, configuration, horizontal = false}: ListingDetailProps = $props()
 
 
     function onupdate(newValue: string, listing: Listing, attribute: Attribute) {
@@ -39,14 +39,27 @@
 </script>
 <dl>
     {#each attributes as attribute}
-        <dt>{attribute.label}</dt>
-        <dd>
-            {#if editing === attribute.id}
-                <EditListingValue {listing} {userListing} {attribute} {oncreate} {onupdate}/>
-            {:else}
-                <ListingValue {listing} {userListing} {attribute} {configuration}
-                              ondblclick={() => editing = attribute.id}/>
-            {/if}
-        </dd>
+        <e:detail class:horizontal>
+            <dt>{attribute.label}</dt>
+            <dd>
+                {#if editing === attribute.id}
+                    <EditListingValue {listing} {userListing} {attribute} {oncreate} {onupdate}/>
+                {:else}
+                    <ListingValue {listing} {userListing} {attribute} {configuration}
+                                  ondblclick={() => editing = attribute.id}/>
+                {/if}
+            </dd>
+        </e:detail>
     {/each}
 </dl>
+
+<style>
+    .horizontal {
+        display: block;
+        float: left;
+    }
+
+    dl {
+        clear: both
+    }
+</style>

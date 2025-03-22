@@ -9,7 +9,7 @@
     import CreateScript from "$lib/components/CustomScript/CreateCustomScript.svelte";
     import ScriptFunctions from "$lib/components/CustomScript/ScriptFunctions.svelte";
     import ListingSearch from "$lib/components/ListingSearch/ListingSearch.svelte";
-    import {ListingsStore, UserListingsStore} from "$lib/stores/listings.svelte";
+    import {ListingsStore, updateListingPoints, UserListingsStore} from "$lib/stores/listings.svelte";
     import type {Listing} from "$lib/types/Listing";
     import CreateFunction from "$lib/components/Function/CreateFunction.svelte";
     import ListingDetail from "$lib/components/ListingDetail/ListingDetail.svelte";
@@ -26,7 +26,20 @@
 
     let {data}: PageProps = $props()
     let configuration = $derived(data.configuration)
+
+    async function updatePoints(ev) {
+        ev.target.disabled = true
+        const length = await updateListingPoints().then(d => d.length)
+        console.log(length)
+        ev.target.disabled = false
+    }
 </script>
+
+<div class="grid">
+    <div>
+        <button onclick={updatePoints}>Update all listing points</button>
+    </div>
+</div>
 
 <div class="grid">
     <div>

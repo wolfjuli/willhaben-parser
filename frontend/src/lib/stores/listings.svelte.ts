@@ -45,7 +45,6 @@ function updateUserListings() {
         .then(r => r.json())
         .then((data) => transform(data))
         .then((data) => {
-            console.log(data.reduce(toMap(o => o.willhabenId), {}))
             UserListingsStore.value = data.reduce(toMap(o => o.willhabenId), {});
         })
 }
@@ -99,3 +98,14 @@ export const deleteListingValue = (listingValue: NewListingValue) =>
                 updateUserListings()
             }
         })
+
+export const updateListingPoints = (): Promise<{ [key: string]: unknown }[]> =>
+    fetch("/api/rest/v1/fe_update_listing_points", {
+        method: 'get'
+    })
+        .then(r => {
+            updateUserListings();
+            return r
+        })
+        .then(r => r.json())
+

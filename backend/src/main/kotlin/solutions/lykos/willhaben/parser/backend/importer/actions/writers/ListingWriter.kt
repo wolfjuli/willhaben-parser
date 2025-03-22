@@ -44,7 +44,7 @@ class ListingWriter : Writer<Listing>(TableDefinitions.getTableName<Listing>()) 
         )
             .build(mapOf("ids" to ids.toList()))
             .executeQuery().useAsSequence { seq ->
-                seq.map { it.getInt("count") }.first()
+                seq.map { 1 }.reduceOrNull { acc, i -> acc + i } ?: 0
             }
 
         logger.info("Updated $amount listing points")

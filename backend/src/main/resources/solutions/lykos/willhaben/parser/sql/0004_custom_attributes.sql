@@ -128,4 +128,3 @@ BEGIN
 END;
 $$;
 
-SELECT update_listing_points('{1850951858}'::INT[])

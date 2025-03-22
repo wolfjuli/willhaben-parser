@@ -12,11 +12,14 @@ database:
     password: postgres
 
 logger:
-  level: INFO
+  level: DEBUG
   appenders:
     - type: console
       filters:
         - all #lowercase!
 
 crawler:
-  timeout: 1800 # 30 * 60 seconds
+  timeout: 60 # 30 * 60 seconds
+  debugAmount: 30
+
+

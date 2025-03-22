@@ -1,0 +1,12 @@
+<component name="ProjectRunConfigurationManager">
+    <configuration default="false" name="Server" type="JetRunConfigurationType" nameIsGenerated="true">
+        <option name="MAIN_CLASS_NAME" value="solutions.lykos.willhaben.parser.backend.Server"/>
+        <module name="willhaben-parser"/>
+        <option name="PROGRAM_PARAMETERS" value="-c backend/config/application-local.yml"/>
+        <shortenClasspath name="NONE"/>
+        <option name="VM_PARAMETERS" value="-Xmx4G -Xms4G"/>
+        <method v="2">
+            <option name="Make" enabled="true"/>
+        </method>
+    </configuration>
+</component>

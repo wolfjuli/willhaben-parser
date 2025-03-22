@@ -87,10 +87,11 @@ fun Sequence<WHAdvertSummary>.write(transaction: Transaction, configuration: Cra
 
     var max = 0
     listingPipeline.initialize(transaction)
-    onEachIndexed { idx, _ ->
-        if (idx % 500 == 0) logger.info("working on $idx")
-        max = idx
-    }
+    (configuration.debugAmount?.let { this.take(it) } ?: this)
+        .onEachIndexed { idx, _ ->
+            if (idx % 500 == 0) logger.info("working on $idx")
+            max = idx
+        }
         .forEach { content ->
             listingPipeline.offer(content.toNode())
         }
@@ -98,11 +99,14 @@ fun Sequence<WHAdvertSummary>.write(transaction: Transaction, configuration: Cra
 
     generateSequence(1) {
         val ret = listingPipeline.close()
-        if (ret is PipelineMessage.Close<*>)
+        if (ret.javaClass.simpleName == PipelineMessage.Close::class.java.simpleName)
             null
         else {
-            logger.info("Trying to close again... (attempt $it / 10)")
-            it + 1
+            (it + 1)
+                .takeIf { it <= 10 }
+                ?.also {
+                    logger.info("Trying to close again... (attempt $it / 10)")
+                }
         }
     }.toList()
 

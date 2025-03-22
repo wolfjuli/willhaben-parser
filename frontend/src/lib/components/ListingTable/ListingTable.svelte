@@ -13,6 +13,7 @@
     import {deleteListingValue} from "$lib/stores/listings.svelte.js";
     import EditListingValue from "$lib/components/Value/EditListingValue.svelte";
     import ListingFilter from "$lib/components/ListingFilter/ListingFilter.svelte";
+    import ListingDetail from "$lib/components/ListingDetail/ListingDetail.svelte";
 
     let {listings, userListings, fields, attributes, configuration, functions}: ListingTableProps = $props()
 
@@ -80,6 +81,8 @@
 
     let editing = $state({willhabenId: -1, attributeId: -1})
 
+    let expanded = $state<number[]>([])
+
 </script>
 
 {#if fields}
@@ -97,6 +100,7 @@
 
     <Table {tableData}>
         {#snippet thead()}
+            <TH></TH>
             {#each fields as field}
                 <TH
                     currentColumn={field.normalized}
@@ -110,6 +114,11 @@
 
         {#snippet row(listing: Listing, idx)}
             <tr class:even={idx % 2}>
+                <TD>
+                    {#snippet render()}
+                        <button>V</button>
+                    {/snippet}
+                </TD>
                 {#each fields as attribute}
                     <TD>
                         {#snippet render()}
@@ -126,6 +135,14 @@
                     </TD>
                 {/each}
             </tr>
+            {#if expanded.indexOf(listing.willhabenId) > -1}
+                <tr>
+                    <td colspan={fields.length}>
+                        <ListingDetail {listing} {attributes} {configuration}
+                                       userListing={userListings?.[listing.willhabenId]} horizontal={true}/>
+                    </td>
+                </tr>
+            {/if}
         {/snippet}
 
     </Table>
