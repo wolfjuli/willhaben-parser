@@ -46,6 +46,8 @@ object Server {
             return
         }
 
+        databaseManager.upgrade(configuration.database)
+
         val server = createServer(configuration)
         val crawler = Crawler(configuration)
 
