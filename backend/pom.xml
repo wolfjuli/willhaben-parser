@@ -145,6 +145,11 @@
             <artifactId>HikariCP</artifactId>
             <version>${hikaricp.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.ktor</groupId>
+            <artifactId>ktor-network-tls-certificates-jvm</artifactId>
+            <version>${ktor_version}</version>
+        </dependency>
 
         <!-- Test Dependencies -->
         <dependency>

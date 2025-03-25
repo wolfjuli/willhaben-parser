@@ -28,6 +28,9 @@
 </td>
 
 <style>
+    td {
+        font-size: 0.6em;
+    }
     /*
     td {
         border-bottom: 1px solid var(--md-sys-color-surface-container-high);
