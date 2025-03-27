@@ -74,10 +74,12 @@ open class Database(
     }
 
 
-    fun selectQuery(table: TableDef) = """
+    fun selectQuery(table: TableDef, limit: Int? = null, offset: Int? = null) = """
         SELECT ${table.columns.joinToString(",") { it.name }}
         FROM ${table.name}
-        WHERE ${table.columns.joinToString(" AND ") { "(${'$'}{${it.name.camelCase()}}::${it.type}[] IS NULL OR ${it.name} = ANY(${'$'}{${it.name.camelCase()}}::${it.type}[]))" }}
+        WHERE ${table.columns.joinToString(" OR ") { "(${'$'}{${it.name.camelCase()}}::${it.type}[] IS NULL OR ${it.name} = ANY(${'$'}{${it.name.camelCase()}}::${it.type}[]))" }}
+        LIMIT $limit
+        OFFSET $offset
     """.trimIndent()
 
     fun insertQuery(table: TableDef) = """

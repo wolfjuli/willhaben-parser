@@ -5,16 +5,15 @@ import {browser} from "$app/environment";
 const defaultValues: Settings = {
     listingFields: [
         "mmo",
-        "heading",
+        "link",
         "points",
         "propertyType",
-        "points",
         "district",
         "address",
         "priceForDisplay",
-        "isPrivate",
         "estateSize",
-        "livingArea"
+        "price/m2",
+        "notes"
     ]
 }
 
