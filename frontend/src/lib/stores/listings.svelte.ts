@@ -30,18 +30,23 @@ function transform(data: RawListing[]) {
     }))
 }
 
+export const ListingFilter = $state<{ limit: number | null, page: number | null, searchTerm: string }>({
+    limit: 100,
+    page: 1,
+    searchTerm: ""
+})
 export const ListingsStore = $state<{ value: Listing[] | undefined }>({value: undefined})
 export const UserListingsStore = $state<{ value: UserListingMap }>({value: {}})
 
-fetch("/api/rest/v1/fe_listings")
-    .then(r => r.json())
-    .then((data) => transform(data))
-    .then((data) => {
-        ListingsStore.value = data;
-    })
+function updateListings() {
+    fetch(`/api/rest/v1/fe_listings?limit=${ListingFilter.limit}&page=${ListingFilter.page}`)
+        .then(r => r.json())
+        .then((data) => transform(data))
+        .then((data) => {
+            ListingsStore.value = data;
+        })
 
-function updateUserListings() {
-    fetch("/api/rest/v1/fe_user_listings")
+    fetch(`/api/rest/v1/fe_user_listings?limit=${ListingFilter.limit}&page=${ListingFilter.page}`)
         .then(r => r.json())
         .then((data) => transform(data))
         .then((data) => {
@@ -49,7 +54,7 @@ function updateUserListings() {
         })
 }
 
-updateUserListings()
+updateListings()
 
 export const createListingValue = (listingValue: NewListingValue) =>
     fetch("/api/rest/v1/user_defined_attributes", {

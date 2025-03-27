@@ -46,7 +46,6 @@
         align-items: center;
         padding: 0.1em;
         font-weight: var(--md-sys-typescale-label-large-font-weight);
-        font-size: 0.6em;
         line-height: var(--md-sys-typescale-label-large-line-height);
         font-family: var(--md-sys-typescale-label-large-font-family-name);
         letter-spacing: var(--md-sys-typescale-label-large-letter-spacing);
