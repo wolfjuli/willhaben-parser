@@ -9,7 +9,7 @@
     import {transformListing} from "$lib/utils/transformListing.js";
     import ListingValue from "$lib/components/Value/ListingValue.svelte";
     import type {Attribute} from "$lib/types/Attribute";
-    import {createListingValue, updateListingValue} from "$lib/stores/listings.svelte";
+    import {createListingValue, ListingSearchParams, updateListingValue} from "$lib/stores/listings.svelte";
     import {deleteListingValue} from "$lib/stores/listings.svelte.js";
     import EditListingValue from "$lib/components/Value/EditListingValue.svelte";
     import ListingFilter from "$lib/components/ListingFilter/ListingFilter.svelte";
@@ -18,38 +18,19 @@
     let {listings, userListings, fields, attributes, configuration, functions}: ListingTableProps = $props()
 
     let sortKey: keyof Listing = $state("")
-    let currentPage = $derived(+(page.url.searchParams.get('page') ?? 1));
-    let sortAscending = $state(false)
-    let sortFn: (a: Listing, b: Listing) => number = $state(() => 0)
-    let filterFn = $state((l: Listing) => true)
-    let tableData = $derived(
-        ((functions ? listings : []) ?? [])
-            .filter(filterFn)
-            .map(l => transformListing(l, fields, functions))
-            .toSorted(sortFn)
-            .slice(100 * (currentPage - 1), 100 * currentPage)
-    )
 
-
-    const sorting = (key: keyof Listing) => {
-        sortAscending = key === sortKey ? !sortAscending : true
-        sortKey = key
-
-        return (
-            left: Listing,
-            right: Listing,
-        ): number => {
-            let sk = sortKey === "priceForDisplay" ? "price" : sortKey
-
-            let [a, b] = [left[sk], right[sk]]
-            if (!sortAscending) [b, a] = [a, b]
-            if (typeof a === 'number' || typeof b === 'number') return a - b
-            else return JSON.stringify(a ?? "").localeCompare(JSON.stringify(b ?? ""))
-        }
-    }
+    let sortAscending = $derived(ListingSearchParams.sortDirection === "ASC")
+    let tableData = $derived(listings)
 
     const onSort = (key: string) => {
-        sortFn = sorting(key as keyof Listing)
+        if(ListingSearchParams.sortCol === key)
+                ListingSearchParams.sortDirection = sortAscending ? "DESC" : "ASC"
+        else
+        {
+            ListingSearchParams.sortCol = key
+            ListingSearchParams.sortDirection = "ASC"
+        }
+
     }
 
     function onupdate(newValue: string, listing: Listing, attribute: Attribute) {
@@ -88,13 +69,13 @@
 {#if fields}
     <div class=container-fluid>
         <div class=col>
-            <button onclick={() => goto("?page=" + (currentPage -1))} disabled={currentPage <= 1}>{"<"}</button>
-            Page {currentPage}
-            <button onclick={() => goto("?page=" + (currentPage +1))}
-                    disabled={currentPage >= (listings ?? []).length / 100}>{">"}</button>
+            <button onclick={() => ListingSearchParams.page -= 1} disabled={ListingSearchParams.page  <= 1}>{"<"}</button>
+            Page {ListingSearchParams.page}
+            <button onclick={() => ListingSearchParams.page += 1}
+                    disabled={(listings ?? []).length === 0}>{">"}</button>
         </div>
         <div class=col>
-            <ListingFilter {listings} {userListings} {attributes} onchange={fn => filterFn = fn}></ListingFilter>
+            <ListingFilter {attributes} onchange={fn => filterFn = fn}></ListingFilter>
         </div>
     </div>
 
