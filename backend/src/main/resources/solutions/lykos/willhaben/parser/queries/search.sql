@@ -17,9 +17,8 @@ WITH all_attrs AS (SELECT l.listing_id, ca.normalized, run_function(ca.function_
 
                    UNION ALL
 
-                   SELECT l.listing_id, 'points', to_jsonb(sum(l.points))
-                   FROM listing_points l
-                   GROUP BY l.listing_id),
+                   SELECT l.listing_id, 'points', to_jsonb(l.points)
+                   FROM listing_points l),
      matches AS (SELECT id AS listing_id
                  FROM listings
                  WHERE array_length(${attributes}::TEXT[], 1) IS NULL
