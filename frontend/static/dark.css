@@ -1,6 +1,8 @@
 :root {
     color-scheme: dark;
 
+    font-size: 12px;
+
     --color-trend-positive: rgb(59 226 0);
     --color-trend-neutral: rgb(255 255 255);
     --color-trend-negative: rgb(253 67 76);
