@@ -1,19 +1,16 @@
 <script lang="ts">
 
     import type {ListingFilterProps} from "$lib/components/ListingFilter/ListingFilter";
-    import {ListingFilter} from "$lib/stores/listings.svelte";
-    import {listingFilter} from "$lib/utils/listingFilter";
-    import * as url from "node:url";
-    import {page} from "$app/state";
 
     let {userListings, listings, attributes, onchange}: ListingFilterProps = $props()
 
+    let searchTerm = $state("")
     let searchType = $state("normal")
     let selectedAttributes = $state<string[]>(attributes?.map(a => a.normalized) ?? [])
 
     $effect(() => onchange((listing): boolean => {
         if (searchType === "normal") {
-            const parts = ListingFilter.searchTerm.split(" ").filter(Boolean)
+            const parts = searchTerm.split(" ").filter(Boolean)
             return parts.every(word =>
                 selectedAttributes.find(attr =>
                     listing?.[attr]?.toString().toLowerCase().includes(word) === true
@@ -27,16 +24,6 @@
         selectedAttributes = attributes
             ?.map(a => a.normalized)
             .filter(a => selectedAttributes.find(s => s === a) === undefined)
-    }
-
-    function resetListingFilter() {
-        if(ListingFilter.searchTerm) {
-            ListingFilter.limit = null
-            ListingFilter.page = null
-        } else {
-            ListingFilter.limit = 100
-            ListingFilter.page = +(page.url.searchParams.get("page") ?? 1)
-        }
     }
 </script>
 
@@ -86,7 +73,7 @@
                 </li>
             </ul>
         </details>
-        <input bind:value={ListingFilter.searchTerm} disabled={searchType !== "normal"} type="search" onchange={resetListingFilter}/>
-        <button onclick={() => {ListingFilter.searchTerm = "" }}>X</button>
+        <input bind:value={searchTerm} disabled={searchType !== "normal"} type="search"/>
+        <button onclick={() => {searchTerm = "" }}>X</button>
     </div>
 </div>

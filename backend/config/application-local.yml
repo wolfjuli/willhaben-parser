@@ -1,6 +1,10 @@
 server:
   host: 0.0.0.0
   port: 9191
+  ssl:
+    key: "asdf"
+    cert: "asdf"
+    password: ""
 
 database:
   host: localhost

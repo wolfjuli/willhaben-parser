@@ -39,7 +39,7 @@ class ListingWriter : Writer<Listing>(TableDefinitions.getTableName<Listing>()) 
         val ret = super.close(transaction)
         val amount = QueryBuilder(transaction).append(
             """
-           SELECT * FROM update_listing_points(willhaben_ids := ${'$'}{ids}::INT[]) as count
+           SELECT update_listing_points(willhaben_ids := ${'$'}{ids}::INT[]) as count
             """.trimIndent()
         )
             .build(mapOf("ids" to ids.toList()))
@@ -51,4 +51,5 @@ class ListingWriter : Writer<Listing>(TableDefinitions.getTableName<Listing>()) 
         ids.clear()
         return ret
     }
+
 }

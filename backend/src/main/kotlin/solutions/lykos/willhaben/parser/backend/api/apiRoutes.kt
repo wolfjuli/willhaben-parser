@@ -1,6 +1,7 @@
 package solutions.lykos.willhaben.parser.backend.api
 
 import com.fasterxml.jackson.module.kotlin.readValue
+import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -29,18 +30,11 @@ fun Route.apiRoutes(configuration: API.Configuration) {
         get(tableName) {
             logger.info("API Get $tableName")
 
-            val params = call.request.queryParameters.toMap().toMutableMap()
-
-            var offset: Int? = null
-            var limit: Int? = null
-            if (params.containsKey("page")) {
-                limit = 100
-                offset = ((params["page"]?.firstOrNull()?.toInt() ?: 1) - 1) * 100
-            }
+            val params = call.request.queryParameters.toMap()
 
             val list = dataSource.connection.useTransaction { transaction ->
                 QueryBuilder(transaction)
-                    .append(database.selectQuery(tableDef, limit, offset))
+                    .append(database.selectQuery(tableDef))
                     .build(params)
                     .executeQuery()
                     .useAsSequence { seq ->
