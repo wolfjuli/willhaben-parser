@@ -1,23 +1,43 @@
 <script lang="ts">
 
     import type {ListingFilterProps} from "$lib/components/ListingFilter/ListingFilter";
-    import {ListingSearchParams, updateListings} from "$lib/stores/listings.svelte.js";
+    import {ListingFilter} from "$lib/stores/listings.svelte";
+    import {listingFilter} from "$lib/utils/listingFilter";
+    import * as url from "node:url";
+    import {page} from "$app/state";
 
-    let {attributes}: ListingFilterProps = $props()
+    let {userListings, listings, attributes, onchange}: ListingFilterProps = $props()
 
     let searchType = $state("normal")
+    let selectedAttributes = $state<string[]>(attributes?.map(a => a.normalized) ?? [])
 
-    $effect(() => {
-        if (ListingSearchParams) updateListings();
-    })
+    $effect(() => onchange((listing): boolean => {
+        if (searchType === "normal") {
+            const parts = ListingFilter.searchTerm.split(" ").filter(Boolean)
+            return parts.every(word =>
+                selectedAttributes.find(attr =>
+                    listing?.[attr]?.toString().toLowerCase().includes(word) === true
+                ) !== undefined) === true
+        } else {
+            return Object.keys(userListings).find(k => +k === listing?.willhabenId) !== undefined
+        }
+    }))
 
     function invert() {
-        ListingSearchParams.attributes = attributes
+        selectedAttributes = attributes
             ?.map(a => a.normalized)
-            .filter(a => ListingSearchParams.attributes.find(s => s === a) === undefined)
+            .filter(a => selectedAttributes.find(s => s === a) === undefined)
     }
 
-    let attrs = $derived(attributes.toSorted((a, b) => a.label.localeCompare(b.label)))
+    function resetListingFilter() {
+        if(ListingFilter.searchTerm) {
+            ListingFilter.limit = null
+            ListingFilter.page = null
+        } else {
+            ListingFilter.limit = 100
+            ListingFilter.page = +(page.url.searchParams.get("page") ?? 1)
+        }
+    }
 </script>
 
 <div class=col>
@@ -26,13 +46,13 @@
             <summary></summary>
             <ul>
                 <li onclick={invert}>Search in...</li>
-                {#each attrs as attribute}
+                {#each attributes as attribute}
                     <li>
                         <label>
                             <input type="checkbox"
                                    name="attributes"
                                    value={attribute.normalized}
-                                   bind:group={ListingSearchParams.attributes}
+                                   bind:group={selectedAttributes}
                             />
                             {attribute.label}
                         </label>
@@ -66,7 +86,7 @@
                 </li>
             </ul>
         </details>
-        <input bind:value={ListingSearchParams.searchString} disabled={searchType !== "normal"} type="search" />
-        <button onclick={() => {ListingSearchParams.searchString = "" }}>X</button>
+        <input bind:value={ListingFilter.searchTerm} disabled={searchType !== "normal"} type="search" onchange={resetListingFilter}/>
+        <button onclick={() => {ListingFilter.searchTerm = "" }}>X</button>
     </div>
 </div>

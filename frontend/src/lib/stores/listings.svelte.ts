@@ -30,42 +30,23 @@ function transform(data: RawListing[]) {
     }))
 }
 
-export const ListingSearchParams = $state<{
-    page: number,
-    searchString: string,
-    attributes: string[],
-    sortCol: string,
-    sortDirection: string
-}>(
-    {
-        page: 1,
-        searchString: "",
-        attributes: [],
-        sortCol: "points",
-        sortDirection: "DESC"
-    }
-)
-
+export const ListingFilter = $state<{ limit: number | null, page: number | null, searchTerm: string }>({
+    limit: 100,
+    page: 1,
+    searchTerm: ""
+})
 export const ListingsStore = $state<{ value: Listing[] | undefined }>({value: undefined})
 export const UserListingsStore = $state<{ value: UserListingMap }>({value: {}})
 
-let lastParams = ""
-
-export function updateListings() {
-    const curr = JSON.stringify(ListingSearchParams)
-    if (lastParams === curr)
-        return
-
-    lastParams = curr
-    fetch(`/api/rest/v1/search?params=${lastParams}`)
+function updateListings() {
+    fetch(`/api/rest/v1/fe_listings?limit=${ListingFilter.limit}&page=${ListingFilter.page}`)
         .then(r => r.json())
-        .then((data) => data.map(d => d.listing))
+        .then((data) => transform(data))
         .then((data) => {
-            console.log(data)
             ListingsStore.value = data;
         })
 
-    fetch(`/api/rest/v1/fe_user_listings`)
+    fetch(`/api/rest/v1/fe_user_listings?limit=${ListingFilter.limit}&page=${ListingFilter.page}`)
         .then(r => r.json())
         .then((data) => transform(data))
         .then((data) => {
