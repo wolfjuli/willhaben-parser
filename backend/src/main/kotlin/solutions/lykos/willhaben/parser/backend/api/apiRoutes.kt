@@ -72,6 +72,8 @@ fun Route.apiRoutes(configuration: API.Configuration) {
             )
         )
 
+        logger.info("search: $params")
+
         val list = try {
             dataSource.connection.useTransaction { transaction ->
                 QueryBuilder(transaction)
