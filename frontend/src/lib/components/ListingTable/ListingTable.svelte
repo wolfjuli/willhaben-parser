@@ -19,16 +19,18 @@
 
     let sortKey: keyof Listing = $state("")
 
-    let sortAscending = $derived(ListingSearchParams.sortDirection === "ASC")
-    let tableData = $derived(listings)
+    let sortAscending = $derived(ListingSearchParams.sortDir === "ASC")
+    let p = $derived(+(page.url.searchParams.get("page") ?? 1))
+    let tableData = $derived(listings
+        .slice((p - 1) * 100, p  * 100))
 
     const onSort = (key: string) => {
         if(ListingSearchParams.sortCol === key)
-                ListingSearchParams.sortDirection = sortAscending ? "DESC" : "ASC"
+                ListingSearchParams.sortDir = sortAscending ? "DESC" : "ASC"
         else
         {
             ListingSearchParams.sortCol = key
-            ListingSearchParams.sortDirection = "ASC"
+            ListingSearchParams.sortDir = "ASC"
         }
 
     }

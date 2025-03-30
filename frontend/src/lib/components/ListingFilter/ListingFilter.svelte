@@ -1,15 +1,11 @@
 <script lang="ts">
 
     import type {ListingFilterProps} from "$lib/components/ListingFilter/ListingFilter";
-    import {ListingSearchParams, updateListings} from "$lib/stores/listings.svelte.js";
+    import {ListingSearchParams} from "$lib/stores/listings.svelte.js";
 
     let {attributes}: ListingFilterProps = $props()
 
     let searchType = $state("normal")
-
-    $effect(() => {
-        if (ListingSearchParams) updateListings();
-    })
 
     function invert() {
         ListingSearchParams.attributes = attributes

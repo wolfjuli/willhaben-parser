@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@neodrag/svelte':
+        specifier: ^2.3.2
+        version: 2.3.2(svelte@5.20.0)
       '@picocss/pico':
         specifier: ^2.0.6
         version: 2.0.6
@@ -389,6 +392,11 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.25':
     resolution: {integrity: sha512-vNk6aEwybGtawWmy/PzwnGDOjCkLWSD2wqvjGGAgOAwCGWySYXfYoxt00IJkTF+8Lb57DwOb3Aa0o9CApepiYQ==}
+
+  '@neodrag/svelte@2.3.2':
+    resolution: {integrity: sha512-1aPgnv2LqikkPEoTVgCPCqtXUXOD7OjCHLAIssTv0hkmyHLG9i697Cu+Tzco4/Q4KgOQXCDnLsa4Fvya5wXP9g==}
+    peerDependencies:
+      svelte: ^3.0.0 || ^4.0.0 || ^5.0.0
 
   '@nodelib/fs.scandir@2.1.5':
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
@@ -3243,6 +3251,10 @@ snapshots:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.0
+
+  '@neodrag/svelte@2.3.2(svelte@5.20.0)':
+    dependencies:
+      svelte: 5.20.0
 
   '@nodelib/fs.scandir@2.1.5':
     dependencies:

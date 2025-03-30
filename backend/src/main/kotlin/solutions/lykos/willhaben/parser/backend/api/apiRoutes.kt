@@ -29,17 +29,20 @@ fun Route.apiRoutes(configuration: API.Configuration) {
     //Special listing search endpoint
     data class SearchParams(
         val page: Int? = null,
+        val viewAttributes: List<String>? = null,
         val searchString: String? = null,
-        val attributes: List<String>? = null,
+        val searchAttributes: List<String>? = null,
         val sortCol: String = "points",
-        val sortDirection: SortDir = SortDir.DESC
+        val sortDir: SortDir = SortDir.DESC
     ) {
         fun toMap() = mapOf(
             "page" to page,
-            "searchString" to (searchString?.trim()?.split(" ") ?: emptyList()),
-            "attributes" to attributes,
+            "viewAttributes" to viewAttributes,
+            "searchString" to (searchString?.trim()?.split(" ")?.mapNotNull { it.takeUnless { it.isBlank() } }
+                ?: emptyList()),
+            "searchAttributes" to searchAttributes,
             "sortCol" to sortCol,
-            "sortDir" to sortDirection,
+            "sortDir" to sortDir,
         )
 
         init {
@@ -66,7 +69,7 @@ fun Route.apiRoutes(configuration: API.Configuration) {
         val query = templates.getTemplate(
             "search",
             mapOf(
-                "sortDir" to params.sortDirection.toString(),
+                "sortDir" to params.sortDir.toString(),
                 "limit" to 100,
                 "offset" to ((params.page ?: 1) - 1) * 100,
             )

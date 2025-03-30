@@ -1,5 +1,5 @@
 --search
-WITH all_attrs AS (SELECT l.listing_id, ca.normalized, run_function(ca.function_id, '', l.listing) AS val
+WITH all_attrs AS (SELECT l.listing_id, ca.normalized, run_function(ca.function_id, '', l.listing) AS value
                    FROM custom_attributes ca
                    CROSS JOIN normalized_listings l
 
@@ -20,26 +20,30 @@ WITH all_attrs AS (SELECT l.listing_id, ca.normalized, run_function(ca.function_
                    SELECT l.listing_id, 'points', to_jsonb(sum(l.points))
                    FROM listing_points l
                    GROUP BY l.listing_id),
-     matches AS (SELECT id AS listing_id
-                 FROM listings
-                 WHERE array_length(${attributes}::TEXT[], 1) IS NULL
-                    OR array_length(${searchString}::TEXT[], 1) IS NULL
+     matches AS (SELECT DISTINCT a.listing_id, a.value AS ord
+                 FROM all_attrs a
+                 WHERE a.normalized = ${sortCol}
+                   AND (
+                     array_length(${searchAttributes}::TEXT[], 1) IS NULL OR
+                     array_length(${searchString}::TEXT[], 1) IS NULL
+                     )
 
                  UNION ALL
 
-                 SELECT DISTINCT a.listing_id
+                 SELECT DISTINCT a.listing_id, a.value
                  FROM all_attrs a
-                 JOIN unnest(${attributes}::TEXT[]) i(attribute)
+                 JOIN unnest(${searchAttributes}::TEXT[]) i(attribute)
                      ON a.normalized = i.attribute
                  JOIN unnest(${searchString}::TEXT[]) s(term)
-                     ON a.val::TEXT LIKE '%' || s.term || '%'),
-     reduced AS (SELECT a.listing_id,
-                        jsonb_object_agg(a.normalized, a.val) AS listing
+                     ON a.value::TEXT LIKE '%' || s.term || '%'
+                 WHERE a.normalized = ${sortCol})
+SELECT a.listing_id,
+       m.ord,
+       jsonb_object_agg(a.normalized, a.value) AS listing
                  FROM all_attrs a
                  JOIN matches m
                      ON a.listing_id = m.listing_id
-                 GROUP BY a.listing_id)
-SELECT r.listing
-FROM reduced r
-ORDER BY r.listing -> ${sortcol} ${sortDir} NULLS LAST
-LIMIT ${limit} OFFSET ${offset}
+                 JOIN unnest(${viewAttributes}::TEXT[]) v(attr)
+                     ON a.normalized = v.attr
+GROUP BY a.listing_id, m.ord
+ORDER BY m.ord ${sortDir}

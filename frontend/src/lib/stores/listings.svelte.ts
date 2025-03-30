@@ -1,6 +1,8 @@
 import {type Listing, type NewListingValue, type RawListing, type UserListingMap} from '../types/Listing';
 import {objectKeys, using} from "$lib/utils/object";
 import {toMap} from '$lib/utils/toMap'
+import type {SearchParams} from "$lib/types/SearchParams";
+import {settingsStore} from "$lib/stores/settings.svelte";
 
 
 function transform(data: RawListing[]) {
@@ -30,19 +32,14 @@ function transform(data: RawListing[]) {
     }))
 }
 
-export const ListingSearchParams = $state<{
-    page: number,
-    searchString: string,
-    attributes: string[],
-    sortCol: string,
-    sortDirection: string
-}>(
+export const ListingSearchParams = $state<SearchParams>(
     {
         page: 1,
+        viewAttributes: [],
         searchString: "",
-        attributes: [],
+        searchAttributes: [],
         sortCol: "points",
-        sortDirection: "DESC"
+        sortDir: "DESC"
     }
 )
 
@@ -52,9 +49,15 @@ export const UserListingsStore = $state<{ value: UserListingMap }>({value: {}})
 let lastParams = ""
 
 export function updateListings() {
+    if (ListingSearchParams.viewAttributes.length === 0) {
+        console.log("adding listingFields")
+        ListingSearchParams.viewAttributes.push(...settingsStore.value.listingFields)
+    }
+
     const curr = JSON.stringify(ListingSearchParams)
     if (lastParams === curr)
         return
+    console.log("Last params differ - Update", ListingSearchParams)
 
     lastParams = curr
     fetch(`/api/rest/v1/search?params=${lastParams}`)
