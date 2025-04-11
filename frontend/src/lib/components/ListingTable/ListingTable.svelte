@@ -8,7 +8,7 @@
     import {goto} from "$app/navigation";
     import ListingValue from "$lib/components/Value/ListingValue.svelte";
     import type {Attribute} from "$lib/types/Attribute";
-    import {ListingSearchParams, ListingsStore} from "$lib/stores/ListingsStore.svelte.js";
+    import { ListingsStore} from "$lib/stores/ListingsStore.svelte.js";
     import EditListingValue from "$lib/components/Value/EditListingValue.svelte";
     import ListingFilter from "$lib/components/ListingFilter/ListingFilter.svelte";
     import ListingDetail from "$lib/components/ListingDetail/ListingDetail.svelte";
@@ -16,24 +16,27 @@
     let {listings, sorting,  fields, attributes, configuration }: ListingTableProps = $props()
 
     const listingsStore = $derived(ListingsStore.value)
+    const searchParams = $derived(listingsStore.searchParams)
+    let sortAscending = $derived(searchParams.sortDir === "ASC")
 
     let sortKey: keyof Listing = $state("")
 
-    let sortAscending = $derived(ListingSearchParams.sortDir === "ASC")
     let p = $derived(+(page.url.searchParams.get("page") ?? 1))
     let tableData = $derived(sorting
         .slice((p - 1) * 100, p  * 100)
         .map (id => listings[id]))
 
     const onSort = (key: string) => {
-        if(ListingSearchParams.sortCol === key)
-                ListingSearchParams.sortDir = sortAscending ? "DESC" : "ASC"
+        if(searchParams.sortCol === key) {
+            searchParams.sortDir = sortAscending ? "DESC" : "ASC"
+        }
         else
         {
-            ListingSearchParams.sortCol = key
-            ListingSearchParams.sortDir = "ASC"
+           searchParams.sortCol = key
+            searchParams.sortDir = "ASC"
         }
 
+        ListingsStore.instance.fetchSorting()
     }
 
     function onupdate(newValue: string, listing: Listing, attribute: Attribute) {
@@ -43,9 +46,9 @@
             values: [newValue]
         }
         if (!newValue)
-            listingsStore.deleteListingValue(n)
+            ListingsStore.deleteListingValue(n)
         else if (listing[attribute.normalized]?.user != newValue)
-            listingsStore.updateListingValue(n)
+            ListingsStore.updateListingValue(n)
 
         editing= {listingId: -1, attributeId: -1}
     }
@@ -57,7 +60,7 @@
             values: [newValue]
         }
         if (newValue && newValue != listing[attribute.normalized]?.base)
-            listingsStore.createListingValue(n)
+            ListingsStore.createListingValue(n)
 
         editing = {listingId: -1, attributeId: -1}
     }
@@ -106,7 +109,7 @@
                 {#each fields as attribute}
                     <TD>
                         {#snippet render()}
-                            {#if editing.attributeId === attribute.id && editing.listingId === listing.willhabenId}
+                            {#if editing.attributeId === attribute.id && editing.listingId === listing.id}
                                 <EditListingValue {listing} {attribute} {oncreate} {onupdate}/>
                             {:else}
                                 <ListingValue {listing} {attribute} {configuration} ondblclick={() => {editing = {listingId: listing.id, attributeId: attribute.id}}}

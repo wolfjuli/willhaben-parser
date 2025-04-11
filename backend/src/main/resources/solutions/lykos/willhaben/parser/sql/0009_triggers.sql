@@ -166,8 +166,6 @@ BEGIN
             LEFT JOIN listing_attributes la
                 ON l.id = la.listing_id
                 AND am.id = la.attribute_id
-            LEFT JOIN attributes a
-                ON a.id = la.attribute_id
             LEFT JOIN listing_custom_attributes ca
                 ON l.id = ca.listing_id
                 AND am.id = ca.attribute_id
@@ -176,11 +174,12 @@ BEGIN
             LEFT JOIN user_defined_attributes ua
                 ON am.id = ua.attribute_id
                 AND l.id = ua.listing_id
-            WHERE coalesce(caa.normalized, a.normalized) IS NOT NULL
-              AND (willhaben_ids IS NULL OR
-                   la.listing_id IN (SELECT id FROM listings WHERE willhaben_id = ANY (willhaben_ids)))
-              AND (listing_ids IS NULL OR la.listing_id = ANY (listing_ids))
-              AND (attribute_ids IS NULL OR la.attribute_id = ANY (attribute_ids))
+            LEFT JOIN attributes a
+                ON a.id = am.id
+            WHERE coalesce(ua.attribute_id, caa.id, la.attribute_id) IS NOT NULL
+              AND (willhaben_ids IS NULL OR l.willhaben_id = ANY (willhaben_ids))
+              AND (listing_ids IS NULL OR l.id = ANY (listing_ids))
+              AND (attribute_ids IS NULL OR am.id = ANY (attribute_ids))
             GROUP BY l.id, l.willhaben_id
             )
             INSERT INTO normalized_listings (listing_id, willhaben_id, listing, md5)
@@ -217,126 +216,151 @@ BEGIN
     FROM (SELECT id FROM existing UNION ALL SELECT id FROM ins) x;
 
     new.id := new_id;
-    RETURN new;
+    RETURN coalesce(new, old);
 END;
 $$;
 
 -- UPDATE NORMALIZED LISTINGS
-
-CREATE OR REPLACE FUNCTION ins_upd_listing_attributes()
+DROP FUNCTION IF EXISTS ins_upd_listing_attributes CASCADE;
+DROP FUNCTION IF EXISTS changed_listing_attributes CASCADE;
+CREATE OR REPLACE FUNCTION changed_listing_attributes()
     RETURNS TRIGGER
     LANGUAGE plpgsql
 AS
 $$
 BEGIN
-    PERFORM update_listing_custom_attributes(listing_ids := ARRAY [new.listing_id]);
-    RETURN new;
+    PERFORM update_listing_custom_attributes(listing_ids := ARRAY [coalesce(new.listing_id, old.listing_id)]);
+    RETURN coalesce(new, old);
 END;
 $$;
-CREATE TRIGGER trg_ins_upd_listing_attributes
-    AFTER INSERT OR UPDATE
+DROP TRIGGER IF EXISTS trg_ins_upd_listing_attributes ON listing_attributes;
+DROP TRIGGER IF EXISTS trg_ins_upd_del_listing_attributes ON listing_attributes;
+CREATE TRIGGER trg_changed_listing_attributes
+    AFTER INSERT OR UPDATE OR DELETE
     ON listing_attributes
     FOR EACH ROW
-EXECUTE FUNCTION ins_upd_listing_attributes();
+EXECUTE FUNCTION changed_listing_attributes();
 
-CREATE OR REPLACE FUNCTION ins_upd_listing_custom_attributes()
+DROP FUNCTION IF EXISTS ins_upd_listing_custom_attributes CASCADE;
+CREATE OR REPLACE FUNCTION change_listing_custom_attributes()
     RETURNS TRIGGER
     LANGUAGE plpgsql
 AS
 $$
 BEGIN
-    PERFORM update_normalize_listings(listing_ids := ARRAY [new.listing_id]);
-    RETURN new;
+    PERFORM update_normalize_listings(listing_ids := ARRAY [coalesce(new.listing_id, old.listing_id)]);
+    RETURN coalesce(new, old);
 END;
 $$;
-CREATE TRIGGER trg_ins_upd_listing_custom_attributes
-    AFTER INSERT OR UPDATE
+DROP TRIGGER IF EXISTS trg_ins_upd_listing_custom_attributes ON listing_custom_attributes;
+DROP TRIGGER IF EXISTS trg_changed_listing_custom_attributes ON listing_custom_attributes;
+CREATE TRIGGER trg_changed_listing_custom_attributes
+    AFTER INSERT OR UPDATE OR DELETE
     ON listing_custom_attributes
     FOR EACH ROW
-EXECUTE FUNCTION ins_upd_listing_custom_attributes();
+EXECUTE FUNCTION change_listing_custom_attributes();
 
 -- UPDATE LISTING POINTS
 
-CREATE OR REPLACE FUNCTION ins_upd_normalized_listings()
+DROP FUNCTION IF EXISTS ins_upd_normalized_listings CASCADE;
+DROP FUNCTION IF EXISTS changed_normalized_listings CASCADE;
+CREATE OR REPLACE FUNCTION changed_normalized_listings()
     RETURNS TRIGGER
     LANGUAGE plpgsql
 AS
 $$
 BEGIN
-    PERFORM update_listing_points(listing_ids := ARRAY [new.listing_id]);
-    RETURN new;
+    PERFORM update_listing_points(listing_ids := ARRAY [coalesce(new.listing_id, old.listing_id)]);
+    RETURN coalesce(new, old);
 END;
 $$;
-CREATE TRIGGER trg_ins_upd_normalized_listings
-    AFTER INSERT OR UPDATE
+DROP TRIGGER IF EXISTS trg_ins_upd_normalized_listings ON normalized_listings;
+CREATE TRIGGER trg_changed_normalized_listings
+    AFTER INSERT OR UPDATE OR DELETE
     ON normalized_listings
     FOR EACH ROW
-EXECUTE FUNCTION ins_upd_normalized_listings();
+EXECUTE FUNCTION changed_normalized_listings();
 
-CREATE OR REPLACE FUNCTION ins_upd_user_defined_attributes()
+DROP FUNCTION IF EXISTS ins_upd_user_defined_attributes CASCADE;
+DROP FUNCTION IF EXISTS changed_user_defined_attributes CASCADE;
+CREATE OR REPLACE FUNCTION changed_user_defined_attributes()
     RETURNS TRIGGER
     LANGUAGE plpgsql
 AS
 $$
 BEGIN
-    PERFORM update_normalize_listings(listing_ids := ARRAY [new.listing_id]);
-    RETURN new;
+    PERFORM update_normalize_listings(listing_ids := ARRAY [coalesce(new.listing_id, old.listing_id)]);
+    RETURN coalesce(new, old);
 END;
 $$;
-CREATE TRIGGER trg_ins_upd_user_defined_attributes
-    AFTER INSERT OR UPDATE
+DROP TRIGGER IF EXISTS trg_ins_upd_user_defined_attributes ON user_defined_attributes;
+DROP TRIGGER IF EXISTS trg_ins_upd_del_user_defined_attributes ON user_defined_attributes;
+CREATE TRIGGER trg_changed_user_defined_attributes
+    AFTER INSERT OR UPDATE OR DELETE
     ON user_defined_attributes
     FOR EACH ROW
-EXECUTE FUNCTION ins_upd_user_defined_attributes();
+EXECUTE FUNCTION changed_user_defined_attributes();
 
-CREATE OR REPLACE FUNCTION ins_upd_script_functions()
+DROP FUNCTION IF EXISTS ins_upd_script_functions CASCADE;
+DROP FUNCTION IF EXISTS changed_script_functions CASCADE;
+CREATE OR REPLACE FUNCTION changed_script_functions()
     RETURNS TRIGGER
     LANGUAGE plpgsql
 AS
 $$
 BEGIN
-    PERFORM update_listing_points(script_ids := ARRAY [new.script_id]);
-    RETURN new;
+    PERFORM update_listing_points(script_ids := ARRAY [coalesce(new.script_id, old.script_id)]);
+    RETURN coalesce(new, old);
 END;
 $$;
-CREATE TRIGGER trg_ins_upd_script_functions
-    AFTER INSERT OR UPDATE
+DROP TRIGGER IF EXISTS trg_ins_upd_script_functions ON script_functions;
+DROP TRIGGER IF EXISTS trg_ins_upd_del_script_functions ON script_functions;
+CREATE TRIGGER trg_changed_script_functions
+    AFTER INSERT OR UPDATE OR DELETE
     ON script_functions
     FOR EACH ROW
-EXECUTE FUNCTION ins_upd_script_functions();
+EXECUTE FUNCTION changed_script_functions();
 
-CREATE OR REPLACE FUNCTION ins_upd_custom_attributes()
+DROP FUNCTION IF EXISTS ins_upd_custom_attributes CASCADE;
+DROP FUNCTION IF EXISTS changed_custom_attributes CASCADE;
+CREATE OR REPLACE FUNCTION changed_custom_attributes()
     RETURNS TRIGGER
     LANGUAGE plpgsql
 AS
 $$
 BEGIN
-    PERFORM update_listing_custom_attributes(attribute_ids := ARRAY [new.id]);
-    RETURN new;
+    PERFORM update_listing_custom_attributes(attribute_ids := ARRAY [coalesce(new.id, old.id)]);
+    RETURN coalesce(new, old);
 END;
 $$;
-CREATE TRIGGER trg_ins_upd_custom_attributes
-    AFTER INSERT OR UPDATE
+DROP TRIGGER IF EXISTS trg_ins_upd_custom_attributes ON custom_attributes;
+DROP TRIGGER IF EXISTS trg_ins_upd_del_custom_attributes ON custom_attributes;
+CREATE TRIGGER trg_changed_custom_attributes
+    AFTER INSERT OR UPDATE OR DELETE
     ON custom_attributes
     FOR EACH ROW
-EXECUTE FUNCTION ins_upd_custom_attributes();
+EXECUTE FUNCTION changed_custom_attributes();
 
 
-CREATE OR REPLACE FUNCTION ins_upd_functions()
+DROP FUNCTION IF EXISTS ins_upd_functions CASCADE;
+DROP FUNCTION IF EXISTS changed_functions CASCADE;
+CREATE OR REPLACE FUNCTION changed_functions()
     RETURNS TRIGGER
     LANGUAGE plpgsql
 AS
 $$
 BEGIN
-    PERFORM update_listing_custom_attributes(function_ids := ARRAY [new.id]);
-    RETURN new;
+    PERFORM update_listing_custom_attributes(function_ids := ARRAY [coalesce(new.id, old.id)]);
+    RETURN coalesce(new, old);
 END;
 $$;
-CREATE TRIGGER trg_ins_upd_functions
-    AFTER INSERT OR UPDATE
+DROP TRIGGER IF EXISTS trg_ins_upd_functions ON functions;
+DROP TRIGGER IF EXISTS trg_ins_upd_del_functions ON functions;
+CREATE TRIGGER trg_changed_functions
+    AFTER INSERT OR UPDATE OR DELETE
     ON functions
     FOR EACH ROW
-EXECUTE FUNCTION ins_upd_functions();
+EXECUTE FUNCTION changed_functions();
 
 -- DATA
 UPDATE functions

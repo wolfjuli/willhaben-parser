@@ -11,7 +11,7 @@
         }
     }: ListingValueProps = $props()
 
-    let attr = $derived(listing[attribute.normalized])
+    let attr = $derived(listing && attribute ? listing[attribute.normalized] : undefined)
     let val = $derived(attr?.base?.toString() ?? "[empty]")
     let userVal = $derived(attr?.user?.toString())
     let obj = $derived(attr?.custom as unknown as { href: string, value: string })

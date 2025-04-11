@@ -10,7 +10,7 @@ import {WithLocalStore} from "$lib/stores/WithLocalStore.svelte";
 import {untrack} from "svelte";
 
 export class ListingsStore extends WithLocalStore<ListingsStoreType> {
-    private static instance: ListingsStore
+    static #instance: ListingsStore
 
     private constructor() {
         super("listingsStore", () => ({
@@ -25,24 +25,35 @@ export class ListingsStore extends WithLocalStore<ListingsStoreType> {
                 searchAttributes: [],
                 sortCol: "points",
                 sortDir: "DESC"
-            },
-            fetch: (listingId: number | undefined = undefined) => this.fetch(listingId),
-            createListingValue: (listingValue: NewListingValue) => this.createListingValue(listingValue),
-            updateListingValue: (listingValue: NewListingValue) => this.updateListingValue(listingValue),
-            deleteListingValue: (listingValue: NewListingValue) => this.deleteListingValue(listingValue),
+            }
         }));
+
 
         if (new Date().valueOf() - new Date(this.value.lastUpdate).valueOf() > 10000)
             this.fetch();
     }
 
-    static get value(): ListingsStoreType {
-        untrack(() => {
-            if (!ListingsStore.instance)
-                ListingsStore.instance = new ListingsStore()
-        })
+    static get instance(): ListingsStore {
+        if (!this.#instance)
+            untrack(() => {
+                this.#instance = new ListingsStore()
+            })
 
+        return this.#instance
+    }
+
+    static get value(): ListingsStoreType {
         return ListingsStore.instance.value
+    }
+
+    fetchSorting() {
+        this.value.fetching = true
+        const sorting = `sortCol=${this.value.searchParams.sortCol}&sortDir=${this.value.searchParams.sortDir}`
+
+        fetch(`/api/rest/v1/listings/sorting?${sorting}`)
+            .then(r => r.json())
+            .then((sorting: RawSorting[]) => this.value.sorting = sorting.map(s => s.listingId))
+            .finally(() => this.value.fetching = false)
     }
 
     fetch(listingId: number | undefined = undefined) {
@@ -72,26 +83,26 @@ export class ListingsStore extends WithLocalStore<ListingsStoreType> {
         })
     }
 
-    createListingValue = (listingValue: NewListingValue) =>
+    static createListingValue = (listingValue: NewListingValue) =>
         fetch("/api/rest/v1/user_defined_attributes", {
             method: 'post',
             body: JSON.stringify(listingValue)
         })
-            .then(() => this.fetch(listingValue.listingId))
+            .then(() => ListingsStore.instance.fetch(listingValue.listingId))
 
-    updateListingValue = (listingValue: NewListingValue) =>
+    static updateListingValue = (listingValue: NewListingValue) =>
         fetch("/api/rest/v1/user_defined_attributes", {
             method: 'put',
             body: JSON.stringify(listingValue)
         })
-            .then(() => this.fetch(listingValue.listingId))
+            .then(() => ListingsStore.instance.fetch(listingValue.listingId))
 
-    deleteListingValue = (listingValue: NewListingValue) =>
+    static deleteListingValue = (listingValue: NewListingValue) =>
         fetch("/api/rest/v1/user_defined_attributes", {
             method: 'delete',
             body: JSON.stringify(listingValue)
         })
-            .then(() => this.fetch(listingValue.listingId))
+            .then(() => ListingsStore.instance.fetch(listingValue.listingId))
 }
 
 export const ListingSearchParams = $state<SearchParams>(

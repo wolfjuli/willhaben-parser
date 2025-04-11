@@ -104,7 +104,7 @@ fun Route.apiRoutes(configuration: API.Configuration) {
                 try {
                     stmt.executeQuery()
                         .useAsSequence { seq ->
-                            seq.map { it.toCamelCaseMap() }.first()
+                            seq.map { it.toCamelCaseMap() }.firstOrNull() ?: emptyMap()
                     }
                 } catch (e: PSQLException) {
                     logger.error("Query: $stmt")
