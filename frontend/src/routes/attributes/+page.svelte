@@ -4,8 +4,6 @@
     import {FunctionsStore} from "$lib/stores/functions.svelte";
     import {ScriptsStore} from "$lib/stores/scripts.svelte";
     import {CustomAttributesStore, mergedAttributes} from "$lib/stores/attributes.svelte";
-    import {ListingsStore, UserListingsStore} from "$lib/stores/listings.svelte";
-    import {transformListing} from "$lib/utils/transformListing";
     import type {Listing} from "$lib/types/Listing.js";
     import Function from "$lib/components/Function/Function.svelte";
 
@@ -13,13 +11,10 @@
     const scripts = $derived(ScriptsStore.value)
     const attributes = $derived((mergedAttributes().value?.toSorted((a, b) => a.normalized.localeCompare(b.normalized)) ?? []))
     const customAttributes = $derived(CustomAttributesStore.value ?? [])
-    const listings = $derived((functions && attributes ? ListingsStore.value?.map(l => transformListing(l, attributes, functions)) : undefined) ?? [])
-    const userListings = $derived(UserListingsStore.value)
 
     const {data}: PageProps = $props()
 
     let filterFun = $state((l: Listing): boolean => true)
-    $effect(() => console.log(listings?.filter(filterFun)))
 
     let newAttr = $state({
         id: -1,
@@ -35,7 +30,7 @@
 </script>
 
 
-<ListingFilter {attributes} {listings} onchange={fun => filterFun = fun } {userListings}></ListingFilter>
+<ListingFilter {attributes} ></ListingFilter>
 
 {#each customAttributes as attribute}
     <e:attribute>

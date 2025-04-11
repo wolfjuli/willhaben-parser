@@ -1,6 +1,6 @@
 <script lang=ts>
     import type {PageProps} from "./$types";
-    import {ListingsStore} from "$lib/stores/listings.svelte";
+    import {ListingsStore} from "$lib/stores/ListingsStore.svelte.js";
     import ListingTable from "$lib/components/ListingTable/ListingTable.svelte";
     import {filteredAttributes, mergedAttributes} from "$lib/stores/attributes.svelte";
     import type {Attribute} from "$lib/types/Attribute";
@@ -12,7 +12,8 @@
 
     let {data}: PageProps = $props()
 
-    const listings = $derived(ListingsStore.value ?? [])
+    const listings = $derived(ListingsStore.value.listings ?? {})
+    const sorting = $derived(ListingsStore.value.sorting ?? [])
     const settings = $derived(settingsStore.value)
     const fields = $derived(filteredAttributes(settings.listingFields))
     const functions = $derived(FunctionsStore.value)
@@ -91,7 +92,7 @@
     </div>
 </div>
 
-    <ListingTable configuration={data.configuration} {fields} {functions} {listings}/>
+    <ListingTable configuration={data.configuration} {attributes} {fields} {sorting} {listings}/>
 </details>
 
 <style>

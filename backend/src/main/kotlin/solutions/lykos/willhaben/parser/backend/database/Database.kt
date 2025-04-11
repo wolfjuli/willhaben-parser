@@ -8,7 +8,7 @@ import java.sql.Connection
 
 open class Database(
     val basePath: String = "/solutions/lykos/willhaben/parser/queries",
-    private val connection: () -> Connection,
+    val connection: () -> Connection,
 ) {
 
     data class ColumnDef(

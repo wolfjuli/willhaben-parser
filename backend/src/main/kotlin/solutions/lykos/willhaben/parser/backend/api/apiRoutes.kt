@@ -1,7 +1,6 @@
 package solutions.lykos.willhaben.parser.backend.api
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -9,6 +8,8 @@ import io.ktor.util.*
 import org.postgresql.ds.PGSimpleDataSource
 import org.postgresql.util.PSQLException
 import org.slf4j.LoggerFactory
+import solutions.lykos.willhaben.parser.backend.api.routes.listings
+import solutions.lykos.willhaben.parser.backend.api.routes.search
 import solutions.lykos.willhaben.parser.backend.database.Database
 import solutions.lykos.willhaben.parser.backend.database.postgresql.*
 import solutions.lykos.willhaben.parser.backend.importer.orNull
@@ -25,74 +26,14 @@ fun Route.apiRoutes(configuration: API.Configuration) {
 
     val logger = LoggerFactory.getLogger(this.javaClass)
     val database = Database { dataSource.connection }
-
-    //Special listing search endpoint
-    data class SearchParams(
-        val page: Int? = null,
-        val viewAttributes: List<String>? = null,
-        val searchString: String? = null,
-        val searchAttributes: List<String>? = null,
-        val sortCol: String = "points",
-        val sortDir: SortDir = SortDir.DESC
-    ) {
-        fun toMap() = mapOf(
-            "page" to page,
-            "viewAttributes" to viewAttributes,
-            "searchString" to (searchString?.trim()?.split(" ")?.mapNotNull { it.takeUnless { it.isBlank() } }
-                ?: emptyList()),
-            "searchAttributes" to searchAttributes,
-            "sortCol" to sortCol,
-            "sortDir" to sortDir,
-        )
-
-        init {
-            sortCol.trim().takeIf {
-                it.contains("--") ||
-                        it.contains("//") ||
-                        it.contains("/*") ||
-                        it.contains(" ")
-            }?.let {
-                error("Invalid sort column")
-            }
-        }
-    }
-
-
     val templates = QueryTemplateProvider(
         this::class.java.getResource("/solutions/lykos/willhaben/parser/queries")
             ?: error("Base query url doesn't exist")
     )
-    get("search") {
-        val params: SearchParams =
-            call.request.queryParameters.get("params")?.let { jsonMapper.readValue(it) } ?: SearchParams()
 
-        val query = templates.getTemplate(
-            "search",
-            mapOf(
-                "sortDir" to params.sortDir.toString(),
-                "limit" to 100,
-                "offset" to ((params.page ?: 1) - 1) * 100,
-            )
-        )
+    search(database, templates)
 
-        logger.info("search: $params")
-
-        val list = try {
-            dataSource.connection.useTransaction { transaction ->
-                QueryBuilder(transaction)
-                    .append(query)
-                    .build(params.toMap())
-                    .executeQuery()
-                    .useAsSequence { seq ->
-                        seq.map { it.toCamelCaseMap() }.toList()
-                    }
-            }
-        } catch (e: Exception) {
-            call.respond(HttpStatusCode.InternalServerError, e.localizedMessage)
-            return@get
-        }
-        call.respond(list)
-    }
+    listings(database, templates)
 
     //GET requests for tables and views
     database.tables.forEach { (tableName, tableDef) ->

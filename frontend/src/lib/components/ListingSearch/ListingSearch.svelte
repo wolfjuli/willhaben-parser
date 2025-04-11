@@ -3,22 +3,14 @@
     import type {Listing} from "$lib/types/Listing";
     import {listingFilter} from "$lib/utils/listingFilter";
 
-    let {listings, onselect}: ListingSearchProps = $props()
+    let {listings, sorted, onselect}: ListingSearchProps = $props()
 
     let searchTerm = $state("")
 
-    let listingsMapping: {[key: number]: Listing} = $derived(listings
-        .filter(listingFilter(searchTerm))
-        .reduce((acc, l) => {
-            acc[l.willhabenId] = l
-            return acc
-        }, {})
-    )
-
     function onselected(ev) {
-        const willHabenId = ev?.explicitOriginalTarget?.value
-        searchTerm = willHabenId ?? ""
-        onselect(willHabenId ? listingsMapping[willHabenId] : undefined)
+        const willhabenId = ev?.explicitOriginalTarget?.value ?? ev.target.value
+        searchTerm = willhabenId ?? ""
+        onselect(willhabenId ? listingsMapping[willhabenId] : undefined)
     }
 </script>
 
@@ -29,8 +21,8 @@
 </div>
 
 <select size="5" onclick={onselected}>
-    {#each Object.keys(listingsMapping).toSorted() as willHabenId }
+    {#each sorted as id }
         <option
-            value={willHabenId}>{`${willHabenId} - ${listingsMapping[willHabenId].heading.slice(0, 30)} - ${listingsMapping[willHabenId].points} - ${listingsMapping[willHabenId].priceForDisplay}`}</option>
+            value={id}>{`${id} - ${listings[id].heading.base.slice(0, 30)} - ${listings[id].points.base} - ${listings[id].priceForDisplay.base}`}</option>
     {/each}
 </select>

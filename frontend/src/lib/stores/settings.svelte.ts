@@ -13,7 +13,12 @@ const defaultValues: Settings = {
         "priceForDisplay",
         "estateSize",
         "price/m2",
+        "willhabenId",
         "notes"
+    ],
+    searchFields: [
+        "heading",
+        "willhabenId"
     ]
 }
 
@@ -21,12 +26,8 @@ export const settingsStore = $state<{ value: Settings }>({value: defaultValues})
 
 
 if (browser) {
-    const stored = localStorage.getItem("settings")
-
-    if (!stored)
-        setSettings(defaultValues)
-    else
-        setSettings(JSON.parse(stored))
+    const stored = {...defaultValues, ...JSON.parse(localStorage.getItem("settings") ?? '{}')}
+    setSettings(stored)
 }
 
 export function setSettings(settings: Settings) {

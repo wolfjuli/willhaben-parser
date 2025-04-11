@@ -1,25 +1,26 @@
 <script lang="ts">
     import type {ListingValueProps} from "$lib/components/Value/ListingValue";
     import {isLink} from "$lib/types/Links";
+    import {ListingsStore} from "$lib/stores/ListingsStore.svelte";
 
     let {
-        listing, attribute, configuration, userListing = undefined,
+        listing, attribute, configuration,
         onclick = () => {
         },
         ondblclick = () => {
         }
     }: ListingValueProps = $props()
 
-    let val = $derived(listing[attribute.normalized]?.toString() ?? "[empty]")
-    let obj = $derived(listing[attribute.normalized] as unknown as { href: string, value: string })
-    let userVal = $derived(userListing?.[attribute.normalized] != obj ? userListing?.[attribute.normalized] : undefined)
+    let attr = $derived(listing[attribute.normalized])
+    let val = $derived(attr?.base?.toString() ?? "[empty]")
+    let userVal = $derived(attr?.user?.toString())
+    let obj = $derived(attr?.custom as unknown as { href: string, value: string })
 </script>
 <span onclick={() => onclick(listing[attribute.normalized], listing)}
       ondblclick={() => ondblclick(listing[attribute.normalized], listing)}>
 {#if attribute.dataType === "LINK" }
-    {#if isLink(obj) }
+    {#if obj && obj.href}
         <a href={configuration.listingsBaseUrl + '/' + obj.href} target="_blank">{obj.value}</a>
-
     {:else}
         <a href={configuration.listingsBaseUrl + `/${val}`} target="_blank">{val}</a>
     {/if}
@@ -28,7 +29,7 @@
 {:else}
     <div>
     <span class:strike={userVal}>
-        {val}
+       {#if attribute.normalized === "points"} {attr} {:else} {val} {/if}
     </span>
         {#if userVal}{userVal}{/if}
     </div>

@@ -1,3 +1,4 @@
 export type Settings = {
-    listingFields: string[]
+    listingFields: string[],
+    searchFields: string[]
 }

@@ -6,23 +6,24 @@
     import type {ListingTableProps} from "$lib/components/ListingTable/ListingTable";
     import {page} from "$app/state";
     import {goto} from "$app/navigation";
-    import {transformListing} from "$lib/utils/transformListing.js";
     import ListingValue from "$lib/components/Value/ListingValue.svelte";
     import type {Attribute} from "$lib/types/Attribute";
-    import {createListingValue, ListingSearchParams, updateListingValue} from "$lib/stores/listings.svelte";
-    import {deleteListingValue} from "$lib/stores/listings.svelte.js";
+    import {ListingSearchParams, ListingsStore} from "$lib/stores/ListingsStore.svelte.js";
     import EditListingValue from "$lib/components/Value/EditListingValue.svelte";
     import ListingFilter from "$lib/components/ListingFilter/ListingFilter.svelte";
     import ListingDetail from "$lib/components/ListingDetail/ListingDetail.svelte";
 
-    let {listings, userListings, fields, attributes, configuration, functions}: ListingTableProps = $props()
+    let {listings, sorting,  fields, attributes, configuration }: ListingTableProps = $props()
+
+    const listingsStore = $derived(ListingsStore.value)
 
     let sortKey: keyof Listing = $state("")
 
     let sortAscending = $derived(ListingSearchParams.sortDir === "ASC")
     let p = $derived(+(page.url.searchParams.get("page") ?? 1))
-    let tableData = $derived(listings
-        .slice((p - 1) * 100, p  * 100))
+    let tableData = $derived(sorting
+        .slice((p - 1) * 100, p  * 100)
+        .map (id => listings[id]))
 
     const onSort = (key: string) => {
         if(ListingSearchParams.sortCol === key)
@@ -42,11 +43,11 @@
             values: [newValue]
         }
         if (!newValue)
-            deleteListingValue(n)
-        else if (listing[attribute.normalized] != newValue)
-            updateListingValue(n)
+            listingsStore.deleteListingValue(n)
+        else if (listing[attribute.normalized]?.user != newValue)
+            listingsStore.updateListingValue(n)
 
-        editing = -1
+        editing= {listingId: -1, attributeId: -1}
     }
 
     function oncreate(newValue: string, listing: Listing, attribute: Attribute) {
@@ -55,14 +56,14 @@
             attributeId: attribute.id,
             values: [newValue]
         }
-        if (newValue && newValue != listing[attribute.normalized])
-            createListingValue(n)
+        if (newValue && newValue != listing[attribute.normalized]?.base)
+            listingsStore.createListingValue(n)
 
-        editing = {willhabenId: -1, attributeId: -1}
+        editing = {listingId: -1, attributeId: -1}
     }
 
 
-    let editing = $state({willhabenId: -1, attributeId: -1})
+    let editing = $state({listingId: -1, attributeId: -1})
 
     let expanded = $state<number[]>([])
 
@@ -71,13 +72,13 @@
 {#if fields}
     <div class=container-fluid>
         <div class=col>
-            <button onclick={() => ListingSearchParams.page -= 1} disabled={ListingSearchParams.page  <= 1}>{"<"}</button>
-            Page {ListingSearchParams.page}
-            <button onclick={() => ListingSearchParams.page += 1}
-                    disabled={(listings ?? []).length === 0}>{">"}</button>
+            <button onclick={() => goto("?page=" + (p-1))} disabled={p  <= 1}>{"<"}</button>
+            Page {p}
+            <button onclick={() => goto("?page=" + (p+1))}
+                    disabled={(tableData ?? []).length === 0}>{">"}</button>
         </div>
         <div class=col>
-            <ListingFilter {attributes} onchange={fn => filterFn = fn}></ListingFilter>
+            <ListingFilter {attributes} ></ListingFilter>
         </div>
     </div>
 
@@ -105,13 +106,10 @@
                 {#each fields as attribute}
                     <TD>
                         {#snippet render()}
-                            {#if editing.attributeId === attribute.id && editing.willhabenId === listing.willhabenId}
-                                <EditListingValue {listing} userListing={userListings[listing.willhabenId]} {attribute}
-                                                  {oncreate} {onupdate}/>
+                            {#if editing.attributeId === attribute.id && editing.listingId === listing.willhabenId}
+                                <EditListingValue {listing} {attribute} {oncreate} {onupdate}/>
                             {:else}
-                                <ListingValue {listing} {attribute} {configuration}
-                                              userListing={userListings?.[listing.willhabenId]}
-                                              ondblclick={() => {editing = {willhabenId: listing.willhabenId, attributeId: attribute.id}; console.log(editing)}}
+                                <ListingValue {listing} {attribute} {configuration} ondblclick={() => {editing = {listingId: listing.id, attributeId: attribute.id}}}
                                 />
                             {/if}
                         {/snippet}
@@ -121,8 +119,7 @@
             {#if expanded.indexOf(listing.willhabenId) > -1}
                 <tr>
                     <td colspan={fields.length}>
-                        <ListingDetail {listing} {attributes} {configuration}
-                                       userListing={userListings?.[listing.willhabenId]} horizontal={true}/>
+                        <ListingDetail {listing} {attributes} {configuration} />
                     </td>
                 </tr>
             {/if}

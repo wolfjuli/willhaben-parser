@@ -1,19 +1,19 @@
 <script lang="ts">
 
     import type {ListingFilterProps} from "$lib/components/ListingFilter/ListingFilter";
-    import {ListingSearchParams} from "$lib/stores/listings.svelte.js";
+    import {ListingSearchParams} from "$lib/stores/ListingsStore.svelte.js";
 
     let {attributes}: ListingFilterProps = $props()
 
     let searchType = $state("normal")
 
     function invert() {
-        ListingSearchParams.attributes = attributes
+        ListingSearchParams.searchAttributes = attributes
             ?.map(a => a.normalized)
-            .filter(a => ListingSearchParams.attributes.find(s => s === a) === undefined)
+            .filter(a => ListingSearchParams.searchAttributes.find(s => s === a) === undefined)
     }
 
-    let attrs = $derived(attributes.toSorted((a, b) => a.label.localeCompare(b.label)))
+    let attrs = $derived(attributes?.toSorted((a, b) => a.label.localeCompare(b.label)))
 </script>
 
 <div class=col>
@@ -28,7 +28,8 @@
                             <input type="checkbox"
                                    name="attributes"
                                    value={attribute.normalized}
-                                   bind:group={ListingSearchParams.attributes}
+                                   bind:group={ListingSearchParams.searchAttributes}
+                                   checked={ListingSearchParams.searchAttributes.indexOf(attribute?.normalized) > -1}
                             />
                             {attribute.label}
                         </label>

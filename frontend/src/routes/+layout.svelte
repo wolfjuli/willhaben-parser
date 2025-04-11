@@ -2,15 +2,21 @@
     import type {LayoutProps} from "./$types";
     import {Scheme} from '$lib/colorScheme.svelte'
     import GearIcon from '$lib/assets/images/gear.svg?component'
+    import LoadingIcon from '$lib/assets/images/loading.svg?component'
     import '@picocss/pico'
     import 'bootstrap'
     import 'bootstrap-grid'
+    import {initializer} from "$lib/stores/initializeStores.svelte";
+    import {ListingsStore} from "$lib/stores/ListingsStore.svelte";
+
 
     let {children}: LayoutProps = $props()
 
     const SCHEME_NAMES = {fromdark: '🌝', fromlight: '🌚'}
 
     const scheme = new Scheme()
+
+    initializer.initialize()
 </script>
 
 <svelte:head>
@@ -21,7 +27,11 @@
     <ul>
         <li><strong>WillHaben Parser</strong></li>
         <li><a href="/settings">
-            <GearIcon/>
+            {#if ListingsStore.value.fetching}
+                <LoadingIcon/>
+            {:else}
+                <GearIcon/>
+            {/if}
         </a></li>
     </ul>
     <ul>

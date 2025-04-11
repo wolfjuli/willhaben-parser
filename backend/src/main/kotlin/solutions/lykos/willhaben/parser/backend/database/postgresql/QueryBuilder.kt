@@ -19,6 +19,8 @@ class QueryBuilder(
         return this
     }
 
+    fun build(vararg parameters: Pair<String, Any?>) = build(parameters.asList().toMap())
+
     fun build(parameters: Map<String, Any?>): PreparedStatement {
         val sql =
             builder.toString().let { template ->

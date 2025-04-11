@@ -1,6 +1,7 @@
-import type {Listing} from "$lib/types/Listing";
+import type {Listing, ListingsStoreMap} from "$lib/types/Listing";
 
 export interface ListingSearchProps {
-    listings: Listing[]
+    listings: ListingsStoreMap
+    sorted: number[],
     onselect: (sel: Listing | undefined) => void
 }
