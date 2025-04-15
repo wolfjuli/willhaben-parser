@@ -1,10 +1,10 @@
 <script lang="ts">
     import type {CreateScriptProps} from "$lib/components/CustomScript/Script";
-    import {createScript} from "$lib/stores/scripts.svelte";
     import type {ScriptSetDef} from "$lib/types/Script";
     import {randomName} from "$lib/utils/names";
     import Dropdown from "$lib/components/Dropdown/Dropdown.svelte";
     import type {Attribute} from "$lib/types/Attribute";
+    import {ScriptsStore} from "$lib/stores/ScriptsStore.svelte.js";
 
     let {attributes}: CreateScriptProps = $props()
 
@@ -17,7 +17,7 @@
     }
 
     function save() {
-        createScript(script)
+        ScriptsStore.create(script)
         script = newScript()
     }
 

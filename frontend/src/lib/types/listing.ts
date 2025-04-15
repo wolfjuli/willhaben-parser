@@ -24,16 +24,11 @@ export type Listing = {
 export type ListingsStoreMap = { [id: number]: Listing }
 
 export type ListingsStoreType = {
-    fetching: boolean,
     listings: ListingsStoreMap,
     knownMd5: { [id: number]: string },
     sorting: number[],
     lastUpdate: Date,
-    searchParams: SearchParams,
-    fetch: (listingId: number | undefined) => void,
-    createListingValue: (listingValue: NewListingValue) => void,
-    updateListingValue: (listingValue: NewListingValue) => void,
-    deleteListingValue: (listingValue: NewListingValue) => void,
+    searchParams: SearchParams
 }
 
 export type UserListing = {

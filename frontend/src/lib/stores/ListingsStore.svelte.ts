@@ -8,13 +8,13 @@ import {
 import type {SearchParams} from "$lib/types/SearchParams";
 import {WithLocalStore} from "$lib/stores/WithLocalStore.svelte";
 import {untrack} from "svelte";
+import {FetchingStore} from "$lib/stores/FetchingStore.svelte";
 
 export class ListingsStore extends WithLocalStore<ListingsStoreType> {
     static #instance: ListingsStore
 
     private constructor() {
         super("listingsStore", () => ({
-            fetching: false,
             listings: {},
             knownMd5: {},
             sorting: [],
@@ -47,39 +47,36 @@ export class ListingsStore extends WithLocalStore<ListingsStoreType> {
     }
 
     fetchSorting() {
-        this.value.fetching = true
-        const sorting = `sortCol=${this.value.searchParams.sortCol}&sortDir=${this.value.searchParams.sortDir}`
-
-        fetch(`/api/rest/v1/listings/sorting?${sorting}`)
-            .then(r => r.json())
-            .then((sorting: RawSorting[]) => this.value.sorting = sorting.map(s => s.listingId))
-            .finally(() => this.value.fetching = false)
+        FetchingStore.whileFetching("fetchSorting", () =>
+            fetch(`/api/rest/v1/listings/sorting?sortCol=${this.value.searchParams.sortCol}&sortDir=${this.value.searchParams.sortDir}`)
+                .then(r => r.json())
+                .then((sorting: RawSorting[]) => this.value.sorting = sorting.map(s => s.listingId))
+        )
     }
 
     fetch(listingId: number | undefined = undefined) {
-        this.value.fetching = true
-        const filter = listingId ? `listingId=${listingId}` : `knownMd5=${Object.values(this.value.knownMd5).join(",")}`
-        const sorting = `sortCol=${this.value.searchParams.sortCol}&sortDir=${this.value.searchParams.sortDir}`
-        const lastUpdate = new Date()
+        FetchingStore.whileFetching("fetchListing", () => {
+            const filter = listingId ? `listingId=${listingId}` : `knownMd5=${Object.values(this.value.knownMd5).join(",")}`
+            const sorting = `sortCol=${this.value.searchParams.sortCol}&sortDir=${this.value.searchParams.sortDir}`
+            const lastUpdate = new Date()
 
-        Promise.all([
-            fetch(`/api/rest/v1/listings/full?${filter}`).then(r => r.json()),
-            fetch(`/api/rest/v1/listings/sorting?${sorting}`).then(r => r.json()),
-        ]).then(([full, sorting]: [RawListing[], RawSorting[]]) => {
-                const sortMap = sorting.reduce((acc, s) => {
-                    acc[s.listingId] = s.points;
-                    return acc
-                }, {} as Record<number, number>)
-                full.forEach(d => {
-                    this.value.listings[d.listing.id] = {...d.listing, points: sortMap[d.listing.id] ?? 0} as Listing
-                    this.value.knownMd5[d.listing.id] = d.md5
-                    this.value.lastUpdate = lastUpdate
-                })
+            return Promise.all([
+                fetch(`/api/rest/v1/listings/full?${filter}`).then(r => r.json()),
+                fetch(`/api/rest/v1/listings/sorting?${sorting}`).then(r => r.json()),
+            ]).then(([full, sorting]: [RawListing[], RawSorting[]]) => {
+                    const sortMap = sorting.reduce((acc, s) => {
+                        acc[s.listingId] = s.points;
+                        return acc
+                    }, {} as Record<number, number>)
+                    full.forEach(d => {
+                        this.value.listings[d.listing.id] = {...d.listing, points: sortMap[d.listing.id] ?? 0} as Listing
+                        this.value.knownMd5[d.listing.id] = d.md5
+                        this.value.lastUpdate = lastUpdate
+                    })
 
-                this.value.sorting = sorting.map(s => s.listingId)
-            }
-        ).finally(() => {
-            this.value.fetching = false
+                    this.value.sorting = sorting.map(s => s.listingId)
+                }
+            )
         })
     }
 

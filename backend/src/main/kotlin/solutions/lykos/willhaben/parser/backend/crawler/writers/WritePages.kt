@@ -81,7 +81,7 @@ fun Sequence<WHAdvertSummary>.write(transaction: Transaction, configuration: Cra
             PipeTo(
                 listingAttributeActions,
                 { ListingAttribute(this, Attribute(""), emptyList()) }
-            )
+            ),
         )
     )
 

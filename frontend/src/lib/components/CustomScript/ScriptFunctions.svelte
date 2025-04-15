@@ -2,7 +2,7 @@
 
     import type {ScriptFunctionsProps} from "$lib/components/CustomScript/Script";
     import FunctionValue from "$lib/components/Function/FunctionValue.svelte";
-    import {createScriptFunction, deleteScriptFunction} from "$lib/stores/scripts.svelte";
+    import { ScriptsStore} from "$lib/stores/ScriptsStore.svelte.js";
     import type {FunctionDef} from "$lib/types/Function";
     import type {ScriptFunctionDef} from "$lib/types/Script";
     import Dropdown from "$lib/components/Dropdown/Dropdown.svelte";
@@ -45,11 +45,11 @@
         let ord = script.functions[script.functions.length - 1].ord + 1
         let newScript: ScriptFunctionDef = {scriptId: script.id, functionId: fun.id, ord}
 
-        createScriptFunction(newScript)
+        ScriptsStore.createScriptFunction(newScript)
     }
 
     function removeFunction(fun: ScriptFunctionDef) {
-        deleteScriptFunction(fun)
+        ScriptsStore.deleteScriptFunction(fun)
     }
 
 </script>

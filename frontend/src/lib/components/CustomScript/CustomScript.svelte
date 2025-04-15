@@ -1,34 +1,19 @@
 <script lang="ts">
-    import {deleteScript, updateScript} from "$lib/stores/scripts.svelte";
     import type {ScriptProps} from "$lib/components/CustomScript/Script";
-    import {randomName} from "$lib/utils/names";
     import Dropdown from "$lib/components/Dropdown/Dropdown.svelte";
+    import {ScriptsStore} from "$lib/stores/ScriptsStore.svelte.js";
 
     let {script, attributes}: ScriptProps = $props()
 
-    function resetScript() {
-        script = script || {}
-        if (script) {
-            if (script.name === undefined) script.name = randomName()
-            if (!script.attributeId) script.attributeId = attributes[0]?.id
-        }
-    }
-
     function save() {
-        resetScript()
-
         if (!script.name) {
-            deleteScript(script)
+            ScriptsStore.delete(script)
         } else {
-            updateScript(script)
-            script = undefined
-            resetScript()
+            ScriptsStore.update(script)
         }
     }
 
     let editName = $state(false)
-
-    resetScript()
 </script>
 
 <div class="grid">

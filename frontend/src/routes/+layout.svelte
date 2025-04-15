@@ -8,13 +8,16 @@
     import 'bootstrap-grid'
     import {initializer} from "$lib/stores/initializeStores.svelte";
     import {ListingsStore} from "$lib/stores/ListingsStore.svelte";
-
+    import {ScriptsStore} from "$lib/stores/ScriptsStore.svelte";
 
     let {children}: LayoutProps = $props()
 
     const SCHEME_NAMES = {fromdark: '🌝', fromlight: '🌚'}
-
     const scheme = new Scheme()
+
+    //Init all singletons
+    ListingsStore.instance
+    ScriptsStore.instance
 
     initializer.initialize()
 </script>

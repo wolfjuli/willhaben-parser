@@ -3,7 +3,7 @@
     import type {PageProps} from "./$types";
 
     import {FunctionsStore} from "$lib/stores/functions.svelte";
-    import {ScriptsStore} from "$lib/stores/scripts.svelte";
+    import {ScriptsStore} from "$lib/stores/ScriptsStore.svelte.js";
     import Function from "$lib/components/Function/Function.svelte";
     import CustomScript from "$lib/components/CustomScript/CustomScript.svelte";
     import CreateScript from "$lib/components/CustomScript/CreateCustomScript.svelte";
@@ -20,6 +20,7 @@
     const scripts = $derived(ScriptsStore.value)
     const attributes = $derived((mergedAttributes().value?.toSorted((a, b) => a.normalized.localeCompare(b.normalized)) ?? []))
     const listings = $derived(ListingsStore.value.listings ?? {})
+    const sorted = $derived(ListingsStore.value.sorting  ?? [])
 
     let selectedListing = $state<Listing | undefined>(undefined)
 
@@ -44,6 +45,7 @@
     <div>
         <h3>Example Listing</h3>
         <ListingSearch {listings}
+                       {sorted}
                        onselect={(sel:Listing | undefined ) => { selectedListing = sel}}/>
 
         {#if selectedListing}

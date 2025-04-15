@@ -37,18 +37,34 @@ class ListingWriter : Writer<Listing>(TableDefinitions.getTableName<Listing>()) 
 
     override fun close(transaction: Transaction): PipelineMessage<Listing> {
         val ret = super.close(transaction)
-        val amount = QueryBuilder(transaction).append(
-            """
-           SELECT * FROM update_listing_points(willhaben_ids := ${'$'}{ids}::INT[]) as count
-            """.trimIndent()
-        )
-            .build(mapOf("ids" to ids.toList()))
-            .executeQuery().useAsSequence { seq ->
-                seq.map { 1 }.reduceOrNull { acc, i -> acc + i } ?: 0
-            }
+        val willhabenIds = ids.toList()
 
-        logger.info("Updated $amount listing points")
-        ids.clear()
+        if (willhabenIds.isNotEmpty()) {
+            logger.info("Updating ${willhabenIds.size} normalized listing points")
+            var amount = QueryBuilder(transaction).append(
+                """
+            SELECT count(*) as count
+            FROM update_normalized_listings(willhabenIds := ${'$'}{willhabenIds})
+        """.trimIndent()
+            )
+                .build("willhabenIds" to willhabenIds)
+                .executeQuery().useAsSequence { seq -> seq.map { it.getInt("count") }.first() }
+
+            logger.info("Updated $amount normalized listings")
+
+            amount = QueryBuilder(transaction).append(
+                """
+            SELECT count(*) as count
+            FROM update_listing_points(willhabenIds := ${'$'}{willhabenIds})
+        """.trimIndent()
+            )
+                .build("willhabenIds" to willhabenIds)
+                .executeQuery().useAsSequence { seq -> seq.map { it.getInt("count") }.first() }
+
+            logger.info("Updated $amount listing points")
+
+            ids.clear()
+        }
         return ret
     }
 }

@@ -9,6 +9,7 @@ import org.postgresql.ds.PGSimpleDataSource
 import org.postgresql.util.PSQLException
 import org.slf4j.LoggerFactory
 import solutions.lykos.willhaben.parser.backend.api.routes.listings
+import solutions.lykos.willhaben.parser.backend.api.routes.scripts
 import solutions.lykos.willhaben.parser.backend.api.routes.search
 import solutions.lykos.willhaben.parser.backend.database.Database
 import solutions.lykos.willhaben.parser.backend.database.postgresql.*
@@ -32,8 +33,8 @@ fun Route.apiRoutes(configuration: API.Configuration) {
     )
 
     search(database, templates)
-
     listings(database, templates)
+    scripts(database, templates)
 
     //GET requests for tables and views
     database.tables.forEach { (tableName, tableDef) ->
