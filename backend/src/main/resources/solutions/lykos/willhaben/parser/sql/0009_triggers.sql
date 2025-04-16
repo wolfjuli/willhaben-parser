@@ -58,7 +58,6 @@ CREATE TABLE listing_custom_attributes
     PRIMARY KEY (listing_id, attribute_id)
 );
 
-ROLLBACK;
 DROP FUNCTION IF EXISTS update_listing_custom_attributes(willhaben_ids INT[], attribute_ids SMALLINT[], listing_ids INT[]);
 DROP FUNCTION IF EXISTS update_listing_custom_attributes(willhaben_ids INT[], attribute_ids SMALLINT[],
                                                          listing_ids INT[], function_ids SMALLINT[]);
@@ -161,7 +160,7 @@ BEGIN
         WITH new_listings AS (
             SELECT l.id                                              AS listing_id,
                    l.willhaben_id,
-                   jsonb_object_agg(coalesce(caa.normalized, a.normalized), jsonb_build_object(
+                   jsonb_object_agg(a.normalized, jsonb_build_object(
                            'base', array_to_string(la.values, ','),
                            'custom', ca.values,
                            'user', array_to_string(ua.values, ',')
@@ -169,24 +168,26 @@ BEGIN
                    jsonb_build_object('id', l.id) ||
                    jsonb_build_object('willhabenId', l.willhaben_id) AS listing
             FROM listings l
-            CROSS JOIN attribute_mapping am
-            LEFT JOIN listing_attributes la
-                ON l.id = la.listing_id
-                AND am.id = la.attribute_id
+            CROSS JOIN (SELECT a.id, a.normalized
+                  FROM attributes a
+
+                  UNION ALL
+
+                  SELECT caa.id, caa.normalized
+                  FROM custom_attributes caa) a
+            LEFT JOIN user_defined_attributes ua
+                ON l.id = ua.listing_id
+                AND a.id = ua.attribute_id
             LEFT JOIN listing_custom_attributes ca
                 ON l.id = ca.listing_id
-                AND am.id = ca.attribute_id
-            LEFT JOIN custom_attributes caa
-                ON caa.id = ca.attribute_id
-            LEFT JOIN user_defined_attributes ua
-                ON am.id = ua.attribute_id
-                AND l.id = ua.listing_id
-            LEFT JOIN attributes a
-                ON a.id = am.id
-            WHERE coalesce(ua.attribute_id, caa.id, la.attribute_id) IS NOT NULL
+                AND a.id = ca.attribute_id
+            LEFT JOIN listing_attributes la
+                ON l.id = la.listing_id
+                AND a.id = la.attribute_id
+            WHERE coalesce(ua.attribute_id, ca.attribute_id, la.attribute_id) IS NOT NULL
               AND (willhaben_ids IS NULL OR l.willhaben_id = ANY (willhaben_ids))
               AND (listing_ids IS NULL OR l.id = ANY (listing_ids))
-              AND (attribute_ids IS NULL OR am.id = ANY (attribute_ids))
+              AND (attribute_ids IS NULL OR a.id = ANY (attribute_ids))
             GROUP BY l.id, l.willhaben_id
             )
             INSERT INTO normalized_listings (listing_id, willhaben_id, listing, md5)
@@ -200,7 +201,7 @@ BEGIN
 END;
 $$;
 
-SELECT *
+SELECT count(*)
 FROM update_normalize_listings();
 
 CREATE OR REPLACE FUNCTION get_id()
@@ -363,11 +364,11 @@ END;
 $$;
 DROP TRIGGER IF EXISTS trg_ins_upd_functions ON functions;
 DROP TRIGGER IF EXISTS trg_ins_upd_del_functions ON functions;
-CREATE TRIGGER trg_changed_functions
-    AFTER INSERT OR UPDATE OR DELETE
-    ON functions
-    FOR EACH ROW
-EXECUTE FUNCTION changed_functions();
+-- CREATE TRIGGER trg_changed_functions
+--     AFTER INSERT OR UPDATE OR DELETE
+--     ON functions
+--     FOR EACH ROW
+-- EXECUTE FUNCTION changed_functions();
 
 -- DATA
 UPDATE functions

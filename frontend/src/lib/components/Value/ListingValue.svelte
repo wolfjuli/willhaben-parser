@@ -29,7 +29,7 @@
 {:else}
     <div>
     <span class:strike={userVal}>
-       {#if attribute.normalized === "points"} {attr} {:else} {val} {/if}
+       {#if attribute.normalized === "points" || attribute.normalized === "willhabenId"} {attr} {:else} {val} {/if}
     </span>
         {#if userVal}{userVal}{/if}
     </div>

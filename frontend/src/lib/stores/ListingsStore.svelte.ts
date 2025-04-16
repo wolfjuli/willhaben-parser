@@ -9,13 +9,14 @@ import type {SearchParams} from "$lib/types/SearchParams";
 import {WithLocalStore} from "$lib/stores/WithLocalStore.svelte";
 import {untrack} from "svelte";
 import {FetchingStore} from "$lib/stores/FetchingStore.svelte";
+import {ListingDb} from "$lib/stores/ListingsDb.svelte";
 
 
 export class ListingsStore extends WithLocalStore<ListingsStoreType> {
     static #instance: ListingsStore
+
     private constructor() {
         super("listingsStore", () => ({
-            listings: {},
             knownMd5: {},
             sorting: [],
             lastUpdate: new Date('2020-01-01'),
@@ -30,33 +31,36 @@ export class ListingsStore extends WithLocalStore<ListingsStoreType> {
 
         if (new Date().valueOf() - new Date(this.value.lastUpdate).valueOf() > 10000)
             this.fetch();
+
+        $effect(() => {
+            console.log("Update filtered")
+             Promise.all(this.value.sorting
+                .map(async id => this.filterFn(await ListingDb.get(id)) ? id : undefined))
+                 .then(d => this.filtered = d.filter(f => f !== undefined))
+        })
     }
 
     filterFn: (l: Listing) => boolean = $derived((l: Listing) => {
         const searchTerm = this.value.searchParams.searchString.toLowerCase()
-        const attrs = [...new Set([...this.value.searchParams.searchAttributes ,...this.value.searchParams.viewAttributes])]
+        const attrs = [...new Set([...this.value.searchParams.searchAttributes, ...this.value.searchParams.viewAttributes])]
 
-        console.log("has search term")
-            if(searchTerm) {
-                return l.willhabenId.toString().indexOf(searchTerm) > -1 ||
-                    attrs.some(a => {
-                        const val = (l[a]?.user ?? l[a]?.custom ?? l[a]?.base ?? "").toString()
-                        return val.toLowerCase().indexOf(searchTerm) > -1
-                    })
-            } else {
-                return true
-            }
+        if (searchTerm) {
+            return l.willhabenId.toString().indexOf(searchTerm) > -1 ||
+                attrs.some(a => {
+                    const val = (l[a]?.user ?? l[a]?.custom ?? l[a]?.base ?? "").toString()
+                    return val.toLowerCase().indexOf(searchTerm) > -1
+                })
+        } else {
+            return true
+        }
     })
 
-    filtered: number[] = $derived(this.value.sorting.filter(id => this.filterFn(this.value.listings[id])))
-
+    filtered: number[] = $state([])
 
 
     static get instance(): ListingsStore {
         if (!this.#instance)
-            untrack(() => {
-                this.#instance = new ListingsStore()
-            })
+            this.#instance = new ListingsStore()
 
         return this.#instance
     }
@@ -82,16 +86,18 @@ export class ListingsStore extends WithLocalStore<ListingsStoreType> {
             return Promise.all([
                 fetch(`/api/rest/v1/listings/full?${filter}`).then(r => r.json()),
                 fetch(`/api/rest/v1/listings/sorting?${sorting}`).then(r => r.json()),
-            ]).then(([full, sorting]: [RawListing[], RawSorting[]]) => {
+            ]).then(async ([full, sorting]: [RawListing[], RawSorting[]]) => {
                     const sortMap = sorting.reduce((acc, s) => {
                         acc[s.listingId] = s.points;
                         return acc
                     }, {} as Record<number, number>)
-                    full.forEach(d => {
-                        this.value.listings[d.listing.id] = {...d.listing, points: sortMap[d.listing.id] ?? 0} as Listing
+
+                    await ListingDb.addAll(full.map ( d =>{
                         this.value.knownMd5[d.listing.id] = d.md5
                         this.value.lastUpdate = lastUpdate
-                    })
+
+                        return {...d.listing, points: sortMap[d.listing.id] ?? 0} as Listing
+                    } ) as Listing[])
 
                     this.value.sorting = sorting.map(s => s.listingId)
                 }

@@ -17,9 +17,18 @@
         .functions
         ?.reduce((acc, fId) => {
             const fun = functions[fId.functionId]
-            const exec = fun?.function ? eval(fun.function) : undefined
+
             if (!fun)
                 return acc
+
+            let exec = undefined
+            let value = undefined
+            try {
+                exec = fun?.function ? eval(fun.function) : undefined
+                value  = listing && exec ? exec(acc[acc.length - 1].value!!, listing) : []
+            } catch (e) {
+                console.error(`Error during execution of function '${fun.name}' on '${attribute.normalized}'`, e)
+            }
 
             return [
                 ...acc,
@@ -28,7 +37,7 @@
                     functionId: fun.id,
                     ord: fId.ord,
                     name: fun.name,
-                    value: listing && exec ? exec(acc[acc.length - 1].value!!, listing) : [],
+                    value
                 }
             ]
         }, [{

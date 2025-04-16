@@ -31,10 +31,13 @@ export class FetchingStore extends WithState<boolean> {
 
     static startFetching(store: string) {
         FetchingStore.instance.fetchingStores[store] = (FetchingStore.instance.fetchingStores[store] ?? 0) + 1
+        FetchingStore.instance.value = Object.values(FetchingStore.instance.fetchingStores).some(v => v > 0)
     }
 
     static finishFetching(store: string) {
         if (FetchingStore.instance.fetchingStores[store] && FetchingStore.instance.fetchingStores[store]-- <= 0)
             delete FetchingStore.instance.fetchingStores[store];
+
+        FetchingStore.instance.value = Object.values(FetchingStore.instance.fetchingStores).some(v => v > 0)
     }
 }

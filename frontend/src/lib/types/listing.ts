@@ -21,10 +21,7 @@ export type Listing = {
     }
 }
 
-export type ListingsStoreMap = { [id: number]: Listing }
-
 export type ListingsStoreType = {
-    listings: ListingsStoreMap,
     knownMd5: { [id: number]: string },
     sorting: number[],
     lastUpdate: Date,

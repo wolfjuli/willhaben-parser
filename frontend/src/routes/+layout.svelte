@@ -20,6 +20,7 @@
     ListingsStore.instance
     ScriptsStore.instance
 
+    navigator && navigator.storage && navigator.storage.persist()
     initializer.initialize()
 </script>
 
