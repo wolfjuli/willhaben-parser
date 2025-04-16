@@ -15,7 +15,6 @@
 
     let attrs = $derived(attributes?.toSorted((a, b) => a.label.localeCompare(b.label)))
 
-
 </script>
 
 <div class=col>

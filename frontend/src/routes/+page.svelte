@@ -8,8 +8,7 @@
     let {data}: PageProps = $props()
     let configuration = data.configuration
     const settings = $derived(settingsStore.value)
-    const listings = $derived(ListingsStore.value.listings)
-    const sorting = $derived(ListingsStore.instance.filtered)
+    const sorting = $derived(ListingsStore.value.sorting)
     const fields = $derived(filteredAttributes(settings.listingFields))
     const attributes = $derived(mergedAttributes().value)
     const searchParams = $derived(ListingsStore.value.searchParams)
@@ -21,4 +20,4 @@
     })
 </script>
 
-<ListingTable {attributes} {sorting} {configuration} {fields} {listings} />
+<ListingTable {attributes} {sorting} {configuration} {fields}  />

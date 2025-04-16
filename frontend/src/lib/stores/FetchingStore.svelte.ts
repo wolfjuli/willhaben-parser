@@ -1,24 +1,24 @@
-import {WithState} from "$lib/stores/WithState.svelte";
 
-export class FetchingStore extends WithState<boolean> {
+export class FetchingStore {
 
     static #instance: FetchingStore
-    private fetchingStores: { [store: string]: number } = {}
+    fetchingStores: { [store: string]: number } = $state({})
+    value = $derived(Object.values(FetchingStore.instance.fetchingStores).reduce((a, c) => a + c, 0))
 
-    static get fetching(): boolean {
+    static get fetching(): number {
         return FetchingStore.instance.value
     }
 
-    private static get instance(): FetchingStore {
+    static get instance(): FetchingStore {
         if (!FetchingStore.#instance)
             FetchingStore.#instance = new FetchingStore()
 
         return FetchingStore.#instance
     }
 
-    static whileFetching<T>(store: string, block: () => void | Promise<T>) {
+    static whileFetching<T, R extends (void | Promise<T>)>(store: string, block: () => R): R {
         FetchingStore.startFetching(store)
-        let ret: Promise<T> | void = undefined
+        let ret: R
         try {
             ret = block()
         } finally {
@@ -27,17 +27,17 @@ export class FetchingStore extends WithState<boolean> {
             else
                 FetchingStore.finishFetching(store)
         }
+
+        return ret
     }
 
     static startFetching(store: string) {
         FetchingStore.instance.fetchingStores[store] = (FetchingStore.instance.fetchingStores[store] ?? 0) + 1
-        FetchingStore.instance.value = Object.values(FetchingStore.instance.fetchingStores).some(v => v > 0)
     }
 
     static finishFetching(store: string) {
-        if (FetchingStore.instance.fetchingStores[store] && FetchingStore.instance.fetchingStores[store]-- <= 0)
+        if (FetchingStore.instance.fetchingStores[store] && FetchingStore.instance.fetchingStores[store] === 1)
             delete FetchingStore.instance.fetchingStores[store];
-
-        FetchingStore.instance.value = Object.values(FetchingStore.instance.fetchingStores).some(v => v > 0)
     }
+
 }

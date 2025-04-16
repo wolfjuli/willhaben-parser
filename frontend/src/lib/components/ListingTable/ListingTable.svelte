@@ -13,12 +13,11 @@
     import ListingFilter from "$lib/components/ListingFilter/ListingFilter.svelte";
     import ListingDetail from "$lib/components/ListingDetail/ListingDetail.svelte";
     import {ListingDb} from "$lib/stores/ListingsDb.svelte";
-    import {FetchingStore} from "$lib/stores/FetchingStore.svelte";
+    import {untrack} from "svelte";
 
     let {sorting, fields, attributes, configuration}: ListingTableProps = $props()
 
-    const listingsStore = $derived(ListingsStore.value)
-    const searchParams = $derived(listingsStore.searchParams)
+    const searchParams = $derived(ListingsStore.value.searchParams)
     let sortAscending = $derived(searchParams.sortDir === "ASC")
 
     let sortKey: keyof Listing = $state("")
@@ -26,12 +25,22 @@
     let p = $derived(+(page.url.searchParams.get("page") ?? 1))
     let tableData = $state<Listing[]>([])
 
+    const partial = $derived(sorting
+        .slice((p - 1) * 100, p * 100))
+
     $effect(() => {
-        if (listingsStore.knownMd5)
-            Promise.all(sorting
-                .slice((p - 1) * 100, p * 100)
-                .map(async id => await ListingDb.get(id)))
-                .then(d => tableData = d)
+        if (partial)
+            untrack(() =>
+                ListingsStore.instance.fetch(partial).finally(() => {
+                    Promise.all(partial
+                        .map(async id => await ListingDb.get(id))
+                    )
+                        .then(d => {
+                            tableData = d
+                        })
+
+                })
+            )
     })
 
     const onSort = (key: string) => {
@@ -46,34 +55,29 @@
     }
 
     function onupdate(newValue: string, listing: Listing, attribute: Attribute) {
-        FetchingStore.whileFetching("editValue", () => {
-            const n = {
-                listingId: listing.id,
-                attributeId: attribute.id,
-                values: [newValue]
-            }
+        const n = {
+            listingId: listing.id,
+            attributeId: attribute.id,
+            values: [newValue]
+        }
 
-            editing = {listingId: -1, attributeId: -1}
-            if (!newValue)
-                return ListingsStore.deleteListingValue(n)
-            else if (listing[attribute.normalized]?.user != newValue)
-                return ListingsStore.updateListingValue(n)
-        })
+        editing = {listingId: -1, attributeId: -1}
+        if (!newValue)
+            return ListingsStore.deleteListingValue(n)
+        else if (listing[attribute.normalized]?.user != newValue)
+            return ListingsStore.updateListingValue(n)
     }
 
     function oncreate(newValue: string, listing: Listing, attribute: Attribute) {
-        FetchingStore.whileFetching("editValue", () => {
-            const n = {
-                listingId: listing.id,
-                attributeId: attribute.id,
-                values: [newValue]
-            }
+        const n = {
+            listingId: listing.id,
+            attributeId: attribute.id,
+            values: [newValue]
+        }
 
-            editing = {listingId: -1, attributeId: -1}
-
-            if (newValue && newValue != listing[attribute.normalized]?.base)
-                return ListingsStore.createListingValue(n)
-        })
+        editing = {listingId: -1, attributeId: -1}
+        if (newValue && newValue != listing[attribute.normalized]?.base)
+            return ListingsStore.createListingValue(n)
     }
 
 
@@ -89,7 +93,7 @@
             <button onclick={() => goto("?page=" + (p-1))} disabled={p  <= 1}>{"<"}</button>
             Page {p}
             <button onclick={() => goto("?page=" + (p+1))}
-                    disabled={(tableData ?? []).length === 0}>{">"}</button>
+                    disabled={(tableData ?? []).length < 100}>{">"}</button>
         </div>
         <div class=col>
             <ListingFilter {attributes}></ListingFilter>

@@ -19,8 +19,7 @@
     const functions = $derived(FunctionsStore.value)
     const scripts = $derived(ScriptsStore.value)
     const attributes = $derived((mergedAttributes().value?.toSorted((a, b) => a.normalized.localeCompare(b.normalized)) ?? []))
-    const listings = $derived(ListingsStore.value.listings ?? {})
-    const sorted = $derived(ListingsStore.instance.filtered  ?? [])
+    const sorted = $derived(ListingsStore.value.sorting  ?? [])
 
     let selectedListing = $state<Listing | undefined>(undefined)
 
@@ -44,7 +43,7 @@
     </div>
     <div>
         <h3>Example Listing</h3>
-        <ListingSearch {listings}
+        <ListingSearch
                        {sorted}
                        onselect={(sel:Listing | undefined ) => { selectedListing = sel}}/>
 

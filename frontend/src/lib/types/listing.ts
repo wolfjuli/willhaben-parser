@@ -4,8 +4,10 @@ export type RawListing = {
     listing: Listing,
     md5: string
 }
+
 export type RawSorting = {
     listingId: number,
+    md5: string,
     points: number
 }
 
@@ -22,7 +24,6 @@ export type Listing = {
 }
 
 export type ListingsStoreType = {
-    knownMd5: { [id: number]: string },
     sorting: number[],
     lastUpdate: Date,
     searchParams: SearchParams

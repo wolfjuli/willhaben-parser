@@ -21,6 +21,15 @@ fun Route.listings(database: Database, templates: QueryTemplateProvider) {
                     ?.takeIf { it == "DESC" || it == "ASC" }
                     ?: return@get call.respond(HttpStatusCode.BadRequest, "sortDir parameter is missing")
 
+            val searchAttrs =
+                call.request
+                    .queryParameters["searchAttrs"]
+                    ?.split(",") ?: emptyList()
+
+            val searchString =
+                call.request
+                    .queryParameters["searchString"]?.takeUnless { it.isBlank() }
+
             val query = templates.getTemplate(
                 "get/listings/sorting",
                 mapOf(
@@ -32,7 +41,7 @@ fun Route.listings(database: Database, templates: QueryTemplateProvider) {
                 database.connection().useTransaction { transaction ->
                     QueryBuilder(transaction)
                         .append(query)
-                        .build("sortCol" to sortCol)
+                        .build("sortCol" to sortCol, "searchAttrs" to searchAttrs, "searchString" to searchString)
                         .executeQuery()
                         .useAsSequence { seq ->
                             seq.map { it.toCamelCaseMap() }.toList()
@@ -47,7 +56,7 @@ fun Route.listings(database: Database, templates: QueryTemplateProvider) {
         get("full") {
             logger.info("API Get listings/full")
             val knownMd5 = call.request.queryParameters["knownMd5"]?.takeUnless { it.isBlank() }
-            val listingId = call.request.queryParameters["listingId"]
+            val ids = call.request.queryParameters["ids"]?.takeUnless { it.isBlank() }
 
             val query = templates.getTemplate(
                 "get/listings/full"
@@ -57,7 +66,7 @@ fun Route.listings(database: Database, templates: QueryTemplateProvider) {
                 database.connection().useTransaction { transaction ->
                     QueryBuilder(transaction)
                         .append(query)
-                        .build("knownMd5" to knownMd5?.split(","), "listingId" to listingId)
+                        .build("knownMd5" to knownMd5?.split(","), "ids" to ids?.split(","))
                         .executeQuery()
                         .useAsSequence { seq ->
                             seq.map { it.toCamelCaseMap() }.toList()

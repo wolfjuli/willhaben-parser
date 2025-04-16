@@ -1,5 +1,5 @@
 -- listings/sorting
-SELECT nl.listing_id, nl.listing -> 'points' -> 'base' AS points
+SELECT nl.listing_id
 FROM (SELECT listing_id,
              listing || jsonb_build_object('points', json_build_object('base', sum(coalesce(lp.points, 0)))) AS listing
       FROM normalized_listings
@@ -9,5 +9,6 @@ FROM (SELECT listing_id,
 JOIN listings l
     ON nl.listing_id = l.id
 WHERE l.last_seen = (SELECT max(last_seen) FROM listings)
-ORDER BY COALESCE(nl.listing->${sortCol}->'user', COALESCE (nl.listing -> ${sortCol} -> 'custom', nl.listing ->
-             ${sortCol} -> 'base')) ${sortDir}
+  AND (${searchString}::TEXT IS NULL OR willhaben_id::TEXT LIKE '%' || ${searchString}::TEXT || '%' OR
+       lower(nl.listing ->> 'heading') LIKE lower('%' || ${searchString}::TEXT || '%'))
+ORDER BY COALESCE(nl.listing->${sortCol}->'user', nl.listing -> ${sortCol} -> 'custom', nl.listing -> ${sortCol} -> 'base') ${sortDir}
