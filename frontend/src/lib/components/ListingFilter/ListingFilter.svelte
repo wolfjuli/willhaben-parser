@@ -1,19 +1,21 @@
 <script lang="ts">
 
     import type {ListingFilterProps} from "$lib/components/ListingFilter/ListingFilter";
-    import {ListingSearchParams} from "$lib/stores/ListingsStore.svelte.js";
+    import {ListingsStore} from "$lib/stores/ListingsStore.svelte";
 
     let {attributes}: ListingFilterProps = $props()
 
     let searchType = $state("normal")
 
     function invert() {
-        ListingSearchParams.searchAttributes = attributes
+        ListingsStore.value.searchParams.searchAttributes = attributes
             ?.map(a => a.normalized)
-            .filter(a => ListingSearchParams.searchAttributes.find(s => s === a) === undefined)
+            .filter(a => ListingsStore.value.searchParams.searchAttributes.find(s => s === a) === undefined)
     }
 
     let attrs = $derived(attributes?.toSorted((a, b) => a.label.localeCompare(b.label)))
+
+
 </script>
 
 <div class=col>
@@ -28,8 +30,8 @@
                             <input type="checkbox"
                                    name="attributes"
                                    value={attribute.normalized}
-                                   bind:group={ListingSearchParams.searchAttributes}
-                                   checked={ListingSearchParams.searchAttributes.indexOf(attribute?.normalized) > -1}
+                                   bind:group={ListingsStore.value.searchParams.searchAttributes}
+                                   checked={ListingsStore.value.searchParams.searchAttributes.indexOf(attribute?.normalized) > -1}
                             />
                             {attribute.label}
                         </label>
@@ -63,7 +65,7 @@
                 </li>
             </ul>
         </details>
-        <input bind:value={ListingSearchParams.searchString} disabled={searchType !== "normal"} type="search" />
-        <button onclick={() => {ListingSearchParams.searchString = "" }}>X</button>
+        <input bind:value={ListingsStore.value.searchParams.searchString} disabled={searchType !== "normal"} type="search" />
+        <button onclick={() => {ListingsStore.value.searchParams.searchString = "" }}>X</button>
     </div>
 </div>

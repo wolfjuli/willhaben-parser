@@ -20,7 +20,7 @@
     const scripts = $derived(ScriptsStore.value)
     const attributes = $derived((mergedAttributes().value?.toSorted((a, b) => a.normalized.localeCompare(b.normalized)) ?? []))
     const listings = $derived(ListingsStore.value.listings ?? {})
-    const sorted = $derived(ListingsStore.value.sorting  ?? [])
+    const sorted = $derived(ListingsStore.instance.filtered  ?? [])
 
     let selectedListing = $state<Listing | undefined>(undefined)
 
@@ -49,7 +49,7 @@
                        onselect={(sel:Listing | undefined ) => { selectedListing = sel}}/>
 
         {#if selectedListing}
-            <ListingDetail listing={selectedListing} {attributes} {configuration} {functions}></ListingDetail>
+            <ListingDetail listing={selectedListing} {attributes} {configuration} ></ListingDetail>
         {/if}
     </div>
 </div>

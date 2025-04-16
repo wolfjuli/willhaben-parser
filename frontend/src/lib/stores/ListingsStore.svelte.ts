@@ -10,9 +10,9 @@ import {WithLocalStore} from "$lib/stores/WithLocalStore.svelte";
 import {untrack} from "svelte";
 import {FetchingStore} from "$lib/stores/FetchingStore.svelte";
 
+
 export class ListingsStore extends WithLocalStore<ListingsStoreType> {
     static #instance: ListingsStore
-
     private constructor() {
         super("listingsStore", () => ({
             listings: {},
@@ -28,10 +28,29 @@ export class ListingsStore extends WithLocalStore<ListingsStoreType> {
             }
         }));
 
-
         if (new Date().valueOf() - new Date(this.value.lastUpdate).valueOf() > 10000)
             this.fetch();
     }
+
+    filterFn: (l: Listing) => boolean = $derived((l: Listing) => {
+        const searchTerm = this.value.searchParams.searchString.toLowerCase()
+        const attrs = [...new Set([...this.value.searchParams.searchAttributes ,...this.value.searchParams.viewAttributes])]
+
+        console.log("has search term")
+            if(searchTerm) {
+                return l.willhabenId.toString().indexOf(searchTerm) > -1 ||
+                    attrs.some(a => {
+                        const val = (l[a]?.user ?? l[a]?.custom ?? l[a]?.base ?? "").toString()
+                        return val.toLowerCase().indexOf(searchTerm) > -1
+                    })
+            } else {
+                return true
+            }
+    })
+
+    filtered: number[] = $derived(this.value.sorting.filter(id => this.filterFn(this.value.listings[id])))
+
+
 
     static get instance(): ListingsStore {
         if (!this.#instance)
@@ -101,13 +120,3 @@ export class ListingsStore extends WithLocalStore<ListingsStoreType> {
         })
             .then(() => ListingsStore.instance.fetch(listingValue.listingId))
 }
-
-export const ListingSearchParams = $state<SearchParams>(
-    {
-        viewAttributes: [],
-        searchString: "",
-        searchAttributes: [],
-        sortCol: "points",
-        sortDir: "DESC"
-    }
-)

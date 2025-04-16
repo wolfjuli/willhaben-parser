@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {ListingSearchParams,  ListingsStore} from '$lib/stores/ListingsStore.svelte.js'
+    import { ListingsStore} from '$lib/stores/ListingsStore.svelte.js'
     import type {PageProps} from "./$types";
     import ListingTable from "$lib/components/ListingTable/ListingTable.svelte";
     import {filteredAttributes, mergedAttributes} from "$lib/stores/attributes.svelte";
@@ -9,10 +9,10 @@
     let configuration = data.configuration
     const settings = $derived(settingsStore.value)
     const listings = $derived(ListingsStore.value.listings)
-    const sorting = $derived(ListingsStore.value.sorting)
+    const sorting = $derived(ListingsStore.instance.filtered)
     const fields = $derived(filteredAttributes(settings.listingFields))
     const attributes = $derived(mergedAttributes().value)
-    const searchParams = $derived(ListingSearchParams)
+    const searchParams = $derived(ListingsStore.value.searchParams)
 
     $effect(() => {
         if (settings && searchParams) {

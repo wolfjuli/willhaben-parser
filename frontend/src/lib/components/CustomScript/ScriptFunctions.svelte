@@ -11,7 +11,7 @@
     let {script, listing, attributes, functions}: ScriptFunctionsProps = $props()
 
     let attribute = $derived(attributes.find(a => a.id === script.attributeId)!!)
-    let attributeValue = $derived((listing ? transformListing(listing, attributes, functions) : undefined)?.[attribute.normalized])
+    let attributeValue = $derived((listing ? transformListing(listing, attributes, functions) : undefined)?.[attribute.normalized]?.base)
 
     let functionValues = $derived(script
         .functions

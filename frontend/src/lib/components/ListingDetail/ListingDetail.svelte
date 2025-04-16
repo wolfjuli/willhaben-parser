@@ -9,7 +9,7 @@
         <e:detail class:horizontal>
             <dt>{attribute.label}</dt>
             <dd>
-                <ListingValue {listing}  {attribute} {configuration} />
+                <ListingValue {listing} {attribute} {configuration} />
             </dd>
         </e:detail>
     {/each}

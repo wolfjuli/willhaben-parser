@@ -12,6 +12,7 @@ DROP VIEW IF EXISTS fe_user_listings CASCADE;
 DROP VIEW IF EXISTS fe_listings CASCADE;
 DROP VIEW IF EXISTS all_attributes CASCADE;
 
+
 ALTER TABLE attributes
     DROP normalized,
     ADD normalized TEXT GENERATED ALWAYS AS (
@@ -20,9 +21,10 @@ ALTER TABLE attributes
 
 DROP TABLE IF EXISTS normalized_listings CASCADE;
 
+
 CREATE TABLE normalized_listings
 (
-    listing_id   SMALLINT NOT NULL PRIMARY KEY REFERENCES listings (id) ON DELETE CASCADE ON UPDATE CASCADE,
+    listing_id INT NOT NULL PRIMARY KEY REFERENCES listings (id) ON DELETE CASCADE ON UPDATE CASCADE,
     willhaben_id INT      NOT NULL,
     listing      JSONB    NOT NULL,
     md5          TEXT     NOT NULL
@@ -56,7 +58,11 @@ CREATE TABLE listing_custom_attributes
     PRIMARY KEY (listing_id, attribute_id)
 );
 
+ROLLBACK;
 DROP FUNCTION IF EXISTS update_listing_custom_attributes(willhaben_ids INT[], attribute_ids SMALLINT[], listing_ids INT[]);
+DROP FUNCTION IF EXISTS update_listing_custom_attributes(willhaben_ids INT[], attribute_ids SMALLINT[],
+                                                         listing_ids INT[], function_ids SMALLINT[]);
+
 CREATE OR REPLACE FUNCTION update_listing_custom_attributes(willhaben_ids INT[] = NULL, attribute_ids SMALLINT[] = NULL,
                                                             listing_ids INT[] = NULL, function_ids SMALLINT[] = NULL)
     RETURNS TABLE
@@ -85,8 +91,9 @@ $$;
 
 
 DROP FUNCTION IF EXISTS update_listing_points(willhaben_ids INT[], attribute_ids SMALLINT[], listing_ids INT[],
-                                              script_ids SMALLINT[]);
-DROP FUNCTION IF EXISTS update_listing_points(willhaben_ids INTEGER[], attribute_ids SMALLINT[], listing_ids INTEGER[]);
+                                              script_ids SMALLINT[]) CASCADE;
+DROP FUNCTION IF EXISTS update_listing_points(willhaben_ids INTEGER[], attribute_ids SMALLINT[],
+                                              listing_ids INTEGER[]) CASCADE;
 
 CREATE OR REPLACE FUNCTION update_listing_points(willhaben_ids INT[] = NULL,
                                                  attribute_ids SMALLINT[] = NULL,
@@ -122,7 +129,7 @@ BEGIN
                    attribute_id,
                    script_id,
                    run_script(script_id, attribute_id::SMALLINT,
-                              array_to_string(coalesce(uds.values, coalesce(cas.values, las.values)), ','), '{}'::JSONB)
+                              array_to_string(coalesce(uds.values, cas.values, las.values), ','), '{}'::JSONB)
             FROM uds
             FULL JOIN cas
                 USING (listing_id, attribute_id, script_id)

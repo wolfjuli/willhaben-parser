@@ -1,16 +1,17 @@
 import {WithState} from "$lib/stores/WithState.svelte";
+import {AsSingleton} from "$lib/stores/AsSingleton";
 
-export function WithURL<T, N extends { [key: string]: string | number | object }>(
+export type GenericObject = { [key: string]: (string | number | ((string | number)[]) | object) }
+
+export function WithURL<T extends GenericObject, N extends GenericObject>(
     refreshUrl: string,
-    createUrl: string,
-    updateUrl: string,
-    deleteUrl: string,
-    id: (v: N) => string | number = v => v.id as (string | number)
+    createUrl: string = refreshUrl,
+    updateUrl: string = createUrl,
+    deleteUrl: string = createUrl,
+    id: (v: N | T) => string | number = v => v.id as (string | number)
 ) {
-    abstract class WithURL extends WithState<T> {
-
-
-        refresh(props: { [key: string]: (string | number | (string | number)[]) }) {
+    class WithURL extends WithState<{ [key: string]: T }> {
+        refresh(props: GenericObject) {
             const filter = Object.keys(props).length ? "?" + Object.keys(props).reduce((acc, k) => {
                 return acc + `${k}=${props[k]}`
             }, "") : ""
@@ -18,7 +19,13 @@ export function WithURL<T, N extends { [key: string]: string | number | object }
                 method: 'get',
             })
                 .then(r => r.json())
-                .then(d => this.value = d)
+                .then((data: T[]) => {
+                        if (!filter) this.value = {}
+                        data.forEach(d => {
+                            this.value[id(d)] = d
+                        })
+                    }
+                )
         }
 
         create(newValue: N) {
@@ -30,12 +37,20 @@ export function WithURL<T, N extends { [key: string]: string | number | object }
 
         }
 
-        update(newValue: N): T {
-            throw new Error("create() has not been implemented!")
+        update(newValue: N) {
+            fetch(updateUrl, {
+                method: 'put',
+                body: JSON.stringify(newValue)
+            })
+                .then(() => this.refresh(newValue))
         }
 
-        delete(newValue: N): T {
-            throw new Error("create() has not been implemented!")
+        delete(newValue: N) {
+            fetch(deleteUrl, {
+                method: 'delete',
+                body: JSON.stringify(newValue)
+            })
+                .then(() => this.refresh(newValue))
         }
     }
 

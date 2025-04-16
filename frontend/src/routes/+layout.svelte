@@ -9,6 +9,7 @@
     import {initializer} from "$lib/stores/initializeStores.svelte";
     import {ListingsStore} from "$lib/stores/ListingsStore.svelte";
     import {ScriptsStore} from "$lib/stores/ScriptsStore.svelte";
+    import {FetchingStore} from "$lib/stores/FetchingStore.svelte";
 
     let {children}: LayoutProps = $props()
 
@@ -30,7 +31,7 @@
     <ul>
         <li><strong>WillHaben Parser</strong></li>
         <li><a href="/settings">
-            {#if ListingsStore.value.fetching}
+            {#if FetchingStore.fetching}
                 <LoadingIcon/>
             {:else}
                 <GearIcon/>
