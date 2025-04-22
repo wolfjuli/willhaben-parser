@@ -48,7 +48,6 @@ class Crawler(
     }
 
     private fun run() {
-
         dataSource.connection.useTransaction { transaction ->
             dataSource.get.watchLists().parse()
                 .write(transaction, configuration.crawler)

@@ -21,4 +21,12 @@ class PipeTo<F : Node, T : Node>(
             result.matchType { transformBack(message.payload, this) ?: message.payload }
         } ?: message
     }
+
+    override fun close(transaction: Transaction): PipelineMessage<F> {
+        return when (val res = targetActions.close(transaction)) {
+            is PipelineMessage.Close -> super.close(transaction)
+            is PipelineMessage.Stop -> PipelineMessage.Stop()
+            else -> error("PipeTo can't handle message type ${res.javaClass.simpleName} on close")
+        }
+    }
 }
