@@ -79,9 +79,7 @@ export class ListingsStore extends WithLocalStore<ListingsStoreType> {
                     .then(r => r.json())
                     .then(async (full: RawListing[]) => {
                             this.value.lastUpdate = new Date()
-                            await ListingDb.addAll(full.map(f => f.listing))
-                            await ListingDb.addAll(full.map(f => ({id: f.listing.id, md5: f.md5})))
-
+                            await ListingDb.addAll(full.map(f => ({listing: f.listing,  md5: f.md5})))
                         }
                     )
             )

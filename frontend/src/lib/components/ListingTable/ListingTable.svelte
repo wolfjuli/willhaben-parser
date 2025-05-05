@@ -28,8 +28,10 @@
     const partial = $derived(sorting
         .slice((p - 1) * 100, p * 100))
 
+    let lastUpdate = $state(new Date().valueOf())
+
     $effect(() => {
-        if (partial)
+        if (partial && lastUpdate)
             untrack(() =>
                 ListingsStore.instance.fetch(partial).finally(() => {
                     Promise.all(partial
@@ -62,10 +64,12 @@
         }
 
         editing = {listingId: -1, attributeId: -1}
+
         if (!newValue)
-            return ListingsStore.deleteListingValue(n)
+            ListingsStore.deleteListingValue(n).then(() => lastUpdate = new Date().valueOf())
         else if (listing[attribute.normalized]?.user != newValue)
-            return ListingsStore.updateListingValue(n)
+            ListingsStore.updateListingValue(n).then(() => lastUpdate = new Date().valueOf())
+
     }
 
     function oncreate(newValue: string, listing: Listing, attribute: Attribute) {
@@ -77,7 +81,8 @@
 
         editing = {listingId: -1, attributeId: -1}
         if (newValue && newValue != listing[attribute.normalized]?.base)
-            return ListingsStore.createListingValue(n)
+            ListingsStore.createListingValue(n).then(() => lastUpdate = new Date().valueOf())
+
     }
 
 

@@ -1,7 +1,7 @@
 import {
     type Listing, type RawSorting,
 } from '../types/Listing';
-import {isListing} from "$lib/utils/checkType";
+import {isKnownListing, isListing} from "$lib/utils/checkType";
 
 
 export class ListingDb {
@@ -43,7 +43,10 @@ export class ListingDb {
         return ListingDb.#instance.asyncInstance
     }
 
-    static async addAll(elements: Listing[] | { id: number, md5: string }[]): Promise<void> {
+    static async addAll(elements: Listing[] | { id: number, md5: string }[] | {
+        listing: Listing,
+        md5: string
+    }[]): Promise<void> {
         return this.instance.then(inst => {
             const listingsStore = inst.db
                 .transaction("listings", "readwrite")
@@ -56,6 +59,11 @@ export class ListingDb {
                 if (isListing(e)) {
                     listingsStore.delete(e.id)
                     listingsStore.add(e)
+                } else if (isKnownListing(e)) {
+                    listingsStore.delete(e.listing.id)
+                    listingsStore.add(e.listing)
+                    knownStore.delete(e.listing.id)
+                    knownStore.add({id: e.listing.id, md5: e.md5})
                 } else {
                     knownStore.delete(e.id)
                     knownStore.add(e)
