@@ -25,7 +25,7 @@
         <a href={configuration.listingsBaseUrl + `/${val}`} target="_blank">{val}</a>
     {/if}
 {:else if attribute.dataType === "IMAGE"}
-    <img src={configuration.imageBaseUrl + `/${val}`} alt={val}/>
+    <img src={configuration.imageBaseUrl + `/${val}`} alt={val} />
 {:else}
     <div>
     <span class:strike={userVal}>
@@ -40,5 +40,9 @@
     .strike {
         text-decoration: line-through;
         display: block;
+    }
+
+    img {
+        max-height: 20vh;
     }
 </style>

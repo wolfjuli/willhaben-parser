@@ -87,12 +87,19 @@
 
 
     let editing = $state({listingId: -1, attributeId: -1})
-
     let expanded = $state<number[]>([])
+
+    function toggleExpand(id: number) {
+        const idx = expanded.indexOf(id)
+        if (idx > -1)
+            expanded = [...expanded.slice(0, idx), ...expanded.slice(idx + 1)]
+        else
+            expanded = [...expanded, id]
+    }
 
 </script>
 
-{#if fields}
+{#if expanded && fields}
     <div class=container-fluid>
         <div class=col>
             <button onclick={() => goto("?page=" + (p-1))} disabled={p  <= 1}>{"<"}</button>
@@ -123,7 +130,7 @@
             <tr class:even={idx % 2}>
                 <TD>
                     {#snippet render()}
-                        <button>V</button>
+                        <button onclick={() => toggleExpand(listing.id)}>V</button>
                     {/snippet}
                 </TD>
                 {#each fields as attribute}
@@ -140,9 +147,27 @@
                     </TD>
                 {/each}
             </tr>
-            {#if expanded.indexOf(listing.id) > -1}
+            {#if expanded && expanded.indexOf(listing.id) > -1}
                 <tr>
-                    <td colspan={fields.length}>
+
+                    <td></td>
+                    {#if listing.coordinates}
+                        {@const [lat, long] = (listing.coordinates?.user ?? listing.coordinates?.base)?.toString()?.split(",") }
+                        {@const sunUrl1 = `https://voibos.rechenraum.com/voibos/voibos?Datum=06-21-13%3A00&H=10&name=sonnengang&Koordinate=${long.trim()}%2C${lat.trim()}&CRS=4326&Output=Horizont%2CLage%2CTabelle`}
+                        {@const sunUrl2 = `https://voibos.rechenraum.com/voibos/voibos?Datum=06-21-13%3A00&H=10&name=sonnengang&Koordinate=${long.trim()}%2C${lat.trim()}&CRS=4326&Output=Formular%2CHorizont%2CLage%2CTabelle`}
+                        {@const katasterUrl = `https://kataster.bev.gv.at/#/center/${long.trim()},${lat.trim()}/zoom/17.5/ortho/1/vermv/1`}
+                        <td><a target="_blank" href={katasterUrl}>Kataster</a>
+                            <iframe src={katasterUrl}></iframe>
+                        </td>
+                        <td>
+                            <a target="_blank" href={sunUrl2}>Sonnestand</a>
+                            <iframe src={sunUrl1} class="suncalc"></iframe>
+                        </td>
+                    {:else}
+                        <td>Kataster</td>
+                        <td>Sonnestand</td>
+                    {/if}
+                    <td colspan={fields.length -3 } class="details">
                         <ListingDetail {listing} {attributes} {configuration}/>
                     </td>
                 </tr>
@@ -153,3 +178,25 @@
 {:else }
     No data available
 {/if}
+
+
+<style>
+    iframe {
+        width: 30vw;
+        height: 50vh;
+    }
+
+    .details {
+        display: block;
+        overflow: scroll;
+        height: 60vh;
+        width: 30vw;
+    }
+
+    .suncalc {
+        width: 60vw;
+        height: 100vh;
+        transform: scale(0.5);
+        margin: -24vh -15vw -25vh -15vw;
+    }
+</style>
