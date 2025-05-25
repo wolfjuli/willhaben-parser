@@ -34,12 +34,11 @@ class ListingAttributesWriter : Writer<ListingAttribute>("") {
             stmt.setString(colMappings.getOrError("values"), entry.values.toPgString())
         }
 
-
     override fun close(transaction: Transaction): PipelineMessage<ListingAttribute> {
         val ret = super.close(transaction)
         transaction.prepareStatement("SELECT toggle_triggers('disable')").execute()
-        logger.info("Updating ${listingIds.size} custom attributes")
 
+        logger.info("Updating ${listingIds.size} custom attributes")
         QueryBuilder(transaction).append(
             """
             SELECT count(*) c FROM update_listing_custom_attributes(listing_ids := ${'$'}{listingIds})
@@ -48,8 +47,8 @@ class ListingAttributesWriter : Writer<ListingAttribute>("") {
             .build("listingIds" to listingIds.toList())
             .executeQuery().useAsSequence { logger.info("Updated ${it.first().getInt("c")} rows") }
 
-        logger.info("Updating ${listingIds.size} normalized listings")
 
+        logger.info("Updating ${listingIds.size} normalized listings")
         QueryBuilder(transaction).append(
             """
             SELECT count(*) c FROM update_normalize_listings(listing_ids := ${'$'}{listingIds})
@@ -69,6 +68,8 @@ class ListingAttributesWriter : Writer<ListingAttribute>("") {
             .executeQuery().useAsSequence { logger.info("Updated ${it.first().getInt("c")} rows") }
 
         transaction.prepareStatement("SELECT toggle_triggers('enable')").execute()
+
+        listingIds.clear()
         return ret
     }
 }

@@ -32,7 +32,6 @@ class Crawler(
             while (!stop) {
                 sleep()
                 run()
-                //write(data)
             }
         }
     }

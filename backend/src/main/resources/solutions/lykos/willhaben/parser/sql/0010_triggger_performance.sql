@@ -21,8 +21,6 @@ END;
 $$
 ;
 
-
-
 ALTER TABLE listing_custom_attributes
     DROP CONSTRAINT IF EXISTS listing_custom_attributes_listing_id_fkey,
     ADD FOREIGN KEY (listing_id) REFERENCES listings (id) ON DELETE CASCADE ON UPDATE CASCADE;
