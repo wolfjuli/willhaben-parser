@@ -37,11 +37,3 @@ while (row = cursor.fetch()) {
 $$;
 
 
-SELECT id
-FROM listings
-WHERE last_seen = (SELECT max(last_seen) FROM listings)
-
-
-
-SELECT update_listing_custom_attributes(listing_ids := ARRAY [40037,18017,3715,57628,17432,53666,18834,3713,68175,57850,18823,27663,26091])
-;

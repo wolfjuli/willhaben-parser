@@ -36,7 +36,6 @@ class ListingAttributesWriter : Writer<ListingAttribute>("") {
 
     override fun close(transaction: Transaction): PipelineMessage<ListingAttribute> {
         val ret = super.close(transaction)
-        transaction.prepareStatement("SELECT toggle_triggers('disable')").execute()
 
         logger.info("Updating ${listingIds.size} custom attributes")
         QueryBuilder(transaction).append(
@@ -67,7 +66,6 @@ class ListingAttributesWriter : Writer<ListingAttribute>("") {
             .build("listingIds" to listingIds.toList())
             .executeQuery().useAsSequence { logger.info("Updated ${it.first().getInt("c")} rows") }
 
-        transaction.prepareStatement("SELECT toggle_triggers('enable')").execute()
 
         listingIds.clear()
         return ret
