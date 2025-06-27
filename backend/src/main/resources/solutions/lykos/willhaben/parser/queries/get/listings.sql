@@ -6,5 +6,5 @@ FROM listings l
               ON l.id = la.listing_id
          JOIN attributes a
               ON la.attribute_id = a.id
-WHERE d.timestamp = (SELECT max(timestamp) FROM data_blocks)
+--WHERE d.timestamp = (SELECT max(timestamp) FROM data_blocks)
 GROUP BY 1
