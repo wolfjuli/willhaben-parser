@@ -9,6 +9,12 @@ FROM (SELECT listing_id,
 JOIN listings l
     ON nl.listing_id = l.id
 WHERE l.last_seen = (SELECT max(last_seen) FROM listings)
-  AND (${searchString}::TEXT IS NULL OR willhaben_id::TEXT LIKE '%' || ${searchString}::TEXT || '%' OR
-       lower(nl.listing ->> 'heading') LIKE lower('%' || ${searchString}::TEXT || '%'))
+    AND (${searchString}::TEXT IS NULL
+        OR willhaben_id::TEXT LIKE '%' || ${searchString}::TEXT || '%'
+        OR lower(nl.listing ->> 'heading') LIKE lower('%' || ${searchString}::TEXT || '%'))
+   OR exists (SELECT
+              FROM unnest(${searchAttrs}::TEXT[]) a(attribute)
+              WHERE lower(coalesce(nl.listing -> a.attribute ->> 'user', nl.listing -> a.attribute ->> 'custom',
+                                   nl.listing -> a.attribute ->> 'base')::TEXT) LIKE
+                    '%' || lower(${searchString}::TEXT) || '%')
 ORDER BY COALESCE(nl.listing->${sortCol}->'user', nl.listing -> ${sortCol} -> 'custom', nl.listing -> ${sortCol} -> 'base') ${sortDir}
