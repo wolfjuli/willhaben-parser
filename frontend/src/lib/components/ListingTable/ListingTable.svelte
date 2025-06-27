@@ -150,25 +150,32 @@
             {#if expanded && expanded.indexOf(listing.id) > -1}
                 <tr>
 
-                    <td></td>
                     {#if listing.coordinates}
                         {@const [lat, long] = (listing.coordinates?.user ?? listing.coordinates?.base)?.toString()?.split(",") }
+                        {@const addr = (listing['address']?.user ?? listing['address']?.base)?.toString() ?? "" }
+                        {@const district = (listing['district']?.user ?? listing['district']?.base)?.toString() ?? "" }
                         {@const sunUrl1 = `https://voibos.rechenraum.com/voibos/voibos?Datum=06-21-13%3A00&H=10&name=sonnengang&Koordinate=${long.trim()}%2C${lat.trim()}&CRS=4326&Output=Horizont%2CLage%2CTabelle`}
                         {@const sunUrl2 = `https://voibos.rechenraum.com/voibos/voibos?Datum=06-21-13%3A00&H=10&name=sonnengang&Koordinate=${long.trim()}%2C${lat.trim()}&CRS=4326&Output=Formular%2CHorizont%2CLage%2CTabelle`}
                         {@const katasterUrl = `https://kataster.bev.gv.at/#/center/${long.trim()},${lat.trim()}/zoom/17.5/ortho/1/vermv/1`}
-                        <td><a target="_blank" href={katasterUrl}>Kataster</a>
+                        {@const laermUrl = `https://maps.laerminfo.at/#/cstrasse22_24h/bgrau/a-/q${addr}, ${district}/@${lat.trim()},${long.trim()},17z`}
+                        <td colspan="2"><a target="_blank" href={katasterUrl}>Kataster</a>
                             <iframe src={katasterUrl}></iframe>
                         </td>
-                        <td>
+                        <td colspan="2">
                             <a target="_blank" href={sunUrl2}>Sonnestand</a>
                             <iframe src={sunUrl1} class="suncalc"></iframe>
+                        </td>
+                        <td colspan="2">
+                            <a target="_blank" href={laermUrl}>Lärm</a>
+                            <iframe src={laermUrl}></iframe>
                         </td>
                     {:else}
                         <td>Kataster</td>
                         <td>Sonnestand</td>
+                        <td>Lärm</td>
                     {/if}
-                    <td colspan={fields.length -3 } class="details">
-                        <ListingDetail {listing} {attributes} {configuration}/>
+                    <td colspan={fields.length - 6 } class="details">
+                        <ListingDetail {listing} {attributes} {configuration} />
                     </td>
                 </tr>
             {/if}
