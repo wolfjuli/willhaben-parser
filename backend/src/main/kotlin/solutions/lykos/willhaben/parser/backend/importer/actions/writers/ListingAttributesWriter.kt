@@ -37,16 +37,6 @@ class ListingAttributesWriter : Writer<ListingAttribute>("") {
     override fun close(transaction: Transaction): PipelineMessage<ListingAttribute> {
         val ret = super.close(transaction)
 
-        logger.info("Updating ${listingIds.size} custom attributes")
-        QueryBuilder(transaction).append(
-            """
-            SELECT count(*) c FROM update_listing_custom_attributes(listing_ids := ${'$'}{listingIds})
-            """.trimIndent()
-        )
-            .build("listingIds" to listingIds.toList())
-            .executeQuery().useAsSequence { logger.info("Updated ${it.first().getInt("c")} rows") }
-
-
         logger.info("Updating ${listingIds.size} normalized listings")
         QueryBuilder(transaction).append(
             """

@@ -2,6 +2,7 @@ package solutions.lykos.willhaben.parser.backend.api.wh
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import io.ktor.util.*
+import solutions.lykos.willhaben.parser.backend.importer.Hash
 import solutions.lykos.willhaben.parser.backend.importer.basedata.Listing
 
 abstract class WHAdvertSpecification(
@@ -45,7 +46,7 @@ abstract class WHAdvertSpecification(
     val url get() = (attributeMap["SEO_URL"] ?: attributeMap["PROJECT_SEO_URL"])?.firstOrNull()
 
     @OptIn(ExperimentalStdlibApi::class)
-    fun toNode(additionalWHAttributes: WHAttributes? = null) =
+    fun toNode(additionalWHAttributes: WHAttributes? = null, hash: Hash? = null, duplicateHash: Hash? = null) =
         with(additionalWHAttributes?.let {
             this.also {
                 val attrs = additionalWHAttributes.attribute
@@ -56,10 +57,10 @@ abstract class WHAdvertSpecification(
         } ?: this) {
             Listing(
                 id,
-                sha1(
+                hash ?: sha1(
                     """$id$state$location$address$price$isHouse$isFlat$rooms$url""".toByteArray()
                 ).joinToString("") { it.toHexString() },
-                sha1(
+                duplicateHash ?: sha1(
                     """$state$location$address$price$isHouse$isFlat$rooms""".toByteArray()
                 ).joinToString("") { it.toHexString() },
                 url ?: error("Could not retrieve url from Listing id $id"),

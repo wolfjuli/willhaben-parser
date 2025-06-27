@@ -29,7 +29,7 @@ class ListingDetailsTransformer(
         parser.write(URL(url).readText())
         return jsons["__NEXT_DATA__"]?.let { json ->
             mapper.readValue<WHSiteDetails>(json)
-                .props.pageProps.advertDetails.toNode(entry.raw.attributes)
+                .props.pageProps.advertDetails.toNode(entry.raw.attributes, entry.hash, entry.duplicateHash)
         } ?: entry
     }
 

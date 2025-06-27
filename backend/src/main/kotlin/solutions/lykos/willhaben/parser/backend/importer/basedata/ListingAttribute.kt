@@ -13,5 +13,4 @@ data class ListingAttribute(
 
     @HashField
     val attributeId get() = attribute.id
-
 }

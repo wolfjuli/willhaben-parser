@@ -20,13 +20,11 @@ class ListingWriter : Writer<Listing>(TableDefinitions.getTableName<Listing>()) 
             createPreparedInsertStatement<Listing>(columnMappings, transaction, ConflictType.DO_NOTHING)
     }
 
-    private val willhabenIds = mutableSetOf<Int>()
     override fun write(
         message: PipelineMessage.Payload<Listing>,
         transaction: Transaction
     ) =
         batchInsert(message) { entry, stmt, colMappings ->
-            willhabenIds.add(entry.willhabenId)
             stmt.setInt(colMappings.getOrError("willhaben_id"), entry.willhabenId)
             stmt.setString(colMappings.getOrError("hash"), entry.hash)
             stmt.setString(colMappings.getOrError("duplicate_hash"), entry.duplicateHash)
