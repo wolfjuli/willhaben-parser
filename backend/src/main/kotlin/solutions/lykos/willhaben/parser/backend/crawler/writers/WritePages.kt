@@ -1,6 +1,6 @@
 package solutions.lykos.willhaben.parser.backend.crawler.writers
 
-import solutions.lykos.willhaben.parser.backend.api.wh.WHAdvertSummary
+import solutions.lykos.willhaben.parser.backend.api.wh.WHAdvertSpecification
 import solutions.lykos.willhaben.parser.backend.config.CrawlerConfiguration
 import solutions.lykos.willhaben.parser.backend.database.postgresql.Transaction
 import solutions.lykos.willhaben.parser.backend.importer.ImporterFetcher.logger
@@ -10,7 +10,6 @@ import solutions.lykos.willhaben.parser.backend.importer.actions.ResolvingAction
 import solutions.lykos.willhaben.parser.backend.importer.actions.resolvers.AttributeResolver
 import solutions.lykos.willhaben.parser.backend.importer.actions.resolvers.ListingResolver
 import solutions.lykos.willhaben.parser.backend.importer.actions.transformers.ListingAttributeMultiplier
-import solutions.lykos.willhaben.parser.backend.importer.actions.transformers.ListingDetailsTransformer
 import solutions.lykos.willhaben.parser.backend.importer.actions.transformers.PipeTo
 import solutions.lykos.willhaben.parser.backend.importer.actions.writers.AttributesWriter
 import solutions.lykos.willhaben.parser.backend.importer.actions.writers.LastSeenWriter
@@ -30,7 +29,7 @@ private val resolveFlags = EnumSet.noneOf(PipelineMessage.Flags::class.java)
 private val now = ZonedDateTime.now()
 
 
-fun Sequence<WHAdvertSummary>.write(transaction: Transaction, configuration: CrawlerConfiguration) {
+fun Sequence<WHAdvertSpecification>.write(transaction: Transaction, configuration: CrawlerConfiguration) {
     val attributeActions = ResolvingActions(
         AttributeResolver(),
         AttributesWriter()
@@ -63,25 +62,35 @@ fun Sequence<WHAdvertSummary>.write(transaction: Transaction, configuration: Cra
             ListingAttributesWriter()
         )
 
+    val listingWriteActions = ResolvingActions(
+        ListingResolver(),
+        ListingWriter()
+    )
+
     val listingActions = ResolvingActions(
         ListingResolver(),
-        ListingDetailsTransformer(configuration),
-        ListingWriter()
+        Communicator(
+            listingWriteActions,
+            { this },
+            { me, res -> me.also { me.id = res.id } },
+            writeFlags
+        ),
+        PipeTo(
+            listingAttributeActions,
+            { ListingAttribute(this, Attribute(""), emptyList()) }
+        ),
     )
 
     val listingPipeline = Pipeline(
         ActionSequence(
             LastSeenWriter(),
+
             Communicator(
                 listingActions,
                 { this },
-                { _, res -> res },
+                { me, _ -> me },
                 writeFlags
-            ),
-            PipeTo(
-                listingAttributeActions,
-                { ListingAttribute(this, Attribute(""), emptyList()) }
-            ),
+            )
         )
     )
 

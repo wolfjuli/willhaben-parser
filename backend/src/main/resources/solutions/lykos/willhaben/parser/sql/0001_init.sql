@@ -186,5 +186,6 @@ VALUES ('SEO_URL', 'Link', 'LINK'),
        ('ESTATE_PRICE/PRICE_SUGGESTION', 'Preisvorschlag', 'TEXT'),
        ('STATE', 'Bundesland', 'TEXT'),
        ('PRICE', 'Preis', 'TEXT'),
-       ('LOCATION', 'Ort', 'TEXT');
+       ('LOCATION', 'Ort', 'TEXT'),
+       ('DESCRIPTION', 'Beschreibung', 'TEXT');
 

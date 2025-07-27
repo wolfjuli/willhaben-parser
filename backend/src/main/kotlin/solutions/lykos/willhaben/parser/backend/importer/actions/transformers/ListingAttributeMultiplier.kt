@@ -10,11 +10,11 @@ class ListingAttributeMultiplier : Multiplier<ListingAttribute>() {
         transaction: Transaction
     ): Pair<ListingAttribute?, List<ListingAttribute?>> {
         return if (entry.attribute.attribute == "")
-            null to entry.listing.raw.attributes.attribute.mapNotNull {
-                it.values?.let { vals ->
+            null to entry.listing.raw.attributeMap.mapNotNull {
+                it.value?.let { vals ->
                     ListingAttribute(
                         entry.listing,
-                        Attribute(it.name),
+                        Attribute(it.key),
                         vals.filterNotNull()
                     )
                 }

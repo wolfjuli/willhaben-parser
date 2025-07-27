@@ -3,7 +3,7 @@ server:
   port: 9191
 
 database:
-  host: localhost
+  host: localhost # 192.168.20.10
   name: willhaben
   user: willhaben
   password: willhaben
@@ -19,7 +19,7 @@ logger:
         - all #lowercase!
 
 crawler:
-  timeout: 60 # 30 * 60 seconds
-  debugAmount: 30
+  timeout: 5 # 30 * 60 seconds
+  debugAmount: 110
 
 

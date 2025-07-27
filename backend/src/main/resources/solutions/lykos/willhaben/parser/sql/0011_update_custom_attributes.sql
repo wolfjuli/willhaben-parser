@@ -1,5 +1,3 @@
-ROLLBACK;
-BEGIN;
 DROP FUNCTION IF EXISTS update_listing_custom_attributes;
 
 CREATE OR REPLACE FUNCTION update_listing_custom_attributes(willhaben_ids INT[] = NULL, attribute_ids SMALLINT[] = NULL,

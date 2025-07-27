@@ -18,5 +18,9 @@ class WHAdvertDetails(
     attributes: WHAttributes,
     val advertImageList: WHAdvertImageList?,
     val advertStatus: WHAdvertStatus?, // {},
-) : WHAdvertSpecification(id, attributes)
+) : WHAdvertSpecification(id, attributes) {
+    init {
+        changedDate?.let { addAttribute("CHANGED_DATE", listOf(it)) }
+    }
+}
 

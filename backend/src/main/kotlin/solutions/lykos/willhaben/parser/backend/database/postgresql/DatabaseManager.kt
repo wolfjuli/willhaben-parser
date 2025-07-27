@@ -139,6 +139,11 @@ class DatabaseManager(
                             }.asSequence()
                             .flatMap { (patchLevel, patchFile, patchUrl) ->
                                 sequenceOf(
+                                    Supplier {
+                                        (
+                                                ";\n DO \$\$ BEGIN RAISE INFO 'Applying patch $patchLevel'; END; \$\$;\n"
+                                                ).byteInputStream()
+                                    },
                                     Supplier { patchUrl.openStream().buffered() },
                                     Supplier {
                                         (

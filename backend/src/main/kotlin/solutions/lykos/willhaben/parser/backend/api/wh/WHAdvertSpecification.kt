@@ -7,10 +7,15 @@ import solutions.lykos.willhaben.parser.backend.importer.basedata.Listing
 
 abstract class WHAdvertSpecification(
     val id: Int,
-    val attributes: WHAttributes
+    private val attributes: WHAttributes
 ) {
+    var attributeMap: MutableMap<String, List<String?>?> =
+        attributes.attribute.associate { it.name to it.values }.toMutableMap()
 
-    private var attributeMap: Map<String, List<String?>?> = attributes.attribute.associate { it.name to it.values }
+    fun addAttribute(key: String, values: List<String>) {
+        attributes.attribute.add(WHAttributes.AttributeEntry(key, values))
+        attributeMap[key] = values
+    }
 
     @get:JsonIgnore
     val postalCode get() = attributeMap["POSTCODE"]?.firstOrNull()?.toInt()
@@ -45,6 +50,12 @@ abstract class WHAdvertSpecification(
     @get:JsonIgnore
     val url get() = (attributeMap["SEO_URL"] ?: attributeMap["PROJECT_SEO_URL"])?.firstOrNull()
 
+    @get:JsonIgnore
+    val published get() = attributeMap["PUBLISHED_String"]?.firstOrNull()
+
+    @get:JsonIgnore
+    val changed get() = attributeMap["CHANGED_DATE"]?.firstOrNull()
+
     @OptIn(ExperimentalStdlibApi::class)
     fun toNode(additionalWHAttributes: WHAttributes? = null, hash: Hash? = null, duplicateHash: Hash? = null) =
         with(additionalWHAttributes?.let {
@@ -52,13 +63,13 @@ abstract class WHAdvertSpecification(
                 val attrs = additionalWHAttributes.attribute
                 attrs.addAll(it.attributes.attribute)
                 it.attributes.attribute.addAll(attrs)
-                attributeMap = attributes.attribute.associate { it.name to it.values }
+                attributeMap = attributes.attribute.associate { it.name to it.values }.toMutableMap()
             }
         } ?: this) {
             Listing(
                 id,
                 hash ?: sha1(
-                    """$id$state$location$address$price$isHouse$isFlat$rooms$url""".toByteArray()
+                    """$id$changed$state$location$address$price$isHouse$isFlat$rooms$url""".toByteArray()
                 ).joinToString("") { it.toHexString() },
                 duplicateHash ?: sha1(
                     """$state$location$address$price$isHouse$isFlat$rooms""".toByteArray()

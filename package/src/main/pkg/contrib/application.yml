@@ -20,3 +20,4 @@ logger:
 
 crawler:
   timeout: 1800 # 30 * 60 seconds
+  #debugAmount: 30

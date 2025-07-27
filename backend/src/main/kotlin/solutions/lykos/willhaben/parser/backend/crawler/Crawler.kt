@@ -7,6 +7,7 @@ import solutions.lykos.willhaben.parser.backend.database.postgresql.DataSource
 import solutions.lykos.willhaben.parser.backend.database.postgresql.Transaction
 import solutions.lykos.willhaben.parser.backend.database.postgresql.useAsSequence
 import solutions.lykos.willhaben.parser.backend.database.postgresql.useTransaction
+import solutions.lykos.willhaben.parser.backend.parser.detailed
 import solutions.lykos.willhaben.parser.backend.parser.parse
 import java.time.Duration
 import java.time.LocalDateTime
@@ -49,6 +50,7 @@ class Crawler(
     private fun run() {
         dataSource.connection.useTransaction { transaction ->
             dataSource.get.watchLists().parse()
+                .detailed(configuration.crawler)
                 .write(transaction, configuration.crawler)
         }
     }
