@@ -4,6 +4,7 @@ import solutions.lykos.willhaben.parser.backend.importer.annotations.HashField
 import solutions.lykos.willhaben.parser.backend.importer.annotations.IdField
 
 data class Attribute(
+
     @HashField
     val attribute: String,
 

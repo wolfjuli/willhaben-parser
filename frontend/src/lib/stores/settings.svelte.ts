@@ -4,21 +4,21 @@ import {browser} from "$app/environment";
 
 const defaultValues: Settings = {
     listingFields: [
-        "mmo",
-        "link",
+        "attributeMap.mmo",
+        "attributeMap.link",
         "points",
-        "propertyType",
-        "district",
-        "address",
-        "priceForDisplay",
-        "estateSize",
+        "attributeMap.propertyType",
+        "attributeMap.district",
+        "attributeMap.address",
+        "attributeMap.priceForDisplay",
+        "attributeMap.estateSize",
         "price/m2",
-        "willhabenId",
+        "id",
         "notes"
     ],
     searchFields: [
-        "heading",
-        "willhabenId"
+        "description",
+        "id"
     ]
 }
 

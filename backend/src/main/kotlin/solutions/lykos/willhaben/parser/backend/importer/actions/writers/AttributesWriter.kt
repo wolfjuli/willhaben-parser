@@ -8,7 +8,9 @@ import solutions.lykos.willhaben.parser.backend.importer.pipelines.PipelineMessa
 
 class AttributesWriter() : Writer<Attribute>(TableDefinitions.getTableName<Attribute>()) {
     override val columnMappings: Map<String, String>
-        get() = mapOf("attribute" to "?")
+        get() = mapOf(
+            "attribute" to "?"
+        )
 
     override fun initialize(transaction: Transaction) {
         preparedStatement =

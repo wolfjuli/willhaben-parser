@@ -14,6 +14,7 @@
     import ListingDetail from "$lib/components/ListingDetail/ListingDetail.svelte";
     import {ListingDb} from "$lib/stores/ListingsDb.svelte";
     import {untrack} from "svelte";
+    import {listingAttribute} from "$lib/utils/jsonpath";
 
     let {sorting, fields, attributes, configuration}: ListingTableProps = $props()
 
@@ -67,7 +68,7 @@
 
         if (!newValue)
             ListingsStore.deleteListingValue(n).then(() => lastUpdate = new Date().valueOf())
-        else if (listing[attribute.normalized]?.user != newValue)
+        else if (listingAttribute(listing, attribute.attribute)?.user != newValue)
             ListingsStore.updateListingValue(n).then(() => lastUpdate = new Date().valueOf())
 
     }
@@ -80,7 +81,7 @@
         }
 
         editing = {listingId: -1, attributeId: -1}
-        if (newValue && newValue != listing[attribute.normalized]?.base)
+        if (newValue && newValue != listingAttribute(listing, attribute.attribute)?.base)
             ListingsStore.createListingValue(n).then(() => lastUpdate = new Date().valueOf())
 
     }
@@ -117,9 +118,9 @@
             <TH></TH>
             {#each fields as field}
                 <TH
-                    currentColumn={field.normalized}
+                    currentColumn={field.attribute}
                     label={field.label}
-                    sorted={sortKey === field.normalized}
+                    sorted={sortKey === field.attribute}
                     {sortAscending}
                     {onSort}
                 ></TH>
@@ -147,13 +148,12 @@
                     </TD>
                 {/each}
             </tr>
-            {#if expanded && expanded.indexOf(listing.id) > -1}
+            {#if expanded && expanded.indexOf(listing?.id) > -1}
                 <tr>
-
-                    {#if listing.coordinates}
-                        {@const [lat, long] = (listing.coordinates?.user ?? listing.coordinates?.base)?.toString()?.split(",") }
-                        {@const addr = (listing['address']?.user ?? listing['address']?.base)?.toString() ?? "" }
-                        {@const district = (listing['district']?.user ?? listing['district']?.base)?.toString() ?? "" }
+                    {#if listing.base.coordinates || listing.user.coordinates }
+                        {@const [lat, long] = (listing.user.coordinates ?? listing.base.coordinates)?.toString()?.split(",") }
+                        {@const addr = (listing.user?.address ?? listing.base?.address)?.toString() ?? "" }
+                        {@const district = (listing?.user?.district ?? listing?.base?.district)?.toString() ?? "" }
                         {@const sunUrl1 = `https://voibos.rechenraum.com/voibos/voibos?Datum=06-21-13%3A00&H=10&name=sonnengang&Koordinate=${long.trim()}%2C${lat.trim()}&CRS=4326&Output=Horizont%2CLage%2CTabelle`}
                         {@const sunUrl2 = `https://voibos.rechenraum.com/voibos/voibos?Datum=06-21-13%3A00&H=10&name=sonnengang&Koordinate=${long.trim()}%2C${lat.trim()}&CRS=4326&Output=Formular%2CHorizont%2CLage%2CTabelle`}
                         {@const katasterUrl = `https://kataster.bev.gv.at/#/center/${long.trim()},${lat.trim()}/zoom/17.5/ortho/1/vermv/1`}

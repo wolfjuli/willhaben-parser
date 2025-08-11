@@ -30,6 +30,4 @@ class ListingWriter : Writer<Listing>(TableDefinitions.getTableName<Listing>()) 
             stmt.setString(colMappings.getOrError("duplicate_hash"), entry.duplicateHash)
             stmt.setString(colMappings.getOrError("raw"), entry.raw.toJson())
         }
-
-
 }

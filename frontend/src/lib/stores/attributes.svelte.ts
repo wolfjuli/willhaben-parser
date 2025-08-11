@@ -5,7 +5,7 @@ export const BaseAttributesStore = $state<{ value: BaseAttribute[] | undefined }
 export const CustomAttributesStore = $state<{ value: CustomAttribute[] | undefined }>({value: undefined})
 
 function transform(a: BaseAttribute) {
-    return {...a, label: a.label ?? a.normalized}
+    return {...a, label: a.label ?? a.attribute}
 }
 
 fetch("/api/rest/v1/attributes")
@@ -17,13 +17,13 @@ fetch("/api/rest/v1/custom_attributes")
     .then(d => CustomAttributesStore.value = d.map(transform))
 
 export function mergedAttributes(): { value: (BaseAttribute | CustomAttribute)[] } {
-    const custom = CustomAttributesStore.value?.map(a => a.normalized) ?? []
-    const baseAttr = BaseAttributesStore.value?.filter(a => !custom.find(c => c === a.normalized)) ?? []
+    const custom = CustomAttributesStore.value?.map(a => a.attribute) ?? []
+    const baseAttr = BaseAttributesStore.value?.filter(a => !custom.find(c => c === a.attribute)) ?? []
     return {value: [...baseAttr, ...(CustomAttributesStore.value ?? [])]}
 }
 
 export function filteredAttributes(normalized: string[]): Attribute[] {
-    return normalized?.map(f => mergedAttributes().value?.find(a => a.normalized === f)!!).filter(Boolean) ?? []
+    return normalized?.map(f => mergedAttributes().value?.find(a => a.attribute === f)!!).filter(Boolean) ?? []
 }
 
 function updateAttribute(attribute: CreateCustomAttribute) {

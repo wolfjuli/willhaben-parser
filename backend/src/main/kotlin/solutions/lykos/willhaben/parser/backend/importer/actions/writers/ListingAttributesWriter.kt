@@ -4,17 +4,19 @@ import solutions.lykos.willhaben.parser.backend.database.postgresql.QueryBuilder
 import solutions.lykos.willhaben.parser.backend.database.postgresql.Transaction
 import solutions.lykos.willhaben.parser.backend.database.postgresql.toPgString
 import solutions.lykos.willhaben.parser.backend.database.postgresql.useAsSequence
+import solutions.lykos.willhaben.parser.backend.importer.TableDefinitions
+import solutions.lykos.willhaben.parser.backend.importer.basedata.Listing
 import solutions.lykos.willhaben.parser.backend.importer.basedata.ListingAttribute
 import solutions.lykos.willhaben.parser.backend.importer.getOrError
 import solutions.lykos.willhaben.parser.backend.importer.orNotResolved
 import solutions.lykos.willhaben.parser.backend.importer.pipelines.PipelineMessage
 
-class ListingAttributesWriter : Writer<ListingAttribute>("") {
+class ListingAttributesWriter : Writer<ListingAttribute>(TableDefinitions.getTableName<ListingAttribute>()) {
     override val columnMappings: Map<String, String>
         get() = mapOf(
             "listing_id" to "?",
             "attribute_id" to "?",
-            "values" to "?::TEXT[]"
+            "values" to "to_jsonb(?)"
         )
 
     override fun initialize(transaction: Transaction) {
@@ -31,7 +33,7 @@ class ListingAttributesWriter : Writer<ListingAttribute>("") {
             listingIds.add(entry.listingId.orNotResolved(entry))
             stmt.setInt(colMappings.getOrError("listing_id"), entry.listingId.orNotResolved(entry))
             stmt.setInt(colMappings.getOrError("attribute_id"), entry.attributeId.orNotResolved(entry))
-            stmt.setString(colMappings.getOrError("values"), entry.values.toPgString())
+            stmt.setString(colMappings.getOrError("values"), entry.values.toString())
         }
 
     override fun close(transaction: Transaction): PipelineMessage<ListingAttribute> {

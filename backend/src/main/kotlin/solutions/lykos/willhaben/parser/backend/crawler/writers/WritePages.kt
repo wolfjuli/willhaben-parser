@@ -7,6 +7,7 @@ import solutions.lykos.willhaben.parser.backend.importer.ImporterFetcher.logger
 import solutions.lykos.willhaben.parser.backend.importer.actions.ActionSequence
 import solutions.lykos.willhaben.parser.backend.importer.actions.Communicator
 import solutions.lykos.willhaben.parser.backend.importer.actions.ResolvingActions
+import solutions.lykos.willhaben.parser.backend.importer.actions.filters.UniqueFilter
 import solutions.lykos.willhaben.parser.backend.importer.actions.resolvers.AttributeResolver
 import solutions.lykos.willhaben.parser.backend.importer.actions.resolvers.ListingResolver
 import solutions.lykos.willhaben.parser.backend.importer.actions.transformers.ListingAttributeMultiplier
@@ -35,10 +36,6 @@ fun Sequence<WHAdvertSpecification>.write(transaction: Transaction, configuratio
         AttributesWriter()
     )
 
-    val locationActions = ResolvingActions(
-        AttributeResolver()
-    )
-
     val listingAttributeActions =
         ActionSequence(
             ListingAttributeMultiplier(),
@@ -47,20 +44,9 @@ fun Sequence<WHAdvertSpecification>.write(transaction: Transaction, configuratio
                 { attribute },
                 { me, res -> me.also { it.attribute.id = res.id } },
                 writeFlags
-            ),
-            ListingAttributesWriter()
+            )
         )
 
-    val listingLocationActions =
-        ActionSequence(
-            Communicator(
-                locationActions,
-                { attribute },
-                { me, res -> me.also { it.attribute.id = res.id } },
-                writeFlags
-            ),
-            ListingAttributesWriter()
-        )
 
     val listingWriteActions = ResolvingActions(
         ListingResolver(),
@@ -77,14 +63,14 @@ fun Sequence<WHAdvertSpecification>.write(transaction: Transaction, configuratio
         ),
         PipeTo(
             listingAttributeActions,
-            { ListingAttribute(this, Attribute(""), emptyList()) }
+            { ListingAttribute(this, Attribute(""), "") }
         ),
     )
 
     val listingPipeline = Pipeline(
         ActionSequence(
             LastSeenWriter(),
-
+            UniqueFilter(),
             Communicator(
                 listingActions,
                 { this },
@@ -98,7 +84,12 @@ fun Sequence<WHAdvertSpecification>.write(transaction: Transaction, configuratio
     listingPipeline.initialize(transaction)
     (configuration.debugAmount?.let { this.take(it) } ?: this)
         .onEachIndexed { idx, _ ->
-            if (idx % 500 == 0) logger.info("working on $idx")
+            if (idx % 500 == 0 ) {
+                logger.info("parsed $idx - flushing and committing")
+                listingPipeline.flush()
+                transaction.commit()
+            }
+
             max = idx
         }
         .forEach { content ->

@@ -16,11 +16,9 @@ export type Listing = {
     willhabenId: number,
     points: number
 } & {
-    [key: string]: {
-        base: string | number,
-        custom: string | number,
-        user: string | number
-    }
+    base: { [key: string]: string | number }
+    custom: { [key: string]: string | number }
+    user: { [key: string]: string | number }
 }
 
 export type ListingsStoreType = {
