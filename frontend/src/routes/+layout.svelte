@@ -10,6 +10,8 @@
     import {ListingsStore} from "$lib/stores/ListingsStore.svelte";
     import {ScriptsStore} from "$lib/stores/ScriptsStore.svelte";
     import {FetchingStore} from "$lib/stores/FetchingStore.svelte";
+    import {SortingStore} from "$lib/stores/SortingStore.svelte";
+    import {SearchParamsStore} from "$lib/stores/SearchParamsStore.svelte";
 
     let {children}: LayoutProps = $props()
 
@@ -17,6 +19,8 @@
     const scheme = new Scheme()
 
     //Init all singletons
+    SearchParamsStore.instance
+    SortingStore.instance
     ListingsStore.instance
     ScriptsStore.instance
 

@@ -2,28 +2,31 @@ package solutions.lykos.willhaben.parser.backend.importer.actions.writers
 
 import solutions.lykos.willhaben.parser.backend.database.postgresql.Transaction
 import solutions.lykos.willhaben.parser.backend.importer.TableDefinitions
-import solutions.lykos.willhaben.parser.backend.importer.basedata.Attribute
-import solutions.lykos.willhaben.parser.backend.importer.basedata.ListingAttribute
+import solutions.lykos.willhaben.parser.backend.importer.basedata.Listing
 import solutions.lykos.willhaben.parser.backend.importer.getOrError
 import solutions.lykos.willhaben.parser.backend.importer.pipelines.PipelineMessage
 
-class AttributesWriter() : Writer<ListingAttribute>(TableDefinitions.getTableName<Attribute>()) {
+class ListingPointWriter : Writer<Listing>(TableDefinitions.getTableName<Listing>()) {
+
     override val columnMappings: Map<String, String>
-        get() = mapOf(
-            "attribute" to "?"
-        )
+        get() = mapOf("willhaben_id" to "?")
 
     override fun initialize(transaction: Transaction) {
-        preparedStatement =
-            createPreparedInsertStatement<Attribute>(columnMappings, transaction, ConflictType.DO_NOTHING)
+        preparedStatement = transaction.prepareStatement(
+        """
+            WITH inp(willhaben_id) AS (VALUES (?))
+            SELECT update_listing_points(array_agg(willhaben_id))
+            FROM inp;
+        """.trimIndent()
+        )
     }
 
+
     override fun write(
-        message: PipelineMessage.Payload<ListingAttribute>,
+        message: PipelineMessage.Payload<Listing>,
         transaction: Transaction
     ) =
         batchInsert(message) { entry, stmt, colMappings ->
-            stmt.setString(colMappings.getOrError("attribute"), entry.attribute.attribute)
+            stmt.setInt(colMappings.getOrError("willhaben_id"), entry.willhabenId)
         }
-
 }

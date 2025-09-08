@@ -19,7 +19,7 @@ logger:
         - all #lowercase!
 
 crawler:
-  timeout: 50000 # 30 * 60 seconds
+  timeout: 60 # 30 * 60 seconds
   debugAmount: 10
 
 

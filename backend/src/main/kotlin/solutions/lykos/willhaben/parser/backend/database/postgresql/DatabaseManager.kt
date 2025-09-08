@@ -7,6 +7,7 @@ import org.postgresql.ds.PGSimpleDataSource
 import solutions.lykos.willhaben.parser.backend.config.DatabaseConfiguration
 import solutions.lykos.willhaben.parser.backend.config.DatabaseCredentials
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
 import java.lang.ProcessBuilder.Redirect
@@ -28,12 +29,9 @@ class DatabaseManager(
                 .maxOfOrNull { PATCH_REGEX.matchEntire(it.toString())!!.groupValues[2].toInt() } ?: 0
         }
 
-    private val patchesUrl: URL
+    private val patchesUrl: URL = URL(baseUrl, "patches" )
+    private val schemaUrl: URL= URL(baseUrl, "schema")
 
-    init {
-        val externalForm = baseUrl.toExternalForm().removeSuffix("/")
-        patchesUrl = URL(externalForm)
-    }
 
     fun setup(
         databaseConfiguration: DatabaseConfiguration
@@ -219,8 +217,31 @@ class DatabaseManager(
                     "\n\nCREATE SCHEMA $schema\n\n;".byteInputStream()
                 }
             )
-        } else true) && upgrade(databaseConfiguration, false)
+        } else true) && runSchema(databaseConfiguration)
 
+    private fun runSchema(
+    databaseConfiguration: DatabaseConfiguration
+    ): Boolean {
+        return runPsql(
+            databaseConfiguration.host,
+            databaseConfiguration.port,
+            databaseConfiguration.user,
+            databaseConfiguration.password,
+            databaseConfiguration.name
+        ) {
+            inputStreamOf(
+                Supplier { "BEGIN;\n\n".byteInputStream() },
+                Supplier {
+                        schemaUrl
+                            .let(FileResourceLoader::listResources)
+                            .asSequence()
+                            .sortedBy { it.toExternalForm() }
+                            .joinToString("\n\n") { it.readText() }
+                            .byteInputStream()
+                }
+            )
+        }
+    }
 
 
     private fun createDatabaseExtensions(

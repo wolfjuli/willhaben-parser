@@ -4,7 +4,7 @@
  * Licensed under the MIT (MIT-LICENSE.txt) licence.
  */
 
-import type {Listing} from "$lib/types/Listing";
+import type {Listing, ListingAttribute} from "$lib/types/Listing";
 
 export function jsonPath(obj, expr, arg = undefined) {
     let P = {
@@ -103,13 +103,9 @@ export function jsonPath(obj, expr, arg = undefined) {
 }
 
 
-export function listingAttribute(listing: Listing, attribute: string): {
-    "user": string | number | undefined,
-    "custom": string | number | undefined,
-    "base": string | number | undefined
-} {
+export function listingAttribute(listing: Listing, attribute: string): ListingAttribute {
     return ({
-        "user": jsonPath(listing, `$.user.${attribute}`.replace(".", "/")),
+        "user": jsonPath(listing, `$.user.${attribute}`),
         "custom": jsonPath(listing, `$.custom.${attribute}`),
         "base": jsonPath(listing, `$.base.${attribute}`)
     })

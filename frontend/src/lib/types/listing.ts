@@ -1,20 +1,20 @@
-import type {SearchParams} from "$lib/types/SearchParams";
-
 export type RawListing = {
     listing: Listing,
     md5: string
 }
 
-export type RawSorting = {
-    listingId: number,
-    md5: string,
-    points: number
+
+export type ListingAttribute = {
+    base: string | number | undefined
+    custom: string | number | undefined
+    user: string | number | undefined
 }
 
 export type Listing = {
     id: number,
     willhabenId: number,
-    points: number
+    points: number,
+    lastSeen: Date
 } & {
     base: { [key: string]: string | number }
     custom: { [key: string]: string | number }
@@ -22,9 +22,9 @@ export type Listing = {
 }
 
 export type ListingsStoreType = {
-    sorting: number[],
     lastUpdate: Date,
-    searchParams: SearchParams
+    listings: { [id: number]: Listing[] },
+    knownListings: { [id: number]: string },
 }
 
 export type UserListing = {

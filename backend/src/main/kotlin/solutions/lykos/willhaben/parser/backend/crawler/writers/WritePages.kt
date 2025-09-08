@@ -12,10 +12,7 @@ import solutions.lykos.willhaben.parser.backend.importer.actions.resolvers.Attri
 import solutions.lykos.willhaben.parser.backend.importer.actions.resolvers.ListingResolver
 import solutions.lykos.willhaben.parser.backend.importer.actions.transformers.ListingAttributeMultiplier
 import solutions.lykos.willhaben.parser.backend.importer.actions.transformers.PipeTo
-import solutions.lykos.willhaben.parser.backend.importer.actions.writers.AttributesWriter
-import solutions.lykos.willhaben.parser.backend.importer.actions.writers.LastSeenWriter
-import solutions.lykos.willhaben.parser.backend.importer.actions.writers.ListingAttributesWriter
-import solutions.lykos.willhaben.parser.backend.importer.actions.writers.ListingWriter
+import solutions.lykos.willhaben.parser.backend.importer.actions.writers.*
 import solutions.lykos.willhaben.parser.backend.importer.basedata.Attribute
 import solutions.lykos.willhaben.parser.backend.importer.basedata.ListingAttribute
 import solutions.lykos.willhaben.parser.backend.importer.pipelines.Pipeline
@@ -31,40 +28,29 @@ private val now = ZonedDateTime.now()
 
 
 fun Sequence<WHAdvertSpecification>.write(transaction: Transaction, configuration: CrawlerConfiguration) {
-    val attributeActions = ResolvingActions(
-        AttributeResolver(),
+    val attributeActions = ActionSequence(
+        ListingAttributeMultiplier(),
         AttributesWriter()
     )
 
-    val listingAttributeActions =
-        ActionSequence(
-            ListingAttributeMultiplier(),
-            Communicator(
-                attributeActions,
-                { attribute },
-                { me, res -> me.also { it.attribute.id = res.id } },
-                writeFlags
-            )
-        )
-
-
-    val listingWriteActions = ResolvingActions(
+    val listingPointActions = ResolvingActions(
         ListingResolver(),
-        ListingWriter()
+        ListingPointWriter()
     )
 
     val listingActions = ResolvingActions(
         ListingResolver(),
-        Communicator(
-            listingWriteActions,
-            { this },
-            { me, res -> me.also { me.id = res.id } },
-            writeFlags
-        ),
+        ListingWriter(),
         PipeTo(
-            listingAttributeActions,
+            attributeActions,
             { ListingAttribute(this, Attribute(""), "") }
         ),
+        Communicator(
+            listingPointActions,
+            { this },
+            {me, _ -> me},
+            writeFlags
+        )
     )
 
     val listingPipeline = Pipeline(
@@ -109,6 +95,8 @@ fun Sequence<WHAdvertSpecification>.write(transaction: Transaction, configuratio
                 }
         }
     }.toList()
+
+
 
     logger.info("Done")
 }

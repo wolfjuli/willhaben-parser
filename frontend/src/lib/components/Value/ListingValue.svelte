@@ -15,8 +15,9 @@
     let userVal = $derived(attr?.user?.toString())
     let obj = $derived(attr?.custom as unknown as { href: string, value: string })
 
-    $effect(() => console.log(attribute.attribute, attr))
-
+    $effect(() => {
+        if (listing.id === 3826) console.log(listing, attribute.attribute, attr, val, userVal, obj)
+    })
 </script>
 <span onclick={() => onclick(listingAttribute(listing, attribute.attribute), listing)}
       ondblclick={() => ondblclick(listingAttribute(listing, attribute.attribute), listing)}>

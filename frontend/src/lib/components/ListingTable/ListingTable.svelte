@@ -12,39 +12,26 @@
     import EditListingValue from "$lib/components/Value/EditListingValue.svelte";
     import ListingFilter from "$lib/components/ListingFilter/ListingFilter.svelte";
     import ListingDetail from "$lib/components/ListingDetail/ListingDetail.svelte";
-    import {ListingDb} from "$lib/stores/ListingsDb.svelte";
-    import {untrack} from "svelte";
     import {listingAttribute} from "$lib/utils/jsonpath";
+    import {SearchParamsStore} from "$lib/stores/SearchParamsStore.svelte";
+    import {SortingStore} from "$lib/stores/SortingStore.svelte";
 
     let {sorting, fields, attributes, configuration}: ListingTableProps = $props()
 
-    const searchParams = $derived(ListingsStore.value.searchParams)
+    const searchParams = $derived(SearchParamsStore.value)
     let sortAscending = $derived(searchParams.sortDir === "ASC")
 
-    let sortKey: keyof Listing = $state("")
+    SortingStore.instance.fetch(searchParams)
+
+    let sortKey: string = $state("")
 
     let p = $derived(+(page.url.searchParams.get("page") ?? 1))
-    let tableData = $state<Listing[]>([])
 
     const partial = $derived(sorting
         .slice((p - 1) * 100, p * 100))
 
     let lastUpdate = $state(new Date().valueOf())
-
-    $effect(() => {
-        if (partial && lastUpdate)
-            untrack(() =>
-                ListingsStore.instance.fetch(partial).finally(() => {
-                    Promise.all(partial
-                        .map(async id => await ListingDb.get(id))
-                    )
-                        .then(d => {
-                            tableData = d
-                        })
-
-                })
-            )
-    })
+    let tableData = $derived(lastUpdate && ListingsStore.value ? ListingsStore.partial(partial)() : [] as Listing[])
 
     const onSort = (key: string) => {
         if (searchParams.sortCol === key) {
@@ -54,7 +41,7 @@
             searchParams.sortDir = "ASC"
         }
 
-        ListingsStore.instance.fetchSorting()
+        SortingStore.instance.fetch(searchParams)
     }
 
     function onupdate(newValue: string, listing: Listing, attribute: Attribute) {
@@ -85,7 +72,6 @@
             ListingsStore.createListingValue(n).then(() => lastUpdate = new Date().valueOf())
 
     }
-
 
     let editing = $state({listingId: -1, attributeId: -1})
     let expanded = $state<number[]>([])

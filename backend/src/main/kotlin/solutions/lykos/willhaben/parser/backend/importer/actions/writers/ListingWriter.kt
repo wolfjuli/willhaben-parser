@@ -7,6 +7,8 @@ import solutions.lykos.willhaben.parser.backend.importer.getOrError
 import solutions.lykos.willhaben.parser.backend.importer.pipelines.PipelineMessage
 
 class ListingWriter : Writer<Listing>(TableDefinitions.getTableName<Listing>()) {
+
+    private val seen = mutableSetOf<Int>()
     override val columnMappings: Map<String, String>
         get() = mapOf(
             "willhaben_id" to "?",
@@ -20,14 +22,25 @@ class ListingWriter : Writer<Listing>(TableDefinitions.getTableName<Listing>()) 
             createPreparedInsertStatement<Listing>(columnMappings, transaction, ConflictType.DO_NOTHING)
     }
 
+
     override fun write(
         message: PipelineMessage.Payload<Listing>,
         transaction: Transaction
     ) =
         batchInsert(message) { entry, stmt, colMappings ->
+            seen.add(entry.willhabenId)
             stmt.setInt(colMappings.getOrError("willhaben_id"), entry.willhabenId)
             stmt.setString(colMappings.getOrError("hash"), entry.hash)
             stmt.setString(colMappings.getOrError("duplicate_hash"), entry.duplicateHash)
             stmt.setString(colMappings.getOrError("raw"), entry.raw.toJson())
         }
+
+    override fun update(transaction: Transaction): PipelineMessage<Listing> {
+        val prepared = transaction.prepareStatement("""SELECT update_listing_points(willhaben_ids := ?::INT[])""")
+        prepared.setString(1, seen.joinToString(",", "{", "}"))
+        prepared.execute()
+
+        seen.clear()
+        return super.update(transaction)
+    }
 }

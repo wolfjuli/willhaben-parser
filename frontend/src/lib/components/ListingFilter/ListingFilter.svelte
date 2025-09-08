@@ -1,19 +1,19 @@
 <script lang="ts">
 
     import type {ListingFilterProps} from "$lib/components/ListingFilter/ListingFilter";
-    import {ListingsStore} from "$lib/stores/ListingsStore.svelte";
+    import {SearchParamsStore} from "$lib/stores/SearchParamsStore.svelte";
 
     let {attributes}: ListingFilterProps = $props()
 
     let searchType = $state("normal")
 
     function invert() {
-        ListingsStore.value.searchParams.searchAttributes = attributes
-            ?.map(a => a.normalized)
-            .filter(a => ListingsStore.value.searchParams.searchAttributes.find(s => s === a) === undefined)
+        SearchParamsStore.value.searchAttributes = attributes
+            ?.map(a => a.attribute)
+            .filter(a => SearchParamsStore.value.searchAttributes.find(s => s === a) === undefined)
     }
 
-    let attrs = $derived(attributes?.toSorted((a, b) => a.label.localeCompare(b.label)))
+    let attrs = $derived(attributes?.toSorted((a, b) => (a.label ?? a.attribute)?.localeCompare((b.label ?? b.attribute))))
 
 </script>
 
@@ -28,9 +28,9 @@
                         <label>
                             <input type="checkbox"
                                    name="attributes"
-                                   value={attribute.normalized}
-                                   bind:group={ListingsStore.value.searchParams.searchAttributes}
-                                   checked={ListingsStore.value.searchParams.searchAttributes.indexOf(attribute?.normalized) > -1}
+                                   value={attribute.attribute}
+                                   bind:group={SearchParamsStore.value.searchAttributes}
+                                   checked={SearchParamsStore.value.searchAttributes.indexOf(attribute?.attribute) > -1}
                             />
                             {attribute.label}
                         </label>
@@ -64,7 +64,7 @@
                 </li>
             </ul>
         </details>
-        <input bind:value={ListingsStore.value.searchParams.searchString} disabled={searchType !== "normal"} type="search" />
-        <button onclick={() => {ListingsStore.value.searchParams.searchString = "" }}>X</button>
+        <input bind:value={SearchParamsStore.value.searchString} disabled={searchType !== "normal"} type="search"/>
+        <button onclick={() => {SearchParamsStore.value.searchString = "" }}>X</button>
     </div>
 </div>
