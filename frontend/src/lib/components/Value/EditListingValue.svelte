@@ -1,20 +1,22 @@
 <script lang="ts">
 
     import type {EditListingValueProps} from "$lib/components/Value/ListingValue";
+    import {listingAttribute} from "$lib/utils/jsonpath";
 
     let {listing, attribute, oncreate, onupdate}: EditListingValueProps = $props()
 
-</script>
+    let value = listingAttribute(listing, attribute.attribute)
 
+</script>
 
 <input onkeyup={(ev: KeyboardEvent) => {
             if(ev.key === "Enter"){
-                if(listing?.[attribute.normalized]?.user)
+                if(value?.user)
                     onupdate(ev.target?.value, listing, attribute)
                 else
                     oncreate(ev.target?.value, listing, attribute)}
             }
             }
        type=text
-       value={listing?.[attribute.normalized]?.user ?? listing[attribute.normalized]?.custom ?? listing[attribute.normalized]?.base}
+       value={value?.user ?? value?.custom ?? value?.base}
 />

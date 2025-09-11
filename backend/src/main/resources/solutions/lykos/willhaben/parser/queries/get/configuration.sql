@@ -1,2 +1,2 @@
-SELECT 'https://cache.willhaben.at/mmo' AS image_base_url,
-       'https://www.willhaben.at/iad/'  AS listings_base_url
+SELECT image_base_url, listings_base_url
+FROM fe_configuration

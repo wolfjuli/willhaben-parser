@@ -2,51 +2,48 @@
 
     import type {ScriptFunctionsProps} from "$lib/components/CustomScript/Script";
     import FunctionValue from "$lib/components/Function/FunctionValue.svelte";
-    import { ScriptsStore} from "$lib/stores/ScriptsStore.svelte.js";
+    import {ScriptsStore} from "$lib/stores/ScriptsStore.svelte.js";
     import type {FunctionDef} from "$lib/types/Function";
     import type {ScriptFunctionDef} from "$lib/types/Script";
     import Dropdown from "$lib/components/Dropdown/Dropdown.svelte";
-    import {transformListing} from "$lib/utils/transformListing.js";
+    import {listingAttribute} from "$lib/utils/jsonpath";
 
     let {script, listing, attributes, functions}: ScriptFunctionsProps = $props()
 
     let attribute = $derived(attributes.find(a => a.id === script.attributeId)!!)
-    let attributeValue = $derived((listing ? transformListing(listing, attributes, functions) : undefined)?.[attribute.normalized]?.base)
+    let attributeValue = $derived(listing ? listingAttribute(listing, attribute.attribute) : undefined)
 
-    let functionValues = $derived(script
-        .functions
-        ?.reduce((acc, fId) => {
-            const fun = functions[fId.functionId]
+    let functionValues = $derived(script.functions?.reduce((acc, fId) => {
+        const fun = functions[fId.functionId]
 
-            if (!fun)
-                return acc
+        if (!fun) return acc
 
-            let exec = undefined
-            let value = undefined
-            try {
-                exec = fun?.function ? eval(fun.function) : undefined
-                value  = listing && exec ? exec(acc[acc.length - 1].value!!, listing) : []
-            } catch (e) {
-                console.error(`Error during execution of function '${fun.name}' on '${attribute.normalized}'`, e)
+        let exec = undefined
+        let value = undefined
+        try {
+            exec = fun?.function ? eval(fun.function) : undefined
+            value = listing && exec ? exec(acc[acc.length - 1].value!!, listing) : []
+        } catch (e) {
+            console.error(`Error during execution of function '${fun.name}' on '${attribute.attribute}'`, e)
+        }
+
+        return [
+            ...acc,
+            {
+                scriptId: script.id,
+                functionId: fun.id,
+                ord: fId.ord,
+                name: fun.name,
+                value
             }
-
-            return [
-                ...acc,
-                {
-                    scriptId: script.id,
-                    functionId: fun.id,
-                    ord: fId.ord,
-                    name: fun.name,
-                    value
-                }
-            ]
-        }, [{
-            name: attribute?.normalized,
-            value: attributeValue,
-            ord: -1,
-            functionId: -1,
-            scriptId: -1
-        }]) ?? []
+        ]
+    }, [{
+        name: attribute?.attribute,
+        value: attributeValue,
+        ord: -1,
+        functionId: -1,
+        scriptId: -1
+    }]) ?? []
     )
 
     function addFunction(fun: FunctionDef) {

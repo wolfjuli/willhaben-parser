@@ -15,6 +15,7 @@
     import {listingAttribute} from "$lib/utils/jsonpath";
     import {SearchParamsStore} from "$lib/stores/SearchParamsStore.svelte";
     import {SortingStore} from "$lib/stores/SortingStore.svelte";
+    import {BaseAttributesStore} from "$lib/stores/Attributes.svelte";
 
     let {sorting, fields, attributes, configuration}: ListingTableProps = $props()
 
@@ -32,6 +33,7 @@
 
     let lastUpdate = $state(new Date().valueOf())
     let tableData = $derived(lastUpdate && ListingsStore.value ? ListingsStore.partial(partial)() : [] as Listing[])
+    $effect(() => console.log(ListingsStore.value, tableData))
 
     const onSort = (key: string) => {
         if (searchParams.sortCol === key) {
@@ -135,15 +137,18 @@
                 {/each}
             </tr>
             {#if expanded && expanded.indexOf(listing?.id) > -1}
+                {@const coords = listingAttribute(listing, 'attributeMap.coordinates')}
+                {@const address = listingAttribute(listing, 'attributeMap.address')}
+                {@const district = listingAttribute(listing, 'attributeMap.district')}
                 <tr>
-                    {#if listing.base.coordinates || listing.user.coordinates }
-                        {@const [lat, long] = (listing.user.coordinates ?? listing.base.coordinates)?.toString()?.split(",") }
-                        {@const addr = (listing.user?.address ?? listing.base?.address)?.toString() ?? "" }
-                        {@const district = (listing?.user?.district ?? listing?.base?.district)?.toString() ?? "" }
+                    {#if coords.user || coords.base}
+                        {@const [lat, long] = (coords.user ?? coords.base)?.toString()?.split(",") ?? []}
+                        {@const addr = (address.user ?? address.base)?.toString() ?? "" }
+                        {@const distr = (district?.user ?? district?.base)?.toString() ?? "" }
                         {@const sunUrl1 = `https://voibos.rechenraum.com/voibos/voibos?Datum=06-21-13%3A00&H=10&name=sonnengang&Koordinate=${long.trim()}%2C${lat.trim()}&CRS=4326&Output=Horizont%2CLage%2CTabelle`}
                         {@const sunUrl2 = `https://voibos.rechenraum.com/voibos/voibos?Datum=06-21-13%3A00&H=10&name=sonnengang&Koordinate=${long.trim()}%2C${lat.trim()}&CRS=4326&Output=Formular%2CHorizont%2CLage%2CTabelle`}
                         {@const katasterUrl = `https://kataster.bev.gv.at/#/center/${long.trim()},${lat.trim()}/zoom/17.5/ortho/1/vermv/1`}
-                        {@const laermUrl = `https://maps.laerminfo.at/#/cstrasse22_24h/bgrau/a-/q${addr}, ${district}/@${lat.trim()},${long.trim()},17z`}
+                        {@const laermUrl = `https://maps.laerminfo.at/#/cstrasse22_24h/bgrau/a-/q${addr}, ${distr}/@${lat.trim()},${long.trim()},17z`}
                         <td colspan="2"><a target="_blank" href={katasterUrl}>Kataster</a>
                             <iframe src={katasterUrl}></iframe>
                         </td>
@@ -161,7 +166,7 @@
                         <td>Lärm</td>
                     {/if}
                     <td colspan={fields.length - 6 } class="details">
-                        <ListingDetail {listing} {attributes} {configuration} />
+                        <ListingDetail {listing} attributes={BaseAttributesStore.value} {configuration}/>
                     </td>
                 </tr>
             {/if}

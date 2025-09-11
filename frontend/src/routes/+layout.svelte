@@ -12,6 +12,7 @@
     import {FetchingStore} from "$lib/stores/FetchingStore.svelte";
     import {SortingStore} from "$lib/stores/SortingStore.svelte";
     import {SearchParamsStore} from "$lib/stores/SearchParamsStore.svelte";
+    import {BaseAttributesStore} from "$lib/stores/Attributes.svelte";
 
     let {children}: LayoutProps = $props()
 
@@ -23,6 +24,7 @@
     SortingStore.instance
     ListingsStore.instance
     ScriptsStore.instance
+    BaseAttributesStore.instance
 
     navigator && navigator.storage && navigator.storage.persist()
     initializer.initialize()

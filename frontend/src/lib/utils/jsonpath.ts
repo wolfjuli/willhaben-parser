@@ -102,7 +102,6 @@ export function jsonPath(obj, expr, arg = undefined) {
     }
 }
 
-
 export function listingAttribute(listing: Listing, attribute: string): ListingAttribute {
     return ({
         "user": jsonPath(listing, `$.user.${attribute}`),

@@ -13,7 +13,7 @@ object TransactionConstants {
     const val FETCH_SIZE: Int = 50000
 }
 
-inline fun <T> Connection.useTransaction(block: (transaction: Transaction) -> T): T =
+inline fun <T : Any?> Connection.useTransaction(block: (transaction: Transaction) -> T): T =
     use {
         it.transaction(block)
     }
@@ -53,7 +53,7 @@ fun <R : Any> PreparedStatement.useAsSequence(block: (Sequence<ResultSet>) -> R)
         it.executeQuery().useAsSequence(block)
     }
 
-fun <R : Any> ResultSet.useAsSequence(block: (Sequence<ResultSet>) -> R) =
+fun <R : Any?> ResultSet.useAsSequence(block: (Sequence<ResultSet>) -> R) =
     use { block(generateSequence { it.takeIf { it.next() } }) }
 
 val jsonMapper = jsonObjectMapper()

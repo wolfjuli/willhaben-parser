@@ -33,7 +33,7 @@
         {/if}
     </div>
     <div>
-        <Dropdown nameSelector={a => a.label} onchange={a => {
+        <Dropdown nameSelector={a => a.label ?? a.attribute} onchange={a => {
             script.attributeId = a.id
             save()
             return false

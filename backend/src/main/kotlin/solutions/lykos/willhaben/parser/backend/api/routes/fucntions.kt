@@ -7,14 +7,13 @@ import solutions.lykos.willhaben.parser.backend.database.Database
 import solutions.lykos.willhaben.parser.backend.database.postgresql.*
 import solutions.lykos.willhaben.parser.backend.importer.ImporterFetcher.logger
 
-fun Route.scripts(database: Database, templates: QueryTemplateProvider) {
-    route("scripts") {
+fun Route.functions(database: Database, templates: QueryTemplateProvider) {
+    route("functions") {
         get {
-
             val list = try {
                 database.connection().useTransaction { transaction ->
                     QueryBuilder(transaction)
-                        .append(templates.getTemplate("get/scripts"))
+                        .append(templates.getTemplate("get/functions"))
                         .build()
                         .executeQuery()
                         .useAsSequence { seq ->

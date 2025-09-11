@@ -35,7 +35,7 @@
         New Script on attribute:
     </div>
     <div>
-        <Dropdown nameSelector={(a) => a.label} onchange={selected} values={attributes}/>
+        <Dropdown nameSelector={(a) => a.label ?? a.attribute ?? '[UNKNOWN]'} onchange={selected} values={attributes}/>
     </div>
 
 </div>

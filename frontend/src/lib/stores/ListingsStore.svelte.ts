@@ -3,7 +3,6 @@ import {untrack} from "svelte";
 import {FetchingStore} from "$lib/stores/FetchingStore.svelte";
 import {WithState} from "$lib/stores/WithState.svelte";
 
-
 export class ListingsStore extends WithState<ListingsStoreType> {
     static #instance: ListingsStore
 
@@ -35,6 +34,49 @@ export class ListingsStore extends WithState<ListingsStoreType> {
         return ListingsStore.instance.value.listings?.[listingId]?.find(Boolean)
     }
 
+
+    static deleteListingValue = (listingValue: NewListingValue) =>
+        FetchingStore.whileFetching("deleteListingValue", () =>
+            fetch(`/api/rest/v1/listings/${listingValue.listingId}/${listingValue.attributeId}`, {
+                method: 'delete',
+                headers: {
+                    "content-type": "application/json"
+                },
+            })
+                .then(() => ListingsStore.instance.fetch([listingValue.listingId]))
+        )
+
+    fetch(listingIds: number[]): Promise<Listing[]> {
+        return FetchingStore.whileFetching("fetchListing", async () =>
+            untrack(async () =>
+                await fetch(`/api/rest/v1/listings?ids=${listingIds.join(",")}&knownMd5=${this.knownListings(listingIds).join(",")}`)
+                    .then(r => r.json())
+                    .then(async (full: RawListing[]) => {
+
+                        let newListings = {} as ListingsStoreType['listings']
+                        let newKnown = {} as ListingsStoreType['knownListings']
+
+                        full.forEach(l => {
+                            newListings[l.listing.id] = [...(this.value.listings?.[l.listing.id]?.filter(ol => ol.lastSeen !== l.listing.lastSeen) ?? []),
+                                {
+                                    ...l.listing,
+                                    points: l.listing.custom.points,
+                                    willhabenId: l.listing.base.id
+                                }
+                            ].sort((a, b) => b.lastSeen.getDate() - a.lastSeen.getDate())
+
+                            newKnown[l.listing.id] = l.md5
+                        })
+
+                        this.value.listings = {...this.value.listings, ...newListings}
+                        this.value.knownListings = {...this.value.knownListings, ...newKnown}
+
+                        return ListingsStore.partial(listingIds)()
+                    })
+            )
+        )
+    }
+
     static createListingValue = (listingValue: NewListingValue) =>
         FetchingStore.whileFetching("createListingValue", () =>
             fetch(`/api/rest/v1/listings/${listingValue.listingId}/${listingValue.attributeId}`, {
@@ -59,43 +101,7 @@ export class ListingsStore extends WithState<ListingsStoreType> {
                 .then(() => ListingsStore.instance.fetch([listingValue.listingId]))
         )
 
-    fetch(listingIds: number[]): Promise<Listing[]> {
-        return FetchingStore.whileFetching("fetchListing", async () =>
-            untrack(async () =>
-                await fetch(`/api/rest/v1/listings/full?ids=${listingIds.join(",")}&knownMd5=${this.knownListings(listingIds).join(",")}`)
-                    .then(r => r.json())
-                    .then(async (full: RawListing[]) => {
-
-                        let newListings = {} as ListingsStoreType['listings']
-                        let newKnown = {} as ListingsStoreType['knownListings']
-
-                        full.forEach(l => {
-                            newListings[l.listing.id] = [...(this.value.listings?.[l.listing.id]?.filter(ol => ol.lastSeen !== l.listing.lastSeen) ?? []),
-                                l.listing
-                            ].sort((a, b) => b.lastSeen.getDate() - a.lastSeen.getDate())
-
-                            newKnown[l.listing.id] = l.md5
-                        })
-
-                        this.value.listings = {...this.value.listings, ...newListings}
-                        this.value.knownListings = {...this.value.knownListings, ...newKnown}
-
-                        return ListingsStore.partial(listingIds)()
-                    })
-            )
-        )
-    }
-
     private knownListings(listingIds: number[]): string[] {
         return listingIds.map(lId => this.value.knownListings?.[lId])?.filter(Boolean)
     }
-
-    static deleteListingValue = (listingValue: NewListingValue) =>
-        FetchingStore.whileFetching("deleteListingValue", () =>
-            fetch("/api/rest/v1/user_defined_attributes", {
-                method: 'delete',
-                body: JSON.stringify(listingValue)
-            })
-                .then(() => ListingsStore.instance.fetch([listingValue.listingId]))
-        )
 }

@@ -12,14 +12,14 @@
     import type {Listing} from "$lib/types/Listing";
     import CreateFunction from "$lib/components/Function/CreateFunction.svelte";
     import ListingDetail from "$lib/components/ListingDetail/ListingDetail.svelte";
-    import {mergedAttributes} from "$lib/stores/attributes.svelte";
-    import {ListingsStore} from "$lib/stores/ListingsStore.svelte";
+    import {BaseAttributesStore} from "$lib/stores/Attributes.svelte";
+    import {SortingStore} from "$lib/stores/SortingStore.svelte";
 
 
     const functions = $derived(FunctionsStore.value)
     const scripts = $derived(ScriptsStore.value)
-    const attributes = $derived((mergedAttributes().value?.toSorted((a, b) => a.normalized.localeCompare(b.normalized)) ?? []))
-    const sorted = $derived(ListingsStore.value.sorting  ?? [])
+    const attributes = $derived((BaseAttributesStore.value?.toSorted((a, b) => a.attribute.localeCompare(b.attribute)) ?? []))
+    const sorted = $derived(SortingStore.value ?? [])
 
     let selectedListing = $state<Listing | undefined>(undefined)
 

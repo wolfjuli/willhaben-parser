@@ -32,7 +32,7 @@ export class ScriptsStore extends WithState<ScriptDefMap> {
     static fetch(id: number | undefined = undefined) {
         FetchingStore.whileFetching("scripts", () => {
             const filter = id ? `?id=${id}` : ''
-            return fetch(`/api/rest/v1/scripts/full${filter}`)
+            return fetch(`/api/rest/v1/scripts${filter}`)
                 .then((response) => response.json())
                 .then((data: ScriptDef[]) => {
                     if (!id) ScriptsStore.value = {}
