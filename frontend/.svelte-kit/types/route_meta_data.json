@@ -1,0 +1,19 @@
+{
+	"/": [
+		"src/routes/+page.ts",
+		"src/routes/+layout.ts",
+		"src/routes/+layout.ts"
+	],
+	"/attributes": [
+		"src/routes/+layout.ts",
+		"src/routes/+layout.ts"
+	],
+	"/functions": [
+		"src/routes/+layout.ts",
+		"src/routes/+layout.ts"
+	],
+	"/settings": [
+		"src/routes/+layout.ts",
+		"src/routes/+layout.ts"
+	]
+}

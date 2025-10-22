@@ -1,1 +1,87 @@
-**/node_modules/**
+# See https://help.github.com/ignore-files/ for more about ignoring files.# compiled output
+frontend/**/build/
+frontend/**/pkg/
+frontend/**/dist/
+frontend/**/tmp/
+
+# dependencies
+bower_components/
+**/node_modules/*
+
+# misc
+.env*
+.pnp*
+.sass-cache
+.eslintcache
+connect.lock
+coverage/
+libpeerconnection.log
+npm-debug.log*
+testem.log
+
+# ember-try
+.node_modules.ember-try/
+bower.json.ember-try
+package.json.ember-try
+
+# IntelliJ IDEA
+.idea/
+**/target/
+*.iml
+
+.DS_Store
+
+########
+# pnpm #
+########
+
+.npmrc
+
+frontend/**/public/static
+frontend/**/public/branding
+frontend/**/public/templates
+
+**/lang/synced
+**/lang/compiled
+
+.inveniumrc*
+
+**/li-config-local.yml
+
+
+
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/

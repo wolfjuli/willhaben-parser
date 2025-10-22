@@ -1,0 +1,25 @@
+server:
+  host: 0.0.0.0
+  port: 9191
+
+database:
+  host: localhost # 192.168.20.10
+  name: willhaben
+  user: willhaben
+  password: willhaben
+  admin:
+    user: postgres
+    password: postgres
+
+logger:
+  level: DEBUG
+  appenders:
+    - type: console
+      filters:
+        - all #lowercase!
+
+crawler:
+  timeout: 60 # 30 * 60 seconds
+  debugAmount: 100
+
+

@@ -1,0 +1,23 @@
+openapi: "3.0.3"
+info:
+  title: "WillHaben Parser Server API"
+  description: "WillHaben Parser Server API"
+  version: "1.0.0"
+servers:
+  - url: "http://0.0.0.0:9191"
+paths:
+  /:
+    get:
+      description: "Hello World!"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                Example#1:
+                  value: { url: "some-url" }
+components:
+  schemas: { }

@@ -1,0 +1,20 @@
+[Unit]
+Description=Lykos Solutions WillHaben Parser
+After=network.target
+
+[Service]
+PermissionsStartOnly=true
+ExecStartPre=/bin/mkdir -p /var/run/lykos/willhaben-parser${PACKAGE_SUFFIX}
+ExecStartPre=/bin/chown -R lykos:lykos /var/run/lykos/willhaben-parser${PACKAGE_SUFFIX}
+RuntimeDirectory=lykos/willhaben-parser${PACKAGE_SUFFIX}
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+EnvironmentFile=/etc/sysconfig/willhaben-parser${PACKAGE_SUFFIX}
+ExecStart=/usr/bin/java $JAVA_OPTS -jar /usr/share/lykos/willhaben-parser${PACKAGE_SUFFIX}/willhaben-parser.jar -c /etc/lykos/willhaben-parser${PACKAGE_SUFFIX}/application.yml
+KillMode=process
+Restart=always
+KillSignal=SIGINT
+SendSIGKILL=yes
+User=lykos
+
+[Install]
+WantedBy=multi-user.target

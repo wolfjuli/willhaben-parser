@@ -6,5 +6,4 @@ from python.database.sqlite import db
 config = build_configuration()
 _db = db(config)
 
-
-patches = (_db.all_patches("sqlite"))
+_db.upgrade()
