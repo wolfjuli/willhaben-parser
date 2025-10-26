@@ -3,6 +3,7 @@ import type {RawSorting, SortingStoreType} from "$lib/types/Sorting";
 import type {SearchParams} from "$lib/types/SearchParams";
 import {FetchingStore} from "$lib/stores/FetchingStore.svelte";
 import {ListingsStore} from "$lib/stores/ListingsStore.svelte";
+import {Socket} from "$lib/utils/Socket";
 
 
 export class SortingStore extends WithLocalStore<SortingStoreType> {
@@ -27,21 +28,16 @@ export class SortingStore extends WithLocalStore<SortingStoreType> {
         return SortingStore.instance.value
     }
 
-    fetch(searchParams: SearchParams): Promise<SortingStoreType> {
-        return FetchingStore.whileFetching("fetchSorting", () => {
-                const params = searchParams
-                const attrs = [...new Set([...(params.searchAttributes ?? []), ...(params.viewAttributes ?? [])].join(","))]
-                return fetch(`/api/rest/v1/listings/sorting?sortCol=${params.sortCol}&sortDir=${params.sortDir}&searchString=${params.searchString}&searchAttrs=${attrs}`)
-                    .then(r => r.json())
-                    .then(async (sorting: RawSorting[]) => {
-                        const newIds = sorting.map(s => s.listingId)
-                        this.value.lastUpdate = new Date()
-                        this.value.sorting = [...newIds]
 
-                        await ListingsStore.instance.fetch(newIds)
-                        return this.value
-                    })
-            }
-        )
+    static upsert(sorting: RawSorting[]): SortingStoreType {
+        const newIds = sorting.map(s => s.listingId)
+        this.value.lastUpdate = new Date()
+        this.value.sorting = [...newIds]
+
+        return this.value
+    }
+
+    fetch(searchParams: SearchParams) {
+        Socket.send("getSorting", searchParams)
     }
 }

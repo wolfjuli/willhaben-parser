@@ -16,7 +16,7 @@ export default defineConfig({
         port: 3000,
         proxy: {
 
-            '/api/rest/v1/': {
+            '/api/v1/rest': {
                 target: 'http://localhost:9191',
                 changeOrigin: true,
                 secure: false,

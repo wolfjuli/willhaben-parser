@@ -11,9 +11,10 @@ import solutions.lykos.willhaben.parser.backend.database.postgresql.QueryTemplat
 import solutions.lykos.willhaben.parser.backend.database.postgresql.Transaction
 import solutions.lykos.willhaben.parser.backend.database.postgresql.useTransaction
 
+val apiClients = mutableListOf<WebSocketServerSession>()
 
 suspend fun WebSocketServerSession.wsRoutes(database: Database, templates: QueryTemplateProvider) {
-
+    apiClients.add(this)
     val mapper = jacksonObjectMapper()
     for (frame in incoming) {
         val body = mapper.readValue<WSMessage<Any>>(frame.readBytes())
