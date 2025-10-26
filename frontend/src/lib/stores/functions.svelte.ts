@@ -9,7 +9,7 @@ const transform = (data: FunctionDef[]): FunctionDefMap => data.reduce((acc, cur
 
 export const FunctionsStore = $state<{ value: FunctionDefMap }>({value: {}})
 
-fetch("/api/rest/v1/functions")
+fetch("/api/v1/rest/functions")
     .then((response) => response.json())
     .then(data => transform(data))
     .then((data) => {
@@ -17,7 +17,7 @@ fetch("/api/rest/v1/functions")
     })
 
 export const updateFunction = (fun: FunctionDef) =>
-    fetch("/api/rest/v1/functions", {
+    fetch("/api/v1/rest/functions", {
         method: 'put',
         body: JSON.stringify(fun)
     })
@@ -27,7 +27,7 @@ export const updateFunction = (fun: FunctionDef) =>
         })
 
 export const createFunction = (fun: FunctionDef) =>
-    fetch("/api/rest/v1/functions", {
+    fetch("/api/v1/rest/functions", {
         method: 'post',
         body: JSON.stringify(fun)
     })
@@ -37,7 +37,7 @@ export const createFunction = (fun: FunctionDef) =>
         })
 
 export const deleteFunction = (fun: FunctionDef) =>
-    fetch("/api/rest/v1/functions", {
+    fetch("/api/v1/rest/functions", {
         method: 'delete',
         body: JSON.stringify(fun)
     })

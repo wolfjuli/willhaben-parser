@@ -7,7 +7,7 @@ export class BaseAttributesStore extends WithState<BaseAttribute[]> {
     private constructor() {
         super([]);
 
-        fetch("/api/rest/v1/attributes")
+        fetch("/api/v1/rest/attributes")
             .then(r => r.json())
             .then(d => BaseAttributesStore.instance.value = d)
     }

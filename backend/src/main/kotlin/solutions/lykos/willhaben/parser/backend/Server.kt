@@ -24,9 +24,11 @@ import java.security.KeyStore
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.*
 import io.ktor.server.response.*
+import io.ktor.serialization.jackson.*
 import io.ktor.server.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import solutions.lykos.willhaben.parser.backend.importer.jacksonMapper
 
 object Server {
     @JvmStatic
@@ -57,7 +59,6 @@ object Server {
 
         crawler.start()
         server.start(true) // Blocking
-        while(true){}
         crawler.stop()
     }
 
@@ -79,7 +80,7 @@ object Server {
             configureConnector(configuration.server)
         }, module = {
             install(ContentNegotiation) {
-                json()
+                jackson()
             }
 
             configureRouting(configuration)

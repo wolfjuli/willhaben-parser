@@ -83,6 +83,11 @@
             <artifactId>ktor-network-tls-certificates-jvm</artifactId>
             <version>${ktor.version}</version>
         </dependency>
+        <dependency>
+        <groupId>io.ktor</groupId>
+        <artifactId>ktor-serialization-jackson-jvm</artifactId>
+        <version>${ktor.version}</version>
+    </dependency>
 
 
         <dependency>

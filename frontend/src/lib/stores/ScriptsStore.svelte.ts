@@ -32,7 +32,7 @@ export class ScriptsStore extends WithState<ScriptDefMap> {
     static fetch(id: number | undefined = undefined) {
         FetchingStore.whileFetching("scripts", () => {
             const filter = id ? `?id=${id}` : ''
-            return fetch(`/api/rest/v1/scripts${filter}`)
+            return fetch(`/api/v1/rest/scripts${filter}`)
                 .then((response) => response.json())
                 .then((data: ScriptDef[]) => {
                     if (!id) ScriptsStore.value = {}
@@ -44,21 +44,21 @@ export class ScriptsStore extends WithState<ScriptDefMap> {
     }
 
     static update(script: ScriptSetDef) {
-        fetch("/api/rest/v1/scripts", {
+        fetch("/api/v1/rest/scripts", {
             method: 'put',
             body: JSON.stringify(script)
         }).then(() => ScriptsStore.fetch(script.id))
     }
 
     static create(script: ScriptSetDef) {
-        fetch("/api/rest/v1/scripts", {
+        fetch("/api/v1/rest/scripts", {
             method: 'post',
             body: JSON.stringify(script)
         }).then(() => ScriptsStore.fetch(script.id))
     }
 
     static delete(script: ScriptSetDef) {
-        fetch("/api/rest/v1/scripts", {
+        fetch("/api/v1/rest/scripts", {
             method: 'post',
             body: JSON.stringify(script)
         }).then(() => delete ScriptsStore.value[script.id])
@@ -66,14 +66,14 @@ export class ScriptsStore extends WithState<ScriptDefMap> {
 
 
     static createScriptFunction = (scriptFun: ScriptFunctionDef) =>
-        fetch("/api/rest/v1/script_functions", {
+        fetch("/api/v1/rest/script_functions", {
             method: 'post',
             body: JSON.stringify(scriptFun)
         })
             .then(() => ScriptsStore.fetch(scriptFun.scriptId))
 
     static deleteScriptFunction = (scriptFun: ScriptFunctionDef) =>
-        fetch("/api/rest/v1/script_functions", {
+        fetch("/api/v1/rest/script_functions", {
             method: 'delete',
             body: JSON.stringify(scriptFun)
         })

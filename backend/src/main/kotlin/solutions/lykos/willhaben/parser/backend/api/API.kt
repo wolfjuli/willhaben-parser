@@ -51,6 +51,10 @@ class API(val configuration: Configuration) {
                 webSocket ("/api/v1/ws") {
                     wsRoutes(database, templates)
                 }
+                route("/api/v1/rest") {
+                    val a: Route = this
+                    restRoutes(database, templates)
+                }
             }
 
             return api

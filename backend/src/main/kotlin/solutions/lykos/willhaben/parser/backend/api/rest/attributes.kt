@@ -1,4 +1,4 @@
-package solutions.lykos.willhaben.parser.backend.api.routes
+package solutions.lykos.willhaben.parser.backend.api.rest
 
 import io.ktor.http.*
 import io.ktor.server.request.*

@@ -1,19 +1,18 @@
-package solutions.lykos.willhaben.parser.backend.api.routes
+package solutions.lykos.willhaben.parser.backend.api.rest
 
 import io.ktor.http.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import solutions.lykos.willhaben.parser.backend.database.Database
 import solutions.lykos.willhaben.parser.backend.database.postgresql.*
-import solutions.lykos.willhaben.parser.backend.importer.ImporterFetcher.logger
 
-fun Route.functions(database: Database, templates: QueryTemplateProvider) {
-    route("functions") {
+fun Route.configurations(database: Database, templates: QueryTemplateProvider) {
+    route("configuration") {
         get {
             val list = try {
                 database.connection().useTransaction { transaction ->
                     QueryBuilder(transaction)
-                        .append(templates.getTemplate("get/functions"))
+                        .append(templates.getTemplate("getConfiguration"))
                         .build()
                         .executeQuery()
                         .useAsSequence { seq ->
