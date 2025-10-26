@@ -28,7 +28,7 @@ const mediaList = window.matchMedia?.('(prefers-color-scheme: dark)')
 export class Scheme {
     #subscribe
 
-    #systemScheme: SchemeType = $state(mediaList.matches ? DARK : LIGHT)
+    #systemScheme: SchemeType = $state(mediaList.matches ? LIGHT : DARK)
     #storedScheme = $state<SchemeType | undefined>(getStoredScheme()) // undefined = user has no preference
 
     constructor() {

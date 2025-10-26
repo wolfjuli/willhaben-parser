@@ -49,7 +49,18 @@ export class ListingsStore extends WithState<ListingsStoreType> {
     fetch(listingIds: number[]): Promise<Listing[]> {
         return FetchingStore.whileFetching("fetchListing", async () =>
             untrack(async () =>
-                await fetch(`/api/rest/v1/listings?ids=${listingIds.join(",")}&knownMd5=${this.knownListings(listingIds).join(",")}`)
+                await fetch(
+                    `/api/rest/v1/listings`, {
+                        method: 'post',
+                        headers: {
+                            "content-type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            knownMd5: this.knownListings(listingIds),
+                            ids: listingIds
+                        })
+                    }
+                )
                     .then(r => r.json())
                     .then(async (full: RawListing[]) => {
 

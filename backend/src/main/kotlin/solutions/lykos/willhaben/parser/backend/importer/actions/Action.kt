@@ -1,5 +1,8 @@
 package solutions.lykos.willhaben.parser.backend.importer.actions
 
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import solutions.lykos.willhaben.parser.backend.database.postgresql.Transaction
@@ -14,7 +17,8 @@ abstract class Action<T : Node> {
     protected val emptyFlags = EnumSet.noneOf(PipelineMessage.Flags::class.java)
 
     private val isDebugEnabled: Boolean by lazy { logger.isDebugEnabled }
-    private val initialized = AtomicBoolean(false)
+    private var initializeMutex = Mutex(false)
+    private var initialized = false
 
     protected fun debug(text: () -> String) {
         if (isDebugEnabled) logger.debug(text())
@@ -22,9 +26,16 @@ abstract class Action<T : Node> {
 
     operator fun invoke(message: PipelineMessage<T>, transaction: Transaction): PipelineMessage<T> {
         if (message !is PipelineMessage.Close)
-            if (initialized.compareAndSet(false, true)) {
-                debug { "initialize action" }
-                initialize(transaction)
+            if (!initialized) {
+                runBlocking {
+                    initializeMutex.withLock {
+                        //We are one of many waiting on the lock, but we were too late
+                        if (initialized) { return@withLock}
+                        debug { "initialize action" }
+                        initialize(transaction)
+                        initialized = true
+                    }
+                }
             }
 
         return when (message) {

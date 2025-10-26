@@ -10,25 +10,33 @@ import solutions.lykos.willhaben.parser.backend.database.postgresql.*
 
 fun Route.listings(database: Database, templates: QueryTemplateProvider) {
     route("listings") {
-        get {
-            val knownMd5 = call.request.queryParameters["knownMd5"]?.takeUnless { it.isBlank() }
-            val ids = call.request.queryParameters["ids"]?.takeUnless { it.isBlank() }
+        contentType(ContentType.Application.Json) {
+            post {
+                data class Body(
+                    val knownMd5: List<String>?,
+                    val ids: List<String>?
+                )
 
-            val list = try {
-                database.connection().useTransaction { transaction ->
-                    QueryBuilder(transaction)
-                        .append(templates.getTemplate("get/listings"))
-                        .build("knownMd5" to knownMd5?.split(","), "ids" to ids?.split(","))
-                        .executeQuery()
-                        .useAsSequence { seq ->
-                            seq.map { it.toCamelCaseMap() }.toList()
-                        }
+                val text = call.receiveText()
+                val body = jsonMapper.readValue(text, Body::class.java)
+
+
+                val list = try {
+                    database.connection().useTransaction { transaction ->
+                        QueryBuilder(transaction)
+                            .append(templates.getTemplate("get/listings"))
+                            .build("knownMd5" to body.knownMd5, "ids" to body.ids)
+                            .executeQuery()
+                            .useAsSequence { seq ->
+                                seq.map { it.toCamelCaseMap() }.toList()
+                            }
+                    }
+                } catch (e: Exception) {
+                    call.respond(HttpStatusCode.InternalServerError, e.localizedMessage)
+                    return@post
                 }
-            } catch (e: Exception) {
-                call.respond(HttpStatusCode.InternalServerError, e.localizedMessage)
-                return@get
+                call.respond(list)
             }
-            call.respond(list)
         }
 
         contentType(ContentType.Application.Json) {

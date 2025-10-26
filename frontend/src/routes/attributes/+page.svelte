@@ -3,14 +3,13 @@
     import ListingFilter from "$lib/components/ListingFilter/ListingFilter.svelte";
     import {FunctionsStore} from "$lib/stores/functions.svelte";
     import {ScriptsStore} from "$lib/stores/ScriptsStore.svelte.js";
-    import {CustomAttributesStore, mergedAttributes} from "$lib/stores/Attributes.svelte.js";
     import type {Listing} from "$lib/types/Listing.js";
     import Function from "$lib/components/Function/Function.svelte";
+    import {BaseAttributesStore} from "$lib/stores/Attributes.svelte";
 
     const functions = $derived(FunctionsStore.value)
     const scripts = $derived(ScriptsStore.value)
-    const attributes = $derived((mergedAttributes().value?.toSorted((a, b) => a.normalized.localeCompare(b.normalized)) ?? []))
-    const customAttributes = $derived(CustomAttributesStore.value ?? [])
+    const attributes = $derived((BaseAttributesStore.value?.toSorted((a, b) => a.attribute.localeCompare(b.attribute)) ?? []))
 
     const {data}: PageProps = $props()
 
@@ -32,16 +31,16 @@
 
 <ListingFilter {attributes} ></ListingFilter>
 
-{#each customAttributes as attribute}
-    <e:attribute>
-        <h3>{attribute.label} <small>[{attribute.dataType}]</small></h3>
+<!--{#each customAttributes as attribute}-->
+<!--    <e:attribute>-->
+<!--        <h3>{attribute.label} <small>[{attribute.dataType}]</small></h3>-->
 
-        <div>
-            <Function fun={functions[attribute.functionId]}/>
-        </div>
-        <hr/>
-    </e:attribute>
-{/each}
+<!--        <div>-->
+<!--            <Function fun={functions[attribute.functionId]}/>-->
+<!--        </div>-->
+<!--        <hr/>-->
+<!--    </e:attribute>-->
+<!--{/each}-->
 
 <div role="group">
     <input bind:value={newAttr.normalized} placeholder="Attribute Name" type="text"/>

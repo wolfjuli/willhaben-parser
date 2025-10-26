@@ -17,7 +17,12 @@
         <applicationVersion>${ltsVersion}</applicationVersion>
         <jobDependencyScope>provided</jobDependencyScope>
         <standalone>false</standalone>
-        <jvmTarget>11</jvmTarget>
+        <jvmTarget>1.8</jvmTarget>
+        <kotlin.version>2.0.0</kotlin.version>
+
+        <kotlin.code.style>official</kotlin.code.style>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
 
         <docker-maven-plugin.version>0.40.2</docker-maven-plugin.version>
         <!-- Library versions -->
@@ -26,6 +31,7 @@
         <commons-cli.version>1.5.0</commons-cli.version>
         <commons-csv.version>1.9.0</commons-csv.version>
         <ehcache.version>3.10.8</ehcache.version>
+        <exposed.version>0.36.2</exposed.version>
         <graphql.version>7.0.2</graphql.version>
         <hikaricp.version>5.0.1</hikaricp.version>
         <indriya.version>2.1.4</indriya.version>
@@ -35,16 +41,17 @@
         <jaxb-runtime.version>2.3.8</jaxb-runtime.version>
         <jetty.version>11.0.12</jetty.version>
         <jts.version>1.19.0</jts.version>
-        <ksoup.version>0.5.0</ksoup.version>
-        <kotlin.version>2.1.0</kotlin.version>
+        <ksoup.version>0.6.0</ksoup.version>
+        <ktor.version>3.2.0</ktor.version>
+        <logback.version>1.5.12</logback.version>
         <okhttp.version>2.3.4</okhttp.version>
         <pdfbox.version>2.0.8</pdfbox.version>
         <postgis-jdbc.version>2024.1.0</postgis-jdbc.version>
-        <postgresql-jdbc.version>42.5.0</postgresql-jdbc.version>
-        <servers-maven-extension.version>1.3.1</servers-maven-extension.version>
+        <postgresql-jdbc.version>42.7.4</postgresql-jdbc.version>
         <tyrus.version>2.1.1</tyrus.version>
-        <ktor.version>2.3.11</ktor.version>
-
+        <serialization.version>1.5.0</serialization.version>
+        <servers-maven-extension.version>1.3.1</servers-maven-extension.version>
+        <slf4j.version>2.0.16</slf4j.version>
 
         <rpm-repository-url>${rpm-snapshot-repository.url}</rpm-repository-url>
         <rpm-repository-username>${settings.servers.server.rpm-snapshot-repository.username}</rpm-repository-username>
@@ -228,6 +235,7 @@
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
+
                     <source>11</source>
                 </configuration>
             </plugin>
@@ -236,7 +244,11 @@
                 <artifactId>kotlin-maven-plugin</artifactId>
                 <configuration>
                     <javaParameters>true</javaParameters>
+                    <compilerPlugins>
+                        <plugin>kotlinx.serialization</plugin>
+                    </compilerPlugins>
                 </configuration>
+
                 <executions>
                     <execution>
                         <id>compile</id>

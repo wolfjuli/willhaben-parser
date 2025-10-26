@@ -2,8 +2,12 @@ package solutions.lykos.willhaben.parser.backend.parser
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.mohamedrejeb.ksoup.html.parser.KsoupHtmlParser
-import com.sun.org.apache.xml.internal.serialize.LineSeparator.Macintosh
 import io.ktor.client.*
+import io.ktor.client.engine.okhttp.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import solutions.lykos.willhaben.parser.backend.api.WatchList
 import solutions.lykos.willhaben.parser.backend.api.wh.WHAdvertSpecification
@@ -14,22 +18,15 @@ import solutions.lykos.willhaben.parser.backend.config.CrawlerConfiguration
 import solutions.lykos.willhaben.parser.backend.importer.ImporterFetcher.logger
 import solutions.lykos.willhaben.parser.backend.jsonObjectMapper
 import java.net.URL
-import io.ktor.client.*
-import io.ktor.client.engine.okhttp.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
-import jdk.internal.agent.Agent
-import kotlinx.coroutines.runBlocking
+import java.util.stream.Stream
+import kotlin.streams.asStream
 
 
 private val logger = LoggerFactory.getLogger("Watchlist.parse()")
-private val jsons = mutableMapOf<String, String>()
-private val parser = KsoupHtmlParser(handler = WillHabenScriptsHandler(jsons))
-private val mapper = jsonObjectMapper()
+
 private val client = HttpClient(OkHttp)
 
-private fun HttpClient.get(url: String ): String =runBlocking {
+private fun HttpClient.get(url: String): String = runBlocking {
     client.request(URL(url)) {
         method = HttpMethod.Get
         headers {
@@ -41,13 +38,16 @@ private fun HttpClient.get(url: String ): String =runBlocking {
     }.bodyAsText()
 }
 
-fun List<WatchList>.parse(): Sequence<WHAdvertSpecification> = asSequence()
+fun List<WatchList>.parse(): Stream<WHAdvertSpecification> = stream()
+    .parallel()
     .flatMap { watchList ->
         var page = 1
         var maxPage = 1
+        val jsons = mutableMapOf<String, String>()
+        val parser = KsoupHtmlParser(handler = WillHabenScriptsHandler(jsons))
+        val mapper = jsonObjectMapper()
 
         generateSequence {
-            jsons.clear()
             if (page > maxPage) return@generateSequence null
             val url = watchList.url + "&rows=200&page=$page"
             logger.debug("Fetching URL $url")
@@ -62,15 +62,15 @@ fun List<WatchList>.parse(): Sequence<WHAdvertSpecification> = asSequence()
                     search.props.pageProps.searchResult.advertSummaryList.advertSummary
                 }
             }
-        }.flatten()
+        }.flatten().asStream()
     }
 
 
-fun Sequence<WHAdvertSpecification>.detailed(configuration: CrawlerConfiguration): Sequence<WHAdvertSpecification> =
-    mapNotNull { summary ->
+fun Stream<WHAdvertSpecification>.detailed(configuration: CrawlerConfiguration): Stream<WHAdvertSpecification> =
+    map { summary ->
         summary.url?.let { subUrl ->
             val url = "${configuration.listingBaseUrl}$subUrl"
-            logger.debug("Fetching URL $url")
+            logger.info("Fetching URL $url")
 
             //Sometimes we get a 502 or some other weird error, lets give it 3 trys to fetch it
             (0..2)
@@ -84,12 +84,25 @@ fun Sequence<WHAdvertSpecification>.detailed(configuration: CrawlerConfiguration
                     }
                 }.firstOrNull()
                 ?.let { text ->
+                    val jsons = mutableMapOf<String, String>()
+                    val parser = KsoupHtmlParser(handler = WillHabenScriptsHandler(jsons))
+                    val mapper = jsonObjectMapper()
                     parser.write(text)
                     jsons["__NEXT_DATA__"]?.let { json ->
-                        mapper.readValue<WHSiteDetails>(json).props.pageProps.advertDetails.also {
-                            it.merge(summary, "SEO_URL" to  listOf(url))
+                        try {
+                            mapper.readValue<WHSiteDetails>(json).props.pageProps.advertDetails.also {
+                                it.merge(summary, "SEO_URL" to listOf(url))
+                            }
+                        } catch (e: Exception) {
+                            if (json.contains("advertSummaryList")) {
+                                logger.error("Advert got removed during crawling - ignoring $url", e)
+                                null
+                            } else {
+                                logger.error("Error during JSON parse:\n$json")
+                                throw e
+                            }
                         }
                     }
                 }
         } ?: summary
-    }
+    }.filter { it != null }

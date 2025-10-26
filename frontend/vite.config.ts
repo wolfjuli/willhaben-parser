@@ -15,7 +15,14 @@ export default defineConfig({
     server: {
         port: 3000,
         proxy: {
+
             '/api/rest/v1/': {
+                target: 'http://localhost:9191',
+                changeOrigin: true,
+                secure: false,
+            },
+            '/api/v1/ws': {
+                ws: true,
                 target: 'http://localhost:9191',
                 changeOrigin: true,
                 secure: false,

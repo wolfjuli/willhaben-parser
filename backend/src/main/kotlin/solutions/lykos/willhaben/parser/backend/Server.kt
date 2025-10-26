@@ -4,12 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
-import io.ktor.server.plugins.swagger.*
 import io.ktor.server.routing.*
 import solutions.lykos.willhaben.parser.backend.api.API
 import solutions.lykos.willhaben.parser.backend.assets.AssetProvider
@@ -23,6 +21,12 @@ import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.security.KeyStore
+import io.ktor.serialization.kotlinx.json.*
+import io.ktor.server.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
+import io.ktor.server.engine.*
+import io.ktor.server.netty.*
 
 object Server {
     @JvmStatic
@@ -53,6 +57,7 @@ object Server {
 
         crawler.start()
         server.start(true) // Blocking
+        while(true){}
         crawler.stop()
     }
 
@@ -70,17 +75,16 @@ object Server {
 
     private fun createServer(
         configuration: WPConfiguration
-    ): EmbeddedServer<NettyApplicationEngine, NettyApplicationEngine.Configuration> {
-        return embeddedServer(Netty, configure = {
+    ) =  embeddedServer(Netty, configure = {
             configureConnector(configuration.server)
         }, module = {
             install(ContentNegotiation) {
-                jackson()
+                json()
             }
+
             configureRouting(configuration)
-            configureSwagger()
         })
-    }
+
 
     private fun BaseApplicationEngine.Configuration.configureConnector(config: ConnectorConfiguration) {
         config.ssl?.let { sslConfig ->
@@ -112,11 +116,6 @@ object Server {
         }
     }
 
-    private fun Application.configureSwagger() {
-        routing {
-            swaggerUI(path = "documentation")
-        }
-    }
 
     private fun Application.configureRouting(configuration: WPConfiguration) {
 

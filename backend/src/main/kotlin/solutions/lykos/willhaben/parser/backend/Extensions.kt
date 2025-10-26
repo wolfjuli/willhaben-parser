@@ -28,7 +28,7 @@ fun String.snakeCase(): String =
     }
 
 fun String.camelCase(): String =
-    snakeCaseRegex.replace(this) {
+    first().lowercase() + snakeCaseRegex.replace(substring(1)) {
         it.value[1].uppercase()
     }
 

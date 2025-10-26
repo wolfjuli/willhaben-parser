@@ -1,8 +1,8 @@
 package solutions.lykos.willhaben.parser.backend.crawler
 
+import Importer
 import org.slf4j.LoggerFactory
 import solutions.lykos.willhaben.parser.backend.config.WPConfiguration
-import solutions.lykos.willhaben.parser.backend.crawler.writers.write
 import solutions.lykos.willhaben.parser.backend.database.postgresql.DataSource
 import solutions.lykos.willhaben.parser.backend.database.postgresql.Transaction
 import solutions.lykos.willhaben.parser.backend.database.postgresql.useAsSequence
@@ -48,10 +48,15 @@ class Crawler(
     }
 
     private fun run() {
-        dataSource.connection.useTransaction { transaction ->
-            dataSource.get.watchLists().parse()
-                .detailed(configuration.crawler)
-                .write(transaction, configuration.crawler)
+        try {
+            dataSource.connection.useTransaction { transaction ->
+                val importer = Importer(transaction)
+                dataSource.get.watchLists().parse()
+                    .detailed(configuration.crawler)
+                    .write(transaction, configuration.crawler, importer)
+            }
+        } catch (ex: Exception) {
+            logger.error("Something went wrong during crawling/insert", ex)
         }
     }
 

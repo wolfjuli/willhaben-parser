@@ -23,26 +23,20 @@ export class BaseAttributesStore extends WithState<BaseAttribute[]> {
         return BaseAttributesStore.instance.value
     }
 
-    static async fetch(id: number | undefined = undefined): Promise<void> {
-        const url = '/api/rest/v1/attributes' + (id ? `/${id}` : '')
-        fetch(url)
-            .then(r => r.json())
-            .then(d => {
-                if (id) {
-                    BaseAttributesStore.instance.value = [...BaseAttributesStore.instance.value.filter(b => b.id !== id), d]
-                } else {
-                    BaseAttributesStore.instance.value = d
-                }
-            })
+    static upsert(attributes: BaseAttribute[]): BaseAttribute[] {
+        BaseAttributesStore.instance.value = [
+            ...(BaseAttributesStore.instance.value.filter(a => !attributes.find(n => n.id === a.id))),
+            ...attributes
+        ]
+
+        return BaseAttributesStore.instance.value
     }
 
-    static async updateAttribute(attr: BaseAttribute) {
-        await fetch(`/api/rest/v1/attributes/${attr.id}`, {
-            method: 'post',
-            headers: {
-                "content-type": "application/json"
-            },
-            body: JSON.stringify(attr)
-        }).then(() => BaseAttributesStore.fetch(attr.id))
+    static updateAttribute(attr: BaseAttribute): BaseAttribute {
+        BaseAttributesStore.instance.value = [
+            ...(BaseAttributesStore.instance.value.filter(a => a.id !== attr.id)),
+            attr
+        ]
+        return attr
     }
 }

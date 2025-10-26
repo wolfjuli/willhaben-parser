@@ -49,7 +49,6 @@ fun Route.attributes(database: Database, templates: QueryTemplateProvider) {
             if (attr == null) {
                 call.respond(HttpStatusCode.NotFound, "Not matching attribute with id $id found")
                 return@get
-
             }
 
             call.respond(attr)

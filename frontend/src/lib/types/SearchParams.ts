@@ -1,4 +1,3 @@
-import type {Listing} from "$lib/types/Listing";
 
 export type SearchParams = {
     viewAttributes: string[],

@@ -13,11 +13,26 @@
     import {SortingStore} from "$lib/stores/SortingStore.svelte";
     import {SearchParamsStore} from "$lib/stores/SearchParamsStore.svelte";
     import {BaseAttributesStore} from "$lib/stores/Attributes.svelte";
+    import {handleWSMessage} from "$lib/api/handleWSMessage";
 
     let {children}: LayoutProps = $props()
 
     const SCHEME_NAMES = {fromdark: '🌝', fromlight: '🌚'}
     const scheme = new Scheme()
+
+
+    const ws = new WebSocket("/api/v1/ws")
+    ws.onopen = async (): Promise<void> => {
+        console.log("WS onopen")
+        ws.send(JSON.stringify({"type": "ping", "data": "Hello world"}))
+    }
+    ws.onmessage = handleWSMessage
+    ws.onclose = () => {console.log("Connection closed") }
+    ws.onerror = (event) => {
+        console.error("Websocket error", event)
+    }
+
+
 
     //Init all singletons
     SearchParamsStore.instance
@@ -25,6 +40,7 @@
     ListingsStore.instance
     ScriptsStore.instance
     BaseAttributesStore.instance
+
 
     navigator && navigator.storage && navigator.storage.persist()
     initializer.initialize()

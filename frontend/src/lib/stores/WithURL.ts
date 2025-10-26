@@ -1,5 +1,4 @@
 import {WithState} from "$lib/stores/WithState.svelte";
-import {AsSingleton} from "$lib/stores/AsSingleton";
 
 export type GenericObject = { [key: string]: (string | number | ((string | number)[]) | object) }
 

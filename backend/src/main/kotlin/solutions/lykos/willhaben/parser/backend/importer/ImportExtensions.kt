@@ -5,6 +5,7 @@ import solutions.lykos.willhaben.parser.backend.importer.basedata.HashType
 import solutions.lykos.willhaben.parser.backend.importer.basedata.Node
 import solutions.lykos.willhaben.parser.backend.importer.pipelines.PipelineMessage
 import solutions.lykos.willhaben.parser.backend.jsonObjectMapper
+import solutions.lykos.willhaben.parser.backend.snakeCase
 import java.io.InputStreamReader
 import java.math.BigInteger
 import java.security.MessageDigest
@@ -43,6 +44,7 @@ private fun sha512(value: String): String {
 }
 
 private val upperCaseChar = "(?<=.)(?=\\p{Upper})".toRegex()
+private val camelCaseChar = "_([a-zA-Z])".toRegex()
 fun String.toSnakeCase() = replace(upperCaseChar, "_").lowercase()
 fun String.toPlural() = this + (this.last().let { l -> "s".takeIf { l != 's' } } ?: "")
 
