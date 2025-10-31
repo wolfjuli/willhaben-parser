@@ -6,6 +6,7 @@ CREATE TABLE schema_version
     created_datetime TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp
 );
 
+CREATE TYPE data_type AS ENUM ('TEXT', 'NUMBER', 'IMAGE', 'LINK');
 
 CREATE TABLE watch_lists
 (
@@ -41,12 +42,11 @@ CREATE INDEX listings_willhaben_id_idx
 
 CREATE TABLE listing_user_attributes
 (
-    listing_id   INTEGER NOT NULL REFERENCES listings ON UPDATE CASCADE ON DELETE CASCADE,
+    listing_id   INTEGER NOT NULL REFERENCES listings (id) ON UPDATE CASCADE ON DELETE CASCADE,
     attribute_id INTEGER NOT NULL REFERENCES attributes (id) ON DELETE CASCADE ON UPDATE CASCADE,
     values       jsonb,
     PRIMARY KEY (listing_id, attribute_id)
 );
-
 
 CREATE TABLE functions
 (
@@ -96,10 +96,11 @@ CREATE INDEX listing_points_points_idx
 
 CREATE TABLE attributes
 (
-    id        SERIAL PRIMARY KEY,
-    attribute TEXT NOT NULL UNIQUE,
-    label     TEXT,
-    data_type data_type
+    id                SERIAL PRIMARY KEY,
+    attribute         TEXT NOT NULL UNIQUE,
+    label             TEXT,
+    sorting_attribute INT REFERENCES attributes (id) ON DELETE CASCADE ON UPDATE CASCADE,
+    data_type         data_type
 );
 
 
@@ -156,10 +157,7 @@ CREATE TABLE normalized_listings
 /** Materialized views dont allow function calls anymore (for a security reason), thus we have to do it by ourself **/
 CREATE OR REPLACE FUNCTION update_normalized_listings(willhaben_ids INTEGER[] DEFAULT NULL::INTEGER[],
                                                       listing_ids INTEGER[] DEFAULT NULL::INTEGER[])
-    RETURNS TABLE
-            (
-                like normalized_listings
-            )
+    RETURNS SETOF normalized_listings
     VOLATILE
     LANGUAGE plpgsql
 AS
@@ -495,7 +493,7 @@ DECLARE
     errtext TEXT;
     details TEXT;
 BEGIN
-    sql := 'SELECT to_jsonb(' || _function || ') from (values(''' || replace(attribute::TEXT,  '''', '''''') ||
+    sql := 'SELECT to_jsonb(' || _function || ') from (values(''' || replace(attribute::TEXT, '''', '''''') ||
            '''::JSONB, ''' ||
            replace((jsonb_build_object('a', listing::TEXT) ->> 'a')::TEXT, '''', '''''') ||
            '''::JSONB)) r(val, row)';
@@ -536,7 +534,9 @@ DECLARE
 BEGIN
     CASE
         WHEN ret ->> 'error' IS NOT NULL
-            THEN RAISE EXCEPTION 'Error: %, FnName: %, ListingID: %, WillhabenID: %', ret ->> 'error', (SELECT string_agg(name, ', ') FROM functions WHERE function = _function), listing -> 'base' ->> 'listingId', listing -> 'base' ->> 'id';
+            THEN RAISE EXCEPTION 'Error: %, FnName: %, ListingID: %, WillhabenID: %', ret ->> 'error', (SELECT string_agg(name, ', ')
+                                                                                                        FROM functions
+                                                                                                        WHERE function = _function), listing -> 'base' ->> 'listingId', listing -> 'base' ->> 'id';
         ELSE RETURN ret -> 'value';
         END CASE;
 END;
@@ -561,10 +561,8 @@ CREATE OR REPLACE FUNCTION update_listing_points(willhaben_ids INTEGER[] DEFAULT
                                                  attribute_ids INT[] DEFAULT NULL::INT[],
                                                  listing_ids INTEGER[] DEFAULT NULL::INTEGER[],
                                                  script_ids INT[] DEFAULT NULL::INT[])
-    RETURNS TABLE
-            (
-                "like" listing_points
-            )
+    RETURNS SETOF listing_points
+    VOLATILE
     LANGUAGE plpgsql
 AS
 $$
@@ -588,9 +586,43 @@ END;
 $$;
 
 
-CREATE FUNCTION listing_path_query(listing jsonb, path TEXT) RETURNS jsonb
-    IMMUTABLE
+CREATE OR REPLACE FUNCTION get_listing_attribute(listing jsonb, _attribute TEXT)
+    RETURNS jsonb
     LANGUAGE plpgsql
+    IMMUTABLE
+AS
+$$
+DECLARE
+    attr RECORD ;
+BEGIN
+    BEGIN
+
+
+        SELECT *
+        INTO attr
+        FROM attributes a
+        WHERE a.attribute = _attribute;
+
+        RETURN CASE
+                   WHEN
+                       attr.data_type = 'NUMBER'
+                       THEN to_jsonb(to_real(listing_path_query(listing, _attribute)::TEXT))
+                   ELSE listing_path_query(listing, _attribute)
+            END;
+
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE INFO '%', _attribute;
+            RAISE EXCEPTION '%, %', sqlstate, sqlerrm;
+
+    END;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION listing_path_query(listing jsonb, path TEXT)
+    RETURNS jsonb
+    LANGUAGE plpgsql
+    IMMUTABLE
 AS
 $$
 DECLARE
@@ -617,7 +649,7 @@ CREATE OR REPLACE FUNCTION to_real(val jsonb) RETURNS REAL
 AS
 $$
 BEGIN
-    RETURN nullif(nullif(substr(val #>> '{}', 26), 'null'), '')::REAL;
+    RETURN nullif(nullif(substr(val #>> '{}', 1, 26), 'null'), '')::REAL;
 END;
 $$;
 

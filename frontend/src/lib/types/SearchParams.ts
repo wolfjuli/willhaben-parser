@@ -5,4 +5,5 @@ export type SearchParams = {
     searchAttributes: string[],
     sortCol: string,
     sortDir: string,
+    page: number,
 }

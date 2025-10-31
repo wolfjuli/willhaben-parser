@@ -1,9 +1,3 @@
-import {SearchParamsStore} from "$lib/stores/SearchParamsStore.svelte";
-import {SortingStore} from "$lib/stores/SortingStore.svelte";
-import {ListingsStore} from "$lib/stores/ListingsStore.svelte";
-import {ScriptsStore} from "$lib/stores/ScriptsStore.svelte";
-import {BaseAttributesStore} from "$lib/stores/Attributes.svelte";
-import {initializer} from "$lib/stores/initializeStores.svelte";
 
 export const ssr = false
 

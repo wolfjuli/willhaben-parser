@@ -24,11 +24,6 @@
     </repositories>
     <dependencies>
         <dependency>
-            <groupId>org.jetbrains.kotlinx</groupId>
-            <artifactId>kotlinx-serialization-json</artifactId>
-            <version>${serialization.version}</version>
-        </dependency>
-        <dependency>
             <groupId>io.ktor</groupId>
             <artifactId>ktor-server-core-jvm</artifactId>
             <version>${ktor.version}</version>
@@ -59,19 +54,9 @@
             <version>${ktor.version}</version>
         </dependency>
         <dependency>
-            <groupId>io.ktor</groupId>
-            <artifactId>ktor-serialization-kotlinx-json-jvm</artifactId>
-            <version>${ktor.version}</version>
-        </dependency>
-        <dependency>
             <groupId>com.fasterxml.jackson.module</groupId>
             <artifactId>jackson-module-kotlin</artifactId>
             <version>${jackson.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.ktor</groupId>
-            <artifactId>ktor-server-content-negotiation-jvm</artifactId>
-            <version>${ktor.version}</version>
         </dependency>
         <dependency>
             <groupId>io.ktor</groupId>
@@ -193,7 +178,7 @@
         <resources>
             <resource>
                 <directory>${project.basedir}/src/main/resources</directory>
-                <filtering>true</filtering>
+                <filtering>false</filtering>
             </resource>
         </resources>
 
@@ -204,9 +189,6 @@
                 <version>${kotlin.version}</version>
                 <configuration>
                     <jvmTarget>${jvmTarget}</jvmTarget>
-                    <compilerPlugins>
-                        <plugin>kotlinx.serialization</plugin>
-                    </compilerPlugins>
                 </configuration>
                 <executions>
                     <execution>

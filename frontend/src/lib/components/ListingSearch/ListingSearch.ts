@@ -1,4 +1,4 @@
-import type {Listing} from "$lib/types/Listing";
+import type {Listing} from "$lib/types/listing";
 
 export interface ListingSearchProps {
     sorted: number[],

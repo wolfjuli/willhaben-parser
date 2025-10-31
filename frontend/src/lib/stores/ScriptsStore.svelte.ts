@@ -1,6 +1,6 @@
 import type {ScriptDef, ScriptFunctionDef, ScriptSetDef} from "$lib/types/Script";
 import {WithState} from "$lib/stores/WithState.svelte";
-import {FetchingStore} from "$lib/stores/FetchingStore.svelte";
+import {Socket} from "$lib/api/Socket";
 
 
 export type ScriptDefMap = { [key: number]: ScriptDef }
@@ -9,9 +9,10 @@ export class ScriptsStore extends WithState<ScriptDefMap> {
     static #instance: ScriptsStore
 
     private constructor() {
-        super();
+        super({});
 
-        ScriptsStore.fetch()
+        Socket.register("getScripts", this.upsert)
+        Socket.register("setScript", (it: ScriptDef) => this.upsert([it]))
     }
 
     static get instance(): ScriptsStore {
@@ -25,36 +26,17 @@ export class ScriptsStore extends WithState<ScriptDefMap> {
         return ScriptsStore.instance.value
     }
 
-    static set value(newVal: ScriptDefMap) {
-        ScriptsStore.instance.value = newVal
-    }
-
-    static fetch(id: number | undefined = undefined) {
-        FetchingStore.whileFetching("scripts", () => {
-            const filter = id ? `?id=${id}` : ''
-            return fetch(`/api/v1/rest/scripts${filter}`)
-                .then((response) => response.json())
-                .then((data: ScriptDef[]) => {
-                    if (!id) ScriptsStore.value = {}
-                    data.forEach(d => {
-                        ScriptsStore.value[d.id] = d
-                    })
-                })
+    static upsert(scripts: ScriptDef[]) {
+        scripts.forEach(d => {
+            ScriptsStore.value[d.id] = d
         })
     }
 
     static update(script: ScriptSetDef) {
-        fetch("/api/v1/rest/scripts", {
-            method: 'put',
-            body: JSON.stringify(script)
-        }).then(() => ScriptsStore.fetch(script.id))
+        Socket.send("setScript", script)
     }
 
     static create(script: ScriptSetDef) {
-        fetch("/api/v1/rest/scripts", {
-            method: 'post',
-            body: JSON.stringify(script)
-        }).then(() => ScriptsStore.fetch(script.id))
     }
 
     static delete(script: ScriptSetDef) {

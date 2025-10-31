@@ -1,22 +1,20 @@
 <script lang=ts>
     import type {PageProps} from "./$types";
-    import ListingTable from "$lib/components/ListingTable/ListingTable.svelte";
     import {BaseAttributesStore} from "$lib/stores/Attributes.svelte.js";
-    import type {Attribute, BaseAttribute} from "$lib/types/Attribute";
+    import type {Attribute, BaseAttribute, CreateUserAttribute} from "$lib/types/Attribute";
     import {setSettings, settingsStore} from "$lib/stores/settings.svelte";
     import 'bootstrap'
     import 'bootstrap-grid'
     import Dropdown from "$lib/components/Dropdown/Dropdown.svelte";
-    import {SortingStore} from "$lib/stores/SortingStore.svelte";
     import Input from "$lib/components/Input/Input.svelte";
+    import {SearchParamsStore} from "$lib/stores/SearchParamsStore.svelte";
+    import ListingTable from "../ListingTable.svelte";
 
     let {data}: PageProps = $props()
-
-
-    const sorting = $derived(SortingStore.value.sorting ?? [])
     const settings = $derived(settingsStore.value)
-    const fields = $derived(settings.listingFields.map(f => BaseAttributesStore.value?.find(a => f === a.attribute)).filter(Boolean))
+    const fields = $derived(settings.listingFields.map(f => BaseAttributesStore.value?.find(a => f === a.attribute)).filter(Boolean)) as Attribute[]
     const attributes = $derived(BaseAttributesStore.value?.filter(a => !fields.find(f => f!!.attribute === a.attribute)) ?? [])
+
 
     function removeField(field: Attribute) {
         const newSettings = {
@@ -63,21 +61,39 @@
 
     function attrDataType(field: BaseAttribute, dataType: { id: string, name: string }): boolean {
         field.dataType = dataType.id
-        BaseAttributesStore.updateAttribute(field)
+        BaseAttributesStore.set(field)
+
+        return false
+    }
+
+    function attrSortBy(field: BaseAttribute, sortBy: BaseAttribute): boolean {
+        field.sortBy = sortBy.id
+        BaseAttributesStore.set(field)
 
         return false
     }
 
     function attrLabel(field: BaseAttribute, newName: string) {
         field.label = newName
-        BaseAttributesStore.updateAttribute(field)
+        BaseAttributesStore.set(field)
 
         editing.fieldId = -1
     }
 
     let editing = $state({fieldId: -1})
 
+    $effect(() => {
+        if (settings && SearchParamsStore.value) {
+            SearchParamsStore.value.viewAttributes = settings.listingFields
+        }
+    })
+
+    function sortField(field: Attribute) {
+        return fields.find(f => f.attribute === field.sortingAttribute) ?? field
+    }
+
 </script>
+
 
 <details>
     <summary>Columns</summary>
@@ -100,8 +116,17 @@
                             emptyFirstLineText="Type"
                             nameSelector={e => e.name}
                             onchange={type => { attrDataType(field, type) }}
-                            values={["TEXT", "IMAGE", "LINK"].map (t => ({id: t, name: t}))}
+                            values={["TEXT", "NUMBER", "IMAGE", "LINK"].map (t => ({id: t, name: t}))}
                             preSelected={field.dataType}
+                        />
+                    </div>
+                    <div class="col-1">
+                        <Dropdown
+                            emptyFirstLineText="Sort by..."
+                            nameSelector={v => v.label ?? v.attribute}
+                            onchange={attr => attrSortBy(field, attr)}
+                            values={attributes}
+                            preSelected={sortField(field).label ?? sortField(field)?.attribute}
                         />
                     </div>
                     <div class="col-4">
@@ -120,14 +145,15 @@
         <div class="row">
             <Dropdown
                 emptyFirstLineText="Add attribute..."
-                nameSelector={v => v.label ?? v.attribute ?? '[unknown]'}
+                nameSelector={v => v.label ?? v.attribute }
                 onchange={attr => add(attr)}
                 values={attributes}
             />
         </div>
     </div>
 
-    <ListingTable {attributes} configuration={data.configuration} {fields} {sorting}/>
+    <ListingTable configuration={data.configuration} />
+
 </details>
 
 <style>

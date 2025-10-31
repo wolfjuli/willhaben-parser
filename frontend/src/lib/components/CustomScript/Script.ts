@@ -1,6 +1,6 @@
 import type {ScriptDef} from "$lib/types/Script";
 import type {Attribute} from "$lib/types/Attribute";
-import type {Listing} from "$lib/types/Listing";
+import type {Listing} from "$lib/types/listing";
 import type {FunctionDefMap} from "$lib/stores/functions.svelte";
 
 export interface CreateScriptProps {

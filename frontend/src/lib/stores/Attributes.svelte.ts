@@ -1,15 +1,15 @@
 import type {BaseAttribute} from "$lib/types/Attribute";
 import {WithState} from "$lib/stores/WithState.svelte";
+import {Socket} from "$lib/api/Socket";
 
 export class BaseAttributesStore extends WithState<BaseAttribute[]> {
     static #instance: BaseAttributesStore
 
     private constructor() {
         super([]);
-
-        fetch("/api/v1/rest/attributes")
-            .then(r => r.json())
-            .then(d => BaseAttributesStore.instance.value = d)
+        Socket.register("getAttributes", BaseAttributesStore.upsert)
+        Socket.register("setAttribute", (it: BaseAttribute) => BaseAttributesStore.upsert([it]))
+        Socket.send("getAttributes", {})
     }
 
     static get instance(): BaseAttributesStore {
@@ -32,11 +32,8 @@ export class BaseAttributesStore extends WithState<BaseAttribute[]> {
         return BaseAttributesStore.instance.value
     }
 
-    static updateAttribute(attr: BaseAttribute): BaseAttribute {
-        BaseAttributesStore.instance.value = [
-            ...(BaseAttributesStore.instance.value.filter(a => a.id !== attr.id)),
-            attr
-        ]
+    static set(attr: BaseAttribute): BaseAttribute {
+        Socket.send("setAttribute", attr)
         return attr
     }
 }

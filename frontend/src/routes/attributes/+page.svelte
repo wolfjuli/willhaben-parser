@@ -3,7 +3,7 @@
     import ListingFilter from "$lib/components/ListingFilter/ListingFilter.svelte";
     import {FunctionsStore} from "$lib/stores/functions.svelte";
     import {ScriptsStore} from "$lib/stores/ScriptsStore.svelte.js";
-    import type {Listing} from "$lib/types/Listing.js";
+    import type {Listing} from "$lib/types/listing.js";
     import Function from "$lib/components/Function/Function.svelte";
     import {BaseAttributesStore} from "$lib/stores/Attributes.svelte";
 

@@ -1,9 +1,7 @@
 import {WithLocalStore} from "$lib/stores/WithLocalStore.svelte";
 import type {RawSorting, SortingStoreType} from "$lib/types/Sorting";
 import type {SearchParams} from "$lib/types/SearchParams";
-import {FetchingStore} from "$lib/stores/FetchingStore.svelte";
-import {ListingsStore} from "$lib/stores/ListingsStore.svelte";
-import {Socket} from "$lib/utils/Socket";
+import {Socket} from "$lib/api/Socket";
 
 
 export class SortingStore extends WithLocalStore<SortingStoreType> {
@@ -17,7 +15,7 @@ export class SortingStore extends WithLocalStore<SortingStoreType> {
         );
     }
 
-    static get instance(): SortingStore {
+    private static get instance(): SortingStore {
         if (!this.#instance)
             this.#instance = new SortingStore()
 
@@ -31,13 +29,17 @@ export class SortingStore extends WithLocalStore<SortingStoreType> {
 
     static upsert(sorting: RawSorting[]): SortingStoreType {
         const newIds = sorting.map(s => s.listingId)
-        this.value.lastUpdate = new Date()
-        this.value.sorting = [...newIds]
+        SortingStore.value.lastUpdate = new Date()
+        SortingStore.value.sorting = [...newIds]
 
-        return this.value
+        return SortingStore.value
     }
 
-    fetch(searchParams: SearchParams) {
-        Socket.send("getSorting", searchParams)
+    static fetch(searchParams: SearchParams): Promise<SortingStoreType> {
+        return new Promise<SortingStoreType>(async (resolve, reject) => {
+            Socket.send("getSorting", searchParams, (data: RawSorting[]) => {
+                resolve(SortingStore.upsert(data))
+            })
+        })
     }
 }

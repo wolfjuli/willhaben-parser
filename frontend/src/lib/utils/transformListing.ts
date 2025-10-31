@@ -1,4 +1,4 @@
-import type {Listing} from "$lib/types/Listing";
+import type {Listing} from "$lib/types/listing";
 import type {Attribute} from "$lib/types/Attribute";
 import type {FunctionDefMap} from "$lib/stores/functions.svelte";
 

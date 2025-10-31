@@ -1,4 +1,4 @@
--- listings/sorting
+-- getSorting
 SELECT nl.listing_id
 FROM (SELECT listing_id,
              listing || jsonb_build_object('custom', listing -> 'custom' ||
@@ -15,7 +15,7 @@ WHERE
         OR willhaben_id::TEXT LIKE '%' || ${searchString}::TEXT || '%'
         OR exists (SELECT
                    FROM unnest(${searchAttributes}::TEXT[]) a(attribute)
-                   WHERE lower(listing_path_query(nl.listing, a.attribute)::TEXT) LIKE
+                   WHERE lower(get_listing_attribute(nl.listing, a.attribute)::TEXT) LIKE
                          '%' || lower(${searchString}::TEXT) || '%'))
 ORDER BY l.last_seen DESC,
-         LISTING_PATH_QUERY(nl.listing, ${sortCol}) ${sortDir} NULLS LAST
+         get_listing_attribute(nl.listing, ${sortCol}) ${sortDir} NULLS LAST

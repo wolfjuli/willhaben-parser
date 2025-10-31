@@ -1,4 +1,4 @@
-package solutions.lykos.willhaben.parser.backend.api.messages.rcv
+package solutions.lykos.willhaben.parser.backend.api.websocket.rcv
 
 import solutions.lykos.willhaben.parser.backend.api.SortDir
 import solutions.lykos.willhaben.parser.backend.database.postgresql.QueryBuilder
@@ -11,8 +11,8 @@ data class GetSorting(
     val sortDir: SortDir?,
     val searchString: String?,
     val searchAttributes: List<String>?,
-    val viewAttributes: List<String>?
-) : WSMessage<List<Map<String, Any?>>>() {
+    val viewAttributes: List<String>?,
+) : WSListMessage() {
     override fun respond(transaction: Transaction, templates: QueryTemplateProvider): List<Map<String, Any?>> {
         return respond(
             QueryBuilder(transaction)

@@ -9,7 +9,7 @@
     import CreateScript from "$lib/components/CustomScript/CreateCustomScript.svelte";
     import ScriptFunctions from "$lib/components/CustomScript/ScriptFunctions.svelte";
     import ListingSearch from "$lib/components/ListingSearch/ListingSearch.svelte";
-    import type {Listing} from "$lib/types/Listing";
+    import type {Listing} from "$lib/types/listing";
     import CreateFunction from "$lib/components/Function/CreateFunction.svelte";
     import ListingDetail from "$lib/components/ListingDetail/ListingDetail.svelte";
     import {BaseAttributesStore} from "$lib/stores/Attributes.svelte";

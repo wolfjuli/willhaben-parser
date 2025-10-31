@@ -1,8 +1,8 @@
+
 export type RawListing = {
     listing: Listing,
     md5: string
 }
-
 
 export type ListingAttribute = {
     base: string | number | undefined
@@ -23,8 +23,8 @@ export type Listing = {
 
 export type ListingsStoreType = {
     lastUpdate: Date,
-    listings: { [id: number]: Listing[] },
-    knownListings: { [id: number]: string },
+    listings: { [id: number]: Listing },
+    knownListings: { [id: number]: string }
 }
 
 export type UserListing = {

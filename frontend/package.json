@@ -1,6 +1,6 @@
 {
     "name": "frontend",
-  "version": "1.0.0",
+    "version": "1.0.0",
     "private": true,
     "type": "module",
     "scripts": {
@@ -16,7 +16,7 @@
     },
     "dependencies": {
         "@picocss/pico": "^2.0.6",
-      "@neodrag/svelte": "^2.3.2",
+        "@neodrag/svelte": "^2.3.2",
         "bootstrap": "^5.3.3",
         "bootstrap-grid": "^3.0.1",
         "bootstrap-grid-flexbox": "^1.1.2",

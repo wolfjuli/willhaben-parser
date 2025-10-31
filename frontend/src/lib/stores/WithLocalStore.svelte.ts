@@ -5,12 +5,13 @@ export class WithLocalStore<T> extends WithState<T> {
     key = '';
 
     constructor(key: string, initialValue: () => T) {
-        super()
+        super();
         this.key = key;
 
         if (browser) {
             const item = localStorage.getItem(key);
             this.value = item ? this.deserialize(item) : initialValue();
+            if (!item) localStorage.setItem(this.key, this.serialize(this.value))
         } else {
             this.value = initialValue()
         }
@@ -18,6 +19,7 @@ export class WithLocalStore<T> extends WithState<T> {
         $effect(() => {
             localStorage.setItem(this.key, this.serialize(this.value));
         });
+
     }
 
     serialize(value: T): string {

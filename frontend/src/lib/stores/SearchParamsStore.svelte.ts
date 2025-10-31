@@ -1,5 +1,6 @@
 import {WithLocalStore} from "$lib/stores/WithLocalStore.svelte";
 import type {SearchParams} from "$lib/types/SearchParams";
+import type {RawListing} from "$lib/types/listing";
 
 
 export class SearchParamsStore extends WithLocalStore<SearchParams> {
@@ -11,9 +12,14 @@ export class SearchParamsStore extends WithLocalStore<SearchParams> {
                 searchString: "",
                 searchAttributes: [],
                 sortCol: "points",
-                sortDir: "DESC"
+                sortDir: "DESC",
+                page: 1,
             })
         );
+    }
+
+    static upsert(listings: RawListing[]): RawListing[] {
+        return listings
     }
 
     static get instance(): SearchParamsStore {
@@ -25,5 +31,11 @@ export class SearchParamsStore extends WithLocalStore<SearchParams> {
 
     static get value(): SearchParams {
         return SearchParamsStore.instance.value
+    }
+
+    static set(value: SearchParams): SearchParams {
+        console.log("SearchParamsStore set value", value)
+        SearchParamsStore.instance.value = value
+        return value
     }
 }

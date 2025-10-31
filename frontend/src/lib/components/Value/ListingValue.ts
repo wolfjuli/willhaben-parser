@@ -1,5 +1,5 @@
 import type {Attribute} from "$lib/types/Attribute"
-import type {Listing} from "$lib/types/Listing"
+import type {Listing} from "$lib/types/listing"
 import type {Configuration} from "$lib/types/Configuration";
 
 export type ListingValueProps = {
@@ -13,6 +13,5 @@ export type ListingValueProps = {
 export type EditListingValueProps = {
     listing: Listing
     attribute: Attribute
-    oncreate: (val: string, listing: Listing, attribute: Attribute) => void
     onupdate: (val: string, listing: Listing, attribute: Attribute) => void
 }

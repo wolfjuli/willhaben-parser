@@ -6,20 +6,18 @@
     import '@picocss/pico'
     import 'bootstrap'
     import 'bootstrap-grid'
-    import {initializer} from "$lib/stores/initializeStores.svelte";
     import {ListingsStore} from "$lib/stores/ListingsStore.svelte";
     import {ScriptsStore} from "$lib/stores/ScriptsStore.svelte";
     import {FetchingStore} from "$lib/stores/FetchingStore.svelte";
     import {SortingStore} from "$lib/stores/SortingStore.svelte";
     import {SearchParamsStore} from "$lib/stores/SearchParamsStore.svelte";
     import {BaseAttributesStore} from "$lib/stores/Attributes.svelte";
-    import {Socket} from "$lib/utils/Socket.js";
+    import {Socket} from "$lib/api/Socket.js";
 
     let {children}: LayoutProps = $props()
 
     const SCHEME_NAMES = {fromdark: '🌝', fromlight: '🌚'}
     const scheme = new Scheme()
-
 
     //Init all singletons
     SearchParamsStore.instance
@@ -28,13 +26,8 @@
     ScriptsStore.instance
     BaseAttributesStore.instance
 
-    Socket.send("getAttributes")
-    $effect(() => Socket.send("getSorting", SearchParamsStore.instance.value))
-    $effect(() => Socket.send("getListings", {ids: SortingStore.instance.value.sorting.slice(0, 100)}))
-
-
     navigator && navigator.storage && navigator.storage.persist()
-    initializer.initialize()
+
 </script>
 
 <svelte:head>

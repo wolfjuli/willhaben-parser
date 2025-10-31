@@ -4,7 +4,7 @@
  * Licensed under the MIT (MIT-LICENSE.txt) licence.
  */
 
-import type {Listing, ListingAttribute} from "$lib/types/Listing";
+import type {Listing, ListingAttribute} from "$lib/types/listing";
 
 export function jsonPath(obj, expr, arg = undefined) {
     let P = {
