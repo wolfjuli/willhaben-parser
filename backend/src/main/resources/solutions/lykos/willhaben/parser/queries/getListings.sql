@@ -1,6 +1,6 @@
 -- getListings
 SELECT listing ||
-       jsonb_build_object('custom', listing -> 'custom' || jsonb_build_object('points', sum(coalesce(lp.points, 0)))) ||
+       jsonb_build_object('points', sum(coalesce(lp.points, 0))) ||
        jsonb_build_object('id', l.listing_id) AS listing,
        md5
 FROM normalized_listings l

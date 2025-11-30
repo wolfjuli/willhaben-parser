@@ -7,15 +7,13 @@ import org.postgresql.ds.PGSimpleDataSource
 import solutions.lykos.willhaben.parser.backend.config.DatabaseConfiguration
 import solutions.lykos.willhaben.parser.backend.config.DatabaseCredentials
 import java.io.ByteArrayOutputStream
-import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
 import java.lang.ProcessBuilder.Redirect
-import java.net.URL
 import java.util.function.Supplier
 
 class DatabaseManager(
-    baseUrl: URL,
+    basePath: String,
     private val extensions: List<String> = emptyList()
 ) {
     companion object {
@@ -25,12 +23,13 @@ class DatabaseManager(
     private val latestPatchNumber: Int
         get() {
             return patchesUrl
+
                 .let(FileResourceLoader::listResources)
                 .maxOfOrNull { PATCH_REGEX.matchEntire(it.toString())!!.groupValues[2].toInt() } ?: 0
         }
 
-    private val patchesUrl: URL = URL(baseUrl, "patches" )
-    private val schemaUrl: URL= URL(baseUrl, "schema")
+    private val patchesUrl = javaClass.classLoader.getResource("$basePath/patches")
+    private val schemaUrl = javaClass.classLoader.getResource("$basePath/schema")
 
 
     fun setup(
@@ -199,28 +198,28 @@ class DatabaseManager(
     private fun createSchema(databaseConfiguration: DatabaseConfiguration): Boolean =
 
         (if (databaseConfiguration.searchPath.contains(","))
-        runPsql(
-            databaseConfiguration.host,
-            databaseConfiguration.port,
-            databaseConfiguration.user,
-            databaseConfiguration.password,
-            databaseConfiguration.name
-        ) {
+            runPsql(
+                databaseConfiguration.host,
+                databaseConfiguration.port,
+                databaseConfiguration.user,
+                databaseConfiguration.password,
+                databaseConfiguration.name
+            ) {
 
-            inputStreamOf(
-                Supplier {
-                    val schema =
-                        databaseConfiguration.searchPath
-                            .substringBefore(',')
-                            .trim()
-                            .escapeSql()
-                    "\n\nCREATE SCHEMA $schema\n\n;".byteInputStream()
-                }
-            )
-        } else true) && runSchema(databaseConfiguration)
+                inputStreamOf(
+                    Supplier {
+                        val schema =
+                            databaseConfiguration.searchPath
+                                .substringBefore(',')
+                                .trim()
+                                .escapeSql()
+                        "\n\nCREATE SCHEMA $schema\n\n;".byteInputStream()
+                    }
+                )
+            } else true) && runSchema(databaseConfiguration)
 
     private fun runSchema(
-    databaseConfiguration: DatabaseConfiguration
+        databaseConfiguration: DatabaseConfiguration
     ): Boolean {
         return runPsql(
             databaseConfiguration.host,
@@ -230,15 +229,16 @@ class DatabaseManager(
             databaseConfiguration.name
         ) {
             inputStreamOf(
-                Supplier { "BEGIN;\n\n".byteInputStream() },
+                Supplier { "BEGIN; \n\n".byteInputStream() },
                 Supplier {
-                        schemaUrl
-                            .let(FileResourceLoader::listResources)
-                            .asSequence()
-                            .sortedBy { it.toExternalForm() }
-                            .joinToString("\n\n") { it.readText() }
-                            .byteInputStream()
-                }
+                    schemaUrl
+                        .let(FileResourceLoader::listResources)
+                        .asSequence()
+                        .sortedBy { it.toExternalForm() }
+                        .joinToString("\n\n") { it.readText() }
+                        .byteInputStream()
+                },
+                Supplier { "COMMIT;".byteInputStream() }
             )
         }
     }

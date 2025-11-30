@@ -47,7 +47,7 @@ export class ListingsStore extends WithState<ListingsStoreType> {
     }
 
     static fetch(listingIds: number[], page: number | undefined = undefined): Promise<Listing[]> {
-        const ids = page ? listingIds.slice((page - 1) * 100, page * 100) : listingIds
+        const ids = [...(page ? listingIds.slice((page - 1) * 100, page * 100) : listingIds)]
         return new Promise((resolve, reject) => {
             Socket.send("getListings", {ids}, (data: RawListing[]) => {
                 resolve(ListingsStore.upsert(data))

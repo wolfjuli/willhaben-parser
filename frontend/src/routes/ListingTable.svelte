@@ -3,15 +3,13 @@
     import Table from "$lib/components/Table/Table.svelte";
     import TD from "$lib/components/Table/TD.svelte";
     import TH from "$lib/components/Table/TH.svelte";
-    import {goto} from "$app/navigation";
     import ListingValue from "$lib/components/Value/ListingValue.svelte";
-    import type {Attribute, CreateUserAttribute} from "$lib/types/Attribute";
+    import type {Attribute} from "$lib/types/Attribute";
     import EditListingValue from "$lib/components/Value/EditListingValue.svelte";
     import ListingFilter from "$lib/components/ListingFilter/ListingFilter.svelte";
     import ListingDetail from "$lib/components/ListingDetail/ListingDetail.svelte";
     import {listingAttribute} from "$lib/utils/jsonpath";
     import {BaseAttributesStore} from "$lib/stores/Attributes.svelte";
-    import {settingsStore} from "$lib/stores/settings.svelte";
     import {SortingStore} from "$lib/stores/SortingStore.svelte";
     import {SearchParamsStore} from "$lib/stores/SearchParamsStore.svelte";
     import {ListingsStore} from "$lib/stores/ListingsStore.svelte";
@@ -21,14 +19,15 @@
         configuration: Configuration
     } = $props()
 
-    const settings = $derived(settingsStore.value)
-    const fields = $derived(settings.listingFields.map(f => BaseAttributesStore.value?.find(a => f === a.attribute)).filter(Boolean)) as Attribute[]
+    const settings = $derived(SearchParamsStore.value)
+    const fields = $derived(settings.viewAttributes.map(f => BaseAttributesStore.value?.find(a => f === a.attribute)).filter(Boolean)) as Attribute[]
     const attributes = $derived(BaseAttributesStore.value?.filter(a => !fields.find(f => f!!.attribute === a.attribute)) ?? [])
 
     let tableData = $state<Listing[]>()
 
     $effect(() => {
         const page = SearchParamsStore.value.page
+        console.log("Update sorting/listing")
         SortingStore.fetch(SearchParamsStore.value)
             .then((sorting) => ListingsStore.fetch(sorting.sorting.slice((page - 1) * 100, page * 100))
                 .then((listings: Listing[]) => tableData = sorting.sorting.map(s => listings.find(l => l.id === s)).filter(Boolean))
@@ -47,12 +46,20 @@
             SearchParamsStore.value.sortCol = key
             SearchParamsStore.value.sortDir = "ASC"
         }
-        SearchParamsStore.set( {...SearchParamsStore.value})
+        SearchParamsStore.set({...SearchParamsStore.value})
     }
 
-    function onUpdate(newValue: CreateUserAttribute, listing: Listing, attribute: Attribute) {
-        if (listingAttribute(listing, attribute.attribute)?.user != newValue.values)
-            ListingsStore.set(newValue)
+    function onUpdate(newValue: string, listing: Listing, attribute: Attribute) {
+        console.log("onUpdate", newValue)
+        const currentAttr = listingAttribute(listing, attribute.attribute)
+        if (currentAttr?.base == newValue) newValue = undefined
+        if (currentAttr?.user != newValue)
+            ListingsStore.set({
+                values: newValue,
+                attributeId: attribute.id,
+                listingId: listing.id
+            })
+        editing ={ attributeId: -1, listingId: -1}
     }
 
     function toggleExpand(id: number) {

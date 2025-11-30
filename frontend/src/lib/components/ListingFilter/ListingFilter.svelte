@@ -15,6 +15,26 @@
 
     let attrs = $derived(attributes?.toSorted((a, b) => (a.label ?? a.attribute)?.localeCompare((b.label ?? b.attribute))))
 
+    let oldSearchString = SearchParamsStore.value.searchString
+    let searchString = $state(SearchParamsStore.value.searchString)
+    let timer = 0;
+
+    $effect(() => {
+        if(searchString != oldSearchString) {
+            if(timer) clearTimeout(timer);
+            oldSearchString = searchString
+            console.log("Resetting timer")
+            timer = setTimeout(() => {
+                clearTimeout(timer);
+                timer = 0
+                console.log("Setting search")
+                if(!SearchParamsStore.value.searchAttributes.length) SearchParamsStore.value.searchAttributes = [...SearchParamsStore.value.viewAttributes];
+                SearchParamsStore.value.searchString = searchString
+                SearchParamsStore.set(SearchParamsStore.value)
+            }, 500)
+        }
+    })
+
 </script>
 
 <div class=col>
@@ -64,7 +84,7 @@
                 </li>
             </ul>
         </details>
-        <input bind:value={SearchParamsStore.value.searchString} disabled={searchType !== "normal"} type="search"/>
+        <input bind:value={searchString} disabled={searchType !== "normal"} type="search"/>
         <button onclick={() => {SearchParamsStore.value.searchString = "" }}>X</button>
     </div>
 </div>

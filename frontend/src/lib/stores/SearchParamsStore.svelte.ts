@@ -8,9 +8,24 @@ export class SearchParamsStore extends WithLocalStore<SearchParams> {
 
     private constructor() {
         super("searchParamsStore", () => ({
-                viewAttributes: [],
+                viewAttributes: [
+                    "attributeMap.mmo",
+                    "attributeMap.link",
+                    "points",
+                    "attributeMap.propertyType",
+                    "attributeMap.district",
+                    "attributeMap.address",
+                    "attributeMap.priceForDisplay",
+                    "attributeMap.estateSize",
+                    "price/m2",
+                    "id",
+                    "notes"
+                ],
                 searchString: "",
-                searchAttributes: [],
+                searchAttributes: [
+                    "description",
+                    "id"
+                ],
                 sortCol: "points",
                 sortDir: "DESC",
                 page: 1,

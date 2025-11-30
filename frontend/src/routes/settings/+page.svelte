@@ -2,7 +2,6 @@
     import type {PageProps} from "./$types";
     import {BaseAttributesStore} from "$lib/stores/Attributes.svelte.js";
     import type {Attribute, BaseAttribute, CreateUserAttribute} from "$lib/types/Attribute";
-    import {setSettings, settingsStore} from "$lib/stores/settings.svelte";
     import 'bootstrap'
     import 'bootstrap-grid'
     import Dropdown from "$lib/components/Dropdown/Dropdown.svelte";
@@ -11,18 +10,18 @@
     import ListingTable from "../ListingTable.svelte";
 
     let {data}: PageProps = $props()
-    const settings = $derived(settingsStore.value)
-    const fields = $derived(settings.listingFields.map(f => BaseAttributesStore.value?.find(a => f === a.attribute)).filter(Boolean)) as Attribute[]
+    const settings = $derived(SearchParamsStore.value)
+    const fields = $derived(settings.viewAttributes.map(f => BaseAttributesStore.value?.find(a => f === a.attribute)).filter(Boolean)) as Attribute[]
     const attributes = $derived(BaseAttributesStore.value?.filter(a => !fields.find(f => f!!.attribute === a.attribute)) ?? [])
 
 
     function removeField(field: Attribute) {
         const newSettings = {
             ...settings,
-            listingFields: settings.listingFields.filter(l => l !== field.attribute)
+            viewAttributes: settings.viewAttributes.filter(l => l !== field.attribute)
         }
 
-        setSettings(newSettings)
+        SearchParamsStore.set(newSettings)
     }
 
     function upOne(field: Attribute, list: string[]): string[] {
@@ -31,27 +30,27 @@
     }
 
     function up(field: Attribute) {
-        const listingFields = upOne(field, settings.listingFields)
+        const viewAttributes = upOne(field, settings.viewAttributes)
 
-        setSettings({
+        SearchParamsStore.set({
             ...settings,
-            listingFields
+            viewAttributes
         })
     }
 
     function down(field: Attribute) {
-        const listingFields = upOne(field, settings.listingFields.reverse()).reverse()
-        setSettings({
+        const viewAttributes = upOne(field, settings.viewAttributes.reverse()).reverse()
+        SearchParamsStore.set({
             ...settings,
-            listingFields
+            viewAttributes
         })
     }
 
     function add(attr: Attribute) {
-        const listingFields = [...settings.listingFields, attr.attribute]
-        setSettings({
+        const viewAttributes = [...settings.viewAttributes, attr.attribute]
+        SearchParamsStore.set({
             ...settings,
-            listingFields
+            viewAttributes
         })
 
         return true
@@ -67,7 +66,7 @@
     }
 
     function attrSortBy(field: BaseAttribute, sortBy: BaseAttribute): boolean {
-        field.sortBy = sortBy.id
+        field.sortingAttribute = sortBy.id
         BaseAttributesStore.set(field)
 
         return false
@@ -84,7 +83,7 @@
 
     $effect(() => {
         if (settings && SearchParamsStore.value) {
-            SearchParamsStore.value.viewAttributes = settings.listingFields
+            SearchParamsStore.value.viewAttributes = settings.viewAttributes
         }
     })
 

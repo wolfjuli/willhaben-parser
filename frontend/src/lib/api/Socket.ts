@@ -1,3 +1,5 @@
+import {act} from "@testing-library/svelte";
+
 export class Socket {
     // @ts-ignore
     private ws: WebSocket
@@ -39,16 +41,16 @@ export class Socket {
         const id = new Date().valueOf()
         if (onReceive) Socket.instance.specializedHandlers[id] = onReceive
 
-        const action = (type: string, data: { [k: string]: any } = {}) => {
-            Socket.instance.ws.send(JSON.stringify({type, id, ...data}))
+        const actionParams = {type, id, ...data}
+        const action = () => {
+            if (!Socket.instance.ready) {
+                setTimeout(() => action(), 100)
+            } else {
+                Socket.instance.ws.send(JSON.stringify(actionParams))
+            }
         }
 
-        if (!Socket.instance.ready) {
-            setTimeout(() => action(type, data), 100)
-        } else {
-            action(type, data)
-        }
-
+        action()
     }
 
     private static handleWSMessage(event: WebSocketEventMap['message']) {

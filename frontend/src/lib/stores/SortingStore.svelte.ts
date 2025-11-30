@@ -36,8 +36,9 @@ export class SortingStore extends WithLocalStore<SortingStoreType> {
     }
 
     static fetch(searchParams: SearchParams): Promise<SortingStoreType> {
+        const params = {...searchParams}
         return new Promise<SortingStoreType>(async (resolve, reject) => {
-            Socket.send("getSorting", searchParams, (data: RawSorting[]) => {
+            Socket.send("getSorting", params, (data: RawSorting[]) => {
                 resolve(SortingStore.upsert(data))
             })
         })

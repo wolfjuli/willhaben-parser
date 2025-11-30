@@ -42,7 +42,7 @@ class ListingAttributesWriter : Writer<ListingAttribute>(TableDefinitions.getTab
         logger.info("Updating ${listingIds.size} normalized listings")
         QueryBuilder(transaction).append(
             """
-            SELECT count(*) c FROM update_normalize_listings(listing_ids := ${'$'}{listingIds})
+            SELECT count(*) c FROM update_normalized_listings(listing_ids := ${'$'}{listingIds})
             """.trimIndent()
         )
             .build("listingIds" to listingIds.toList())

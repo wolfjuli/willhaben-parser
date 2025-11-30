@@ -1,5 +1,6 @@
 package solutions.lykos.willhaben.parser.backend.database.postgresql
 
+import org.slf4j.LoggerFactory
 import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.Types
@@ -9,6 +10,7 @@ class QueryBuilder(
 ) {
     companion object {
         private val VARIABLE_REGEX = Regex("\\$\\{([^}]+)}")
+        private val logger = LoggerFactory.getLogger(this::class.java)
     }
 
     private val builder = StringBuilder()
@@ -71,6 +73,9 @@ class QueryBuilder(
                 }
             }
         }
+
+        if (logger.isDebugEnabled) logger.debug("Created query:\n$statement")
+
         return statement
     }
 
