@@ -5,7 +5,7 @@
     let {listing, attributes, configuration}: ListingDetailProps = $props()
 </script>
 <dl>
-    {#each attributes as attribute}
+    {#each attributes as attribute}ListingDetailProps
         <dt>{attribute.label ?? attribute.attribute}</dt>
         <dd>
             <ListingValue {listing} {attribute} {configuration}/>

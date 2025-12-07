@@ -1,6 +1,7 @@
 <script lang="ts">
     import type {ListingValueProps} from "$lib/components/Value/ListingValue";
     import {listingAttribute} from "$lib/utils/jsonpath.js";
+    import Stars from "$lib/components/Stars.svelte";
 
     let {
         listing, attribute, configuration,
@@ -16,8 +17,7 @@
     let obj = $derived(attr?.custom as unknown as { href: string, value: string })
 
 </script>
-<span onclick={() => onclick(listingAttribute(listing, attribute.attribute), listing)}
-      ondblclick={() => ondblclick(listingAttribute(listing, attribute.attribute), listing)}>
+<span ondblclick={() => ondblclick(listingAttribute(listing, attribute.attribute), listing)}>
 {#if attribute.dataType === "LINK" }
     {#if obj && obj.href}
         <a href={obj.href} target="_blank">{obj.value}</a>
@@ -26,6 +26,8 @@
     {/if}
 {:else if attribute.dataType === "IMAGE"}
     <img src={configuration.imageBaseUrl + `/${val}`} alt={val} />
+{:else if attribute.dataType === "RATING" }
+    <Stars value={+(userVal ?? val)} maxValue={5} onchange={(newRating) => onclick(newRating, listing)}/>
 {:else}
     <div>
     <span class:strike={userVal}>

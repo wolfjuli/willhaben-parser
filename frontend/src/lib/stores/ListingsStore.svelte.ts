@@ -56,7 +56,10 @@ export class ListingsStore extends WithState<ListingsStoreType> {
     }
 
     static set(userAttribute: CreateUserAttribute): CreateUserAttribute {
-        Socket.send("setListingUserAttribute", userAttribute)
+        Socket.send("setListingUserAttribute", userAttribute, (data: RawListing) => {
+            console.log("Got new value back", data)
+            ListingsStore.upsert([data])
+        })
         return userAttribute
     }
 

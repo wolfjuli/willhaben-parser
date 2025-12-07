@@ -13,6 +13,7 @@
     import {SearchParamsStore} from "$lib/stores/SearchParamsStore.svelte";
     import {BaseAttributesStore} from "$lib/stores/Attributes.svelte";
     import {Socket} from "$lib/api/Socket.js";
+    import Stars from "$lib/components/Stars.svelte";
 
     let {children}: LayoutProps = $props()
 

@@ -206,21 +206,30 @@ BEGIN
                                ON p.listing_id = r.listing_id
                                AND p.attribute_id = r.attribute_id
                                AND p.idx = r.idx - 1),
-        r_ua AS (SELECT r.listing_id, r.parent, r.idx, jsonb_object_agg(r.part, r.values) AS obj
-                 FROM direct_parents r
-                 JOIN (SELECT x.listing_id, x.parent, max(x.idx) AS idx FROM direct_parents x GROUP BY 1, 2) x
-                     USING (listing_id, parent, idx)
-                 GROUP BY r.listing_id, r.parent, r.idx
+        r_ua AS (
+
+            SELECT r.listing_id, r.parent, r.idx, jsonb_object_agg(r.part, r.values) AS obj
+            FROM direct_parents r
+            WHERE r.part NOT IN (SELECT DISTINCT coalesce(parent, '') FROM direct_parents)
+            GROUP BY r.listing_id, r.parent, r.idx
+
+            UNION ALL
+
+            SELECT r.listing_id, r.parent, r.idx, jsonb_object_agg(r.part, r.values) AS obj
+            FROM direct_parents r
+            JOIN (SELECT x.listing_id, x.parent, max(x.idx) AS idx FROM direct_parents x GROUP BY 1, 2) x
+                USING (listing_id, parent, idx)
+            GROUP BY r.listing_id, r.parent, r.idx
 
 
-                 UNION ALL
+            UNION ALL
 
-                 SELECT r.listing_id, r.parent, r.idx, jsonb_build_object(r.part, r_ua.obj) AS obj
-                 FROM r_ua
-                 JOIN direct_parents r
-                     ON r.listing_id = r_ua.listing_id
-                     AND r.part = r_ua.parent
-                     AND r.idx = r_ua.idx - 1),
+            SELECT r.listing_id, r.parent, r.idx, jsonb_build_object(r.part, r_ua.obj) AS obj
+            FROM r_ua
+            JOIN direct_parents r
+                ON r.listing_id = r_ua.listing_id
+                AND r.part = r_ua.parent
+                AND r.idx = r_ua.idx - 1),
         ua AS (SELECT DISTINCT listing_id, obj AS raw
                FROM r_ua
                WHERE idx = 1)
@@ -284,10 +293,11 @@ BEGIN
             SELECT listing_id,
                    attribute_id,
                    s.id,
-                   nullif(run_script(s.id, listing_id), 'null')::DOUBLE PRECISION
+                   run_script(s.id, listing_id)::DOUBLE PRECISION
             FROM normalized_listings l
             CROSS JOIN scripts s
-            WHERE (willhaben_ids IS NULL OR
+            WHERE nullif(run_script(s.id, listing_id), 'null') IS NOT NULL
+              AND (willhaben_ids IS NULL OR
                    listing_id IN (SELECT id FROM listings WHERE willhaben_id = ANY (willhaben_ids)))
               AND (listing_ids IS NULL OR listing_id = ANY (listing_ids))
               AND (attribute_ids IS NULL OR attribute_id = ANY (attribute_ids))
@@ -863,313 +873,685 @@ JOIN vs
     ON a.attribute = vs.normalized;
 
 
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('adTypeId', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('advertImageList', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('advertImageList.advertImage[*]', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('advertImageList.advertImage[*].description', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('advertImageList.advertImage[*].id', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('advertImageList.advertImage[*].mainImageUrl', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('advertImageList.advertImage[*].name', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('advertImageList.advertImage[*].reference', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('advertImageList.advertImage[*].referenceImageUrl', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('advertImageList.advertImage[*].selfLink', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('advertImageList.advertImage[*].similarImageSearchUrl', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('advertImageList.advertImage[*].thumbnailImageUrl', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('advertImageList.floorPlans[*]', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('advertStatus', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('advertStatus.description', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('advertStatus.id', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('advertStatus.statusId', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('advertiserReferenceNumber', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('changedDate', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('createdDate', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('description', 'Titel', null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('endDate', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('firstPublishedDate', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('parentAdId', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('productId', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('publishedDate', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('startDate', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('uuid', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('verticalId', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.generalTextAdvertSonstiges', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.description', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.energyHwb', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.constructionYear', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.additionalCostFee', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.buildingCondition', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.estatePreference', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.contactUrl[*]', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.propertyTypeId', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.buildingType', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.contactName', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.estateSizeLivingArea', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.energyFgee', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.availableNow', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.noOfRooms', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.propertyTypeFlat', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.heating', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.contactPhone', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.ownagetype', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.estatePricePriceSuggestion', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.estatePricePriceSuggestionForDisplay', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.areaId', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.regionAreaId', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.locationAddress_1', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.locationAddress_2', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.locationAddress_3', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.locationAddress_4', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.showMap', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.showShadowmap', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.contactCompany', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.contactAddressStreet', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.contactAddressPostcode', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.contactAddressTown', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.isprivate', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.dealer', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.orgType', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.changedDate', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.location', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.postcode', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.state', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.bodyDyn', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.orgname', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.orgUuid', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.heading', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.locationQuality', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.published', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.country', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.locationId', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.numberOfRooms', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.adtypeId', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.adid', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.orgid', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.allImageUrls', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.publishedString', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.upsellingAdSearchresult', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.categorytreeids', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.productId', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.isBumped', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.rooms', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.adUuid', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.adSearchresultLogo', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.seoUrl', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.infolinkName', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.projectInfoTitle', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.projectType', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.infolinkUrl', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.energyHwbClass', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.projectStatus', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.locationInfoTitle', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.locationInfoText', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.projectUnitPriceFrom', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.projectUnitCountBuy', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.projectUnitSizeTo', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.projectUnitSizeFrom', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.projectUnitConfigurationLevel', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.projectInfoText', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.projectFinishedBy', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.numberOfChildren', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.floorSurface', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.freeAreaFreeAreaArea', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.estatePreference[*]', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.freeAreaFreeAreaType', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.freeAreaFreeAreaTypeAndArea', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.freeAreaFreeAreaAreaTotal', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.freeAreaType', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.freeAreaTypeName', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.generalTextAdvertLage', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.floor', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.heating[*]', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('advertImageList.floorPlans[*].description', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('advertImageList.floorPlans[*].id', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('advertImageList.floorPlans[*].mainImageUrl', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.propertyType', 'Typ', 'TEXT', null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.district', 'Bezirk', 'TEXT', null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.price', null, 'NUMBER', null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.estateSize', 'Wohnfläche', 'TEXT', null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('id', 'Willhaben ID', 'TEXT', null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.coordinates', 'Koordinaten', 'TEXT', null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('advertImageList.floorPlans[*].name', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('advertImageList.floorPlans[*].reference', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('advertImageList.floorPlans[*].referenceImageUrl', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('advertImageList.floorPlans[*].selfLink', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('advertImageList.floorPlans[*].similarImageSearchUrl', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('advertImageList.floorPlans[*].thumbnailImageUrl', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.rentalPriceFurnitureCost', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.contactPhone2', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.advertiserRef', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.unitTitle', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.generalTextAdvertAusstattung', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.priceReductionSetDate', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.contactCompanyname', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.generalTextAdvertZusatzinformationen', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.availableDateFreetext', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.oldPrice', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.importExternalAdvertiserId', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.energyFgeeClass', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.importXmlSoftware', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.freeAreaFreeAreaType[*]', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.importExternalAdvertId', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.freeAreaFreeAreaTypeAndArea[*]', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.imagedescription', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.freeAreaTypeName[*]', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.infolinkName[*]', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.infolinkUrl[*]', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.generalTextAdvertPreisDetailinformation', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.estatePriceMonthcostsGross', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.additionalCostAmount', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.generalTextAdvertFlChen', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.freeAreaFreeAreaArea[*]', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.availableDate', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.estatePriceHeatingcostsnet', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.virtualViewLinkUrl', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.estatePricePriceDescription', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.virtualViewLink', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.estatePriceOthercostsNet', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.unitNumber', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.contactUrl', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.projectUnitPriceTo', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.projectId', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.projectName', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.projectSeoUrl', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.projectAddetailUrl', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.projectImageUrl', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.estatePriceOnenquiry', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.positionRadiusMeters', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.plotArea', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.projectInfoTitle[*]', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.projectFinishedByFreetext', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.projectInfoText[*]', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.projectUnitCountRent', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.projectUnitRentFrom', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.projectUnitRentTo', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.infourlStatusreport', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.estateSizeUseableArea', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.estateSizeGrossArea', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.contactImmocardId', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.infourlObjectinfos', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.estatePriceMonthcostsVat', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.oldPriceForDisplay', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.locationInfoTitle[*]', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.locationInfoText[*]', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.additionalCostAmountNet', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.resultListTopad', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.contactImmocardCompanyId', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.contactName[*]', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.contactPhone[*]', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.contactPhone2[*]', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.resultListStyle2', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.disposed', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.priceExtrainfo', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.infourlSalereport', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.contactCompanyname[*]', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.contactFax', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.propertyTypeHouse', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.plotOwned', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.additionalCostDeposit', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.referer', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('advertiserInfo', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('advertiserInfo.iconPNG', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('advertiserInfo.iconSVG', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('advertiserInfo.iconType', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('advertiserInfo.label', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('children', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('contextLinkList', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('contextLinkList.contextLink[*]', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('contextLinkList.contextLink[*].id', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('contextLinkList.contextLink[*].description', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('contextLinkList.contextLink[*].uri', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('contextLinkList.contextLink[*].selected', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('contextLinkList.contextLink[*].relativePath', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('contextLinkList.contextLink[*].serviceName', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('selfLink', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('teaserAttributes[*]', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('teaserAttributes[*].postfix', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('teaserAttributes[*].prefix', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('teaserAttributes[*].value', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('upsellingOrganisationLogo', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.resultListTopad[*]', null, null, null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.priceForDisplay', 'Preis', 'TEXT', (select id from attributes where attribute = 'attributeMap.price'));
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.mmo', 'Bild', 'IMAGE', null);
-INSERT INTO attributes (attribute, label, data_type, sorting_attribute) VALUES ('attributeMap.address', 'Addresse', 'TEXT', null);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('adTypeId', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('advertImageList', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('advertImageList.advertImage[*]', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('advertImageList.advertImage[*].description', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('advertImageList.advertImage[*].id', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('advertImageList.advertImage[*].mainImageUrl', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('advertImageList.advertImage[*].name', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('advertImageList.advertImage[*].reference', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('advertImageList.advertImage[*].referenceImageUrl', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('advertImageList.advertImage[*].selfLink', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('advertImageList.advertImage[*].similarImageSearchUrl', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('advertImageList.advertImage[*].thumbnailImageUrl', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('advertImageList.floorPlans[*]', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('advertStatus', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('advertStatus.description', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('advertStatus.id', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('advertStatus.statusId', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('advertiserReferenceNumber', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('changedDate', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('createdDate', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('description', 'Titel', NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('endDate', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('firstPublishedDate', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('parentAdId', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('productId', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('publishedDate', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('startDate', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('uuid', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('verticalId', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.generalTextAdvertSonstiges', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.description', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.energyHwb', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.constructionYear', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.additionalCostFee', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.buildingCondition', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.estatePreference', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.contactUrl[*]', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.propertyTypeId', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.buildingType', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.contactName', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.estateSizeLivingArea', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.energyFgee', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.availableNow', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.noOfRooms', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.propertyTypeFlat', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.heating', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.contactPhone', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.ownagetype', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.estatePricePriceSuggestion', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.estatePricePriceSuggestionForDisplay', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.areaId', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.regionAreaId', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.locationAddress_1', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.locationAddress_2', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.locationAddress_3', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.locationAddress_4', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.showMap', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.showShadowmap', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.contactCompany', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.contactAddressStreet', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.contactAddressPostcode', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.contactAddressTown', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.isprivate', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.dealer', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.orgType', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.changedDate', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.location', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.postcode', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.state', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.bodyDyn', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.orgname', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.orgUuid', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.heading', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.locationQuality', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.published', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.country', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.locationId', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.numberOfRooms', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.adtypeId', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.adid', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.orgid', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.allImageUrls', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.publishedString', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.upsellingAdSearchresult', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.categorytreeids', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.productId', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.isBumped', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.rooms', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.adUuid', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.adSearchresultLogo', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.seoUrl', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.infolinkName', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.projectInfoTitle', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.projectType', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.infolinkUrl', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.energyHwbClass', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.projectStatus', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.locationInfoTitle', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.locationInfoText', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.projectUnitPriceFrom', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.projectUnitCountBuy', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.projectUnitSizeTo', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.projectUnitSizeFrom', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.projectUnitConfigurationLevel', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.projectInfoText', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.projectFinishedBy', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.numberOfChildren', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.floorSurface', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.freeAreaFreeAreaArea', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.estatePreference[*]', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.freeAreaFreeAreaType', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.freeAreaFreeAreaTypeAndArea', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.freeAreaFreeAreaAreaTotal', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.freeAreaType', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.freeAreaTypeName', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.generalTextAdvertLage', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.floor', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.heating[*]', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('advertImageList.floorPlans[*].description', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('advertImageList.floorPlans[*].id', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('advertImageList.floorPlans[*].mainImageUrl', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.propertyType', 'Typ', 'TEXT', NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.district', 'Bezirk', 'TEXT', NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.price', NULL, 'NUMBER', NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.estateSize', 'Wohnfläche', 'TEXT', NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('id', 'Willhaben ID', 'TEXT', NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.coordinates', 'Koordinaten', 'TEXT', NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('advertImageList.floorPlans[*].name', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('advertImageList.floorPlans[*].reference', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('advertImageList.floorPlans[*].referenceImageUrl', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('advertImageList.floorPlans[*].selfLink', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('advertImageList.floorPlans[*].similarImageSearchUrl', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('advertImageList.floorPlans[*].thumbnailImageUrl', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.rentalPriceFurnitureCost', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.contactPhone2', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.advertiserRef', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.unitTitle', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.generalTextAdvertAusstattung', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.priceReductionSetDate', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.contactCompanyname', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.generalTextAdvertZusatzinformationen', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.availableDateFreetext', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.oldPrice', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.importExternalAdvertiserId', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.energyFgeeClass', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.importXmlSoftware', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.freeAreaFreeAreaType[*]', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.importExternalAdvertId', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.freeAreaFreeAreaTypeAndArea[*]', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.imagedescription', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.freeAreaTypeName[*]', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.infolinkName[*]', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.infolinkUrl[*]', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.generalTextAdvertPreisDetailinformation', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.estatePriceMonthcostsGross', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.additionalCostAmount', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.generalTextAdvertFlChen', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.freeAreaFreeAreaArea[*]', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.availableDate', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.estatePriceHeatingcostsnet', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.virtualViewLinkUrl', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.estatePricePriceDescription', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.virtualViewLink', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.estatePriceOthercostsNet', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.unitNumber', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.contactUrl', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.projectUnitPriceTo', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.projectId', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.projectName', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.projectSeoUrl', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.projectAddetailUrl', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.projectImageUrl', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.estatePriceOnenquiry', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.positionRadiusMeters', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.plotArea', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.projectInfoTitle[*]', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.projectFinishedByFreetext', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.projectInfoText[*]', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.projectUnitCountRent', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.projectUnitRentFrom', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.projectUnitRentTo', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.infourlStatusreport', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.estateSizeUseableArea', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.estateSizeGrossArea', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.contactImmocardId', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.infourlObjectinfos', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.estatePriceMonthcostsVat', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.oldPriceForDisplay', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.locationInfoTitle[*]', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.locationInfoText[*]', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.additionalCostAmountNet', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.resultListTopad', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.contactImmocardCompanyId', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.contactName[*]', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.contactPhone[*]', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.contactPhone2[*]', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.resultListStyle2', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.disposed', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.priceExtrainfo', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.infourlSalereport', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.contactCompanyname[*]', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.contactFax', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.propertyTypeHouse', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.plotOwned', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.additionalCostDeposit', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.referer', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('advertiserInfo', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('advertiserInfo.iconPNG', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('advertiserInfo.iconSVG', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('advertiserInfo.iconType', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('advertiserInfo.label', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('children', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('contextLinkList', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('contextLinkList.contextLink[*]', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('contextLinkList.contextLink[*].id', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('contextLinkList.contextLink[*].description', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('contextLinkList.contextLink[*].uri', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('contextLinkList.contextLink[*].selected', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('contextLinkList.contextLink[*].relativePath', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('contextLinkList.contextLink[*].serviceName', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('selfLink', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('teaserAttributes[*]', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('teaserAttributes[*].postfix', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('teaserAttributes[*].prefix', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('teaserAttributes[*].value', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('upsellingOrganisationLogo', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.resultListTopad[*]', NULL, NULL, NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.priceForDisplay', 'Preis', 'TEXT',
+        (SELECT id FROM attributes WHERE attribute = 'attributeMap.price'));
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.mmo', 'Bild', 'IMAGE', NULL);
+INSERT INTO attributes (attribute, label, data_type, sorting_attribute)
+VALUES ('attributeMap.address', 'Addresse', 'TEXT', NULL);
 
 
-INSERT INTO watch_lists (url) VALUES ('https://www.willhaben.at/iad/immobilien/haus-kaufen/steiermark?a');
-INSERT INTO watch_lists (url) VALUES ('https://www.willhaben.at/iad/immobilien/grundstuecke/steiermark?a');
-INSERT INTO watch_lists (url) VALUES ('https://www.willhaben.at/iad/immobilien/eigentumswohnung/steiermark/graz/?a');
+INSERT INTO watch_lists (url)
+VALUES ('https://www.willhaben.at/iad/immobilien/haus-kaufen/steiermark?a');
+INSERT INTO watch_lists (url)
+VALUES ('https://www.willhaben.at/iad/immobilien/grundstuecke/steiermark?a');
+INSERT INTO watch_lists (url)
+VALUES ('https://www.willhaben.at/iad/immobilien/eigentumswohnung/steiermark/graz/?a');
 
 
-INSERT INTO scripts(attribute_id, name) SELECT id, 'Gute Wörter desc' from attributes where attribute = 'attributeMap.description';
-INSERT INTO scripts(attribute_id, name) SELECT id, 'Schlechte Wörter desc' from attributes where attribute = 'attributeMap.description';
-INSERT INTO scripts(attribute_id, name) SELECT id, 'Fehlende Wörter' from attributes where attribute = 'attributeMap.description';
-INSERT INTO scripts(attribute_id, name) SELECT id, 'No Go' from attributes where attribute = 'attributeMap.description';
-INSERT INTO scripts(attribute_id, name) SELECT id, 'PSQL Gute Wörter' from attributes where attribute = 'attributeMap.description';
-INSERT INTO scripts(attribute_id, name) SELECT id, 'Wohnfläche Haus' from attributes where attribute = 'attributeMap.estateSizeLivingArea';
-INSERT INTO scripts(attribute_id, name) SELECT id, 'Wohnfläche Wohnung' from attributes where attribute = 'attributeMap.estateSizeLivingArea';
-INSERT INTO scripts(attribute_id, name) SELECT id, 'Ist Haus' from attributes where attribute = 'attributeMap.propertyType';
-INSERT INTO scripts(attribute_id, name) SELECT id, 'Preis' from attributes where attribute = 'attributeMap.price';
-INSERT INTO scripts(attribute_id, name) SELECT id, 'Preis > 700k' from attributes where attribute = 'attributeMap.price';
-INSERT INTO scripts(attribute_id, name) SELECT id, 'Location' from attributes where attribute = 'attributeMap.coordinates';
-INSERT INTO scripts(attribute_id, name) SELECT id, 'Gute Bezirke Haus' from attributes where attribute = 'attributeMap.district';
-INSERT INTO scripts(attribute_id, name) SELECT id, 'Gute Bezirke Wohnung' from attributes where attribute = 'attributeMap.district';
-INSERT INTO scripts(attribute_id, name) SELECT id, 'Gute Wörter Titel' from attributes where attribute = 'attributeMap.heading';
-INSERT INTO scripts(attribute_id, name) SELECT id, 'Schlechte Wörter Titel' from attributes where attribute = 'attributeMap.heading';
-INSERT INTO scripts(attribute_id, name) SELECT id, 'No Go Title' from attributes where attribute = 'attributeMap.heading';
-INSERT INTO scripts(attribute_id, name) SELECT id, 'Zimmer < 3,5' from attributes where attribute = 'attributeMap.rooms';
-INSERT INTO scripts(attribute_id, name) SELECT id, 'Ist Projekthauptseite' from attributes where attribute = 'attributeMap.projectInfoTitle';
+INSERT INTO scripts(attribute_id, name)
+SELECT id, 'Gute Wörter desc'
+FROM attributes
+WHERE attribute = 'attributeMap.description';
+INSERT INTO scripts(attribute_id, name)
+SELECT id, 'Schlechte Wörter desc'
+FROM attributes
+WHERE attribute = 'attributeMap.description';
+INSERT INTO scripts(attribute_id, name)
+SELECT id, 'Fehlende Wörter'
+FROM attributes
+WHERE attribute = 'attributeMap.description';
+INSERT INTO scripts(attribute_id, name)
+SELECT id, 'No Go'
+FROM attributes
+WHERE attribute = 'attributeMap.description';
+INSERT INTO scripts(attribute_id, name)
+SELECT id, 'PSQL Gute Wörter'
+FROM attributes
+WHERE attribute = 'attributeMap.description';
+INSERT INTO scripts(attribute_id, name)
+SELECT id, 'Wohnfläche Haus'
+FROM attributes
+WHERE attribute = 'attributeMap.estateSizeLivingArea';
+INSERT INTO scripts(attribute_id, name)
+SELECT id, 'Wohnfläche Wohnung'
+FROM attributes
+WHERE attribute = 'attributeMap.estateSizeLivingArea';
+INSERT INTO scripts(attribute_id, name)
+SELECT id, 'Ist Haus'
+FROM attributes
+WHERE attribute = 'attributeMap.propertyType';
+INSERT INTO scripts(attribute_id, name)
+SELECT id, 'Preis'
+FROM attributes
+WHERE attribute = 'attributeMap.price';
+INSERT INTO scripts(attribute_id, name)
+SELECT id, 'Preis > 700k'
+FROM attributes
+WHERE attribute = 'attributeMap.price';
+INSERT INTO scripts(attribute_id, name)
+SELECT id, 'Location'
+FROM attributes
+WHERE attribute = 'attributeMap.coordinates';
+INSERT INTO scripts(attribute_id, name)
+SELECT id, 'Gute Bezirke Haus'
+FROM attributes
+WHERE attribute = 'attributeMap.district';
+INSERT INTO scripts(attribute_id, name)
+SELECT id, 'Gute Bezirke Wohnung'
+FROM attributes
+WHERE attribute = 'attributeMap.district';
+INSERT INTO scripts(attribute_id, name)
+SELECT id, 'Gute Wörter Titel'
+FROM attributes
+WHERE attribute = 'attributeMap.heading';
+INSERT INTO scripts(attribute_id, name)
+SELECT id, 'Schlechte Wörter Titel'
+FROM attributes
+WHERE attribute = 'attributeMap.heading';
+INSERT INTO scripts(attribute_id, name)
+SELECT id, 'No Go Title'
+FROM attributes
+WHERE attribute = 'attributeMap.heading';
+INSERT INTO scripts(attribute_id, name)
+SELECT id, 'Zimmer < 3,5'
+FROM attributes
+WHERE attribute = 'attributeMap.rooms';
+INSERT INTO scripts(attribute_id, name)
+SELECT id, 'Ist Projekthauptseite'
+FROM attributes
+WHERE attribute = 'attributeMap.projectInfoTitle';
 
 
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'Gute Wörter desc'), (select id from functions where name = 'Gute Wörter'), 1);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'Gute Wörter desc'), (select id from functions where name = 'Prio 2'), 2);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'Schlechte Wörter desc'), (select id from functions where name = 'Schlechte Wörter'), 1);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'Schlechte Wörter desc'), (select id from functions where name = 'Prio 10'), 2);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'Fehlende Wörter'), (select id from functions where name = 'Prio 10'), 2);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'Fehlende Wörter'), (select id from functions where name = 'Fehlende Wörter'), 1);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'No Go'), (select id from functions where name = 'No Go'), 1);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'No Go'), (select id from functions where name = 'Prio 10'), 2);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'No Go'), (select id from functions where name = 'Prio 2'), 3);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'PSQL Gute Wörter'), (select id from functions where name = 'PSQL Gute Wörter'), 1);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'PSQL Gute Wörter'), (select id from functions where name = 'SQL Prio 2'), 2);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'Wohnfläche Haus'), (select id from functions where name = 'Normalverteilung (sig=0.4)'), 2);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'Wohnfläche Haus'), (select id from functions where name = 'Prio 10'), 4);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'Wohnfläche Haus'), (select id from functions where name = 'Wohnfläche Haus'), 1);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'Wohnfläche Haus'), (select id from functions where name = 'ist Haus'), 3);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'Wohnfläche Wohnung'), (select id from functions where name = 'Wohnfläche Wohnung'), 1);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'Wohnfläche Wohnung'), (select id from functions where name = 'Normalverteilung (sig=0.4)'), 2);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'Wohnfläche Wohnung'), (select id from functions where name = 'Prio 10'), 4);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'Wohnfläche Wohnung'), (select id from functions where name = 'ist Wohnung'), 3);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'Ist Haus'), (select id from functions where name = '1'), 4);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'Ist Haus'), (select id from functions where name = 'Prio 10'), 6);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'Ist Haus'), (select id from functions where name = 'ist Haus'), 5);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'Preis'), (select id from functions where name = 'Preis normalisiert'), 1);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'Preis'), (select id from functions where name = 'Normalverteilung (sig=0.4)'), 2);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'Preis'), (select id from functions where name = 'Prio 10'), 3);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'Preis > 700k'), (select id from functions where name = 'Prio 10'), 2);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'Preis > 700k'), (select id from functions where name = 'Preis > 700k'), 1);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'Location'), (select id from functions where name = 'Distance between 2 Points'), 2);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'Location'), (select id from functions where name = 'Add Graz Jakominiplatz'), 1);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'Location'), (select id from functions where name = 'tanh'), 4);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'Location'), (select id from functions where name = 'Prio 10'), 5);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'Location'), (select id from functions where name = 'Distanz Normalisiert'), 3);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'Gute Bezirke Haus'), (select id from functions where name = 'Prio 10'), 2);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'Gute Bezirke Haus'), (select id from functions where name = 'Bezirke Haus'), 1);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'Gute Bezirke Haus'), (select id from functions where name = 'ist Haus'), 3);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'Gute Bezirke Wohnung'), (select id from functions where name = 'Bezirke Wohnung'), 1);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'Gute Bezirke Wohnung'), (select id from functions where name = 'Prio 10'), 2);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'Gute Bezirke Wohnung'), (select id from functions where name = 'ist Wohnung'), 3);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'Gute Wörter Titel'), (select id from functions where name = 'Gute Wörter'), 1);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'Gute Wörter Titel'), (select id from functions where name = 'Prio 2'), 2);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'Schlechte Wörter Titel'), (select id from functions where name = 'Schlechte Wörter'), 1);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'Schlechte Wörter Titel'), (select id from functions where name = 'Prio 10'), 2);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'No Go Title'), (select id from functions where name = 'No Go'), 1);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'No Go Title'), (select id from functions where name = 'Prio 10'), 2);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'No Go Title'), (select id from functions where name = 'Prio 2'), 3);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'Zimmer < 3,5'), (select id from functions where name = 'Zimmer < 3.5'), 1);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'Zimmer < 3,5'), (select id from functions where name = 'Prio 10'), 4);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'Zimmer < 3,5'), (select id from functions where name = 'Prio 2'), 5);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'Ist Projekthauptseite'), (select id from functions where name = 'Prio 10'), 2);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'Ist Projekthauptseite'), (select id from functions where name = 'Prio 10'), 4);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'Ist Projekthauptseite'), (select id from functions where name = 'Prio 2'), 3);
-INSERT INTO script_functions(script_id, function_id, ord) VALUES ( (select id from scripts where name = 'Ist Projekthauptseite'), (select id from functions where name = 'Nicht leer'), 1);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'Gute Wörter desc'), (SELECT id FROM functions WHERE name = 'Gute Wörter'),
+        1);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'Gute Wörter desc'), (SELECT id FROM functions WHERE name = 'Prio 2'), 2);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'Schlechte Wörter desc'),
+        (SELECT id FROM functions WHERE name = 'Schlechte Wörter'), 1);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'Schlechte Wörter desc'),
+        (SELECT id FROM functions WHERE name = 'Prio 10'), 2);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'Fehlende Wörter'), (SELECT id FROM functions WHERE name = 'Prio 10'), 2);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'Fehlende Wörter'),
+        (SELECT id FROM functions WHERE name = 'Fehlende Wörter'), 1);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'No Go'), (SELECT id FROM functions WHERE name = 'No Go'), 1);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'No Go'), (SELECT id FROM functions WHERE name = 'Prio 10'), 2);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'No Go'), (SELECT id FROM functions WHERE name = 'Prio 2'), 3);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'PSQL Gute Wörter'),
+        (SELECT id FROM functions WHERE name = 'PSQL Gute Wörter'), 1);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'PSQL Gute Wörter'), (SELECT id FROM functions WHERE name = 'SQL Prio 2'),
+        2);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'Wohnfläche Haus'),
+        (SELECT id FROM functions WHERE name = 'Normalverteilung (sig=0.4)'), 2);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'Wohnfläche Haus'), (SELECT id FROM functions WHERE name = 'Prio 10'), 4);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'Wohnfläche Haus'),
+        (SELECT id FROM functions WHERE name = 'Wohnfläche Haus'), 1);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'Wohnfläche Haus'), (SELECT id FROM functions WHERE name = 'ist Haus'), 3);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'Wohnfläche Wohnung'),
+        (SELECT id FROM functions WHERE name = 'Wohnfläche Wohnung'), 1);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'Wohnfläche Wohnung'),
+        (SELECT id FROM functions WHERE name = 'Normalverteilung (sig=0.4)'), 2);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'Wohnfläche Wohnung'), (SELECT id FROM functions WHERE name = 'Prio 10'),
+        4);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'Wohnfläche Wohnung'),
+        (SELECT id FROM functions WHERE name = 'ist Wohnung'), 3);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'Ist Haus'), (SELECT id FROM functions WHERE name = '1'), 4);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'Ist Haus'), (SELECT id FROM functions WHERE name = 'Prio 10'), 6);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'Ist Haus'), (SELECT id FROM functions WHERE name = 'ist Haus'), 5);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'Preis'), (SELECT id FROM functions WHERE name = 'Preis normalisiert'), 1);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'Preis'),
+        (SELECT id FROM functions WHERE name = 'Normalverteilung (sig=0.4)'), 2);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'Preis'), (SELECT id FROM functions WHERE name = 'Prio 10'), 3);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'Preis > 700k'), (SELECT id FROM functions WHERE name = 'Prio 10'), 2);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'Preis > 700k'), (SELECT id FROM functions WHERE name = 'Preis > 700k'),
+        1);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'Location'),
+        (SELECT id FROM functions WHERE name = 'Distance between 2 Points'), 2);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'Location'),
+        (SELECT id FROM functions WHERE name = 'Add Graz Jakominiplatz'), 1);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'Location'), (SELECT id FROM functions WHERE name = 'tanh'), 4);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'Location'), (SELECT id FROM functions WHERE name = 'Prio 10'), 5);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'Location'),
+        (SELECT id FROM functions WHERE name = 'Distanz Normalisiert'), 3);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'Gute Bezirke Haus'), (SELECT id FROM functions WHERE name = 'Prio 10'),
+        2);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'Gute Bezirke Haus'),
+        (SELECT id FROM functions WHERE name = 'Bezirke Haus'), 1);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'Gute Bezirke Haus'), (SELECT id FROM functions WHERE name = 'ist Haus'),
+        3);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'Gute Bezirke Wohnung'),
+        (SELECT id FROM functions WHERE name = 'Bezirke Wohnung'), 1);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'Gute Bezirke Wohnung'), (SELECT id FROM functions WHERE name = 'Prio 10'),
+        2);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'Gute Bezirke Wohnung'),
+        (SELECT id FROM functions WHERE name = 'ist Wohnung'), 3);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'Gute Wörter Titel'),
+        (SELECT id FROM functions WHERE name = 'Gute Wörter'), 1);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'Gute Wörter Titel'), (SELECT id FROM functions WHERE name = 'Prio 2'), 2);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'Schlechte Wörter Titel'),
+        (SELECT id FROM functions WHERE name = 'Schlechte Wörter'), 1);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'Schlechte Wörter Titel'),
+        (SELECT id FROM functions WHERE name = 'Prio 10'), 2);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'No Go Title'), (SELECT id FROM functions WHERE name = 'No Go'), 1);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'No Go Title'), (SELECT id FROM functions WHERE name = 'Prio 10'), 2);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'No Go Title'), (SELECT id FROM functions WHERE name = 'Prio 2'), 3);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'Zimmer < 3,5'), (SELECT id FROM functions WHERE name = 'Zimmer < 3.5'),
+        1);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'Zimmer < 3,5'), (SELECT id FROM functions WHERE name = 'Prio 10'), 4);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'Zimmer < 3,5'), (SELECT id FROM functions WHERE name = 'Prio 2'), 5);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'Ist Projekthauptseite'),
+        (SELECT id FROM functions WHERE name = 'Prio 10'), 2);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'Ist Projekthauptseite'),
+        (SELECT id FROM functions WHERE name = 'Prio 10'), 4);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'Ist Projekthauptseite'), (SELECT id FROM functions WHERE name = 'Prio 2'),
+        3);
+INSERT INTO script_functions(script_id, function_id, ord)
+VALUES ((SELECT id FROM scripts WHERE name = 'Ist Projekthauptseite'),
+        (SELECT id FROM functions WHERE name = 'Nicht leer'), 1);

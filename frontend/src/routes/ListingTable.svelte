@@ -29,9 +29,13 @@
         const page = SearchParamsStore.value.page
         console.log("Update sorting/listing")
         SortingStore.fetch(SearchParamsStore.value)
-            .then((sorting) => ListingsStore.fetch(sorting.sorting.slice((page - 1) * 100, page * 100))
-                .then((listings: Listing[]) => tableData = sorting.sorting.map(s => listings.find(l => l.id === s)).filter(Boolean))
-            )
+            .then((sorting) => ListingsStore.fetch(sorting.sorting.slice((page - 1) * 100, page * 100)))
+    })
+
+    $effect(() => {
+        const sorting = SortingStore.value?.sorting ?? []
+        const listings = ListingsStore.value?.listings ?? []
+        tableData = sorting.map(s => listings[s]).filter(Boolean)
     })
 
     let editing = $state({listingId: -1, attributeId: -1})
@@ -50,7 +54,7 @@
     }
 
     function onUpdate(newValue: string, listing: Listing, attribute: Attribute) {
-        console.log("onUpdate", newValue)
+        console.log("onUpdate", newValue, attribute, listing)
         const currentAttr = listingAttribute(listing, attribute.attribute)
         if (currentAttr?.base == newValue) newValue = undefined
         if (currentAttr?.user != newValue)
@@ -103,6 +107,7 @@
             <tr class:even={idx % 2}>
                 <TD>
                     {#snippet render()}
+                        {listing.id}
                         <button onclick={() => toggleExpand(listing.id)}>V</button>
                     {/snippet}
                 </TD>
@@ -114,7 +119,10 @@
                             {:else}
                                 <ListingValue {listing} {attribute} {configuration}
                                               ondblclick={() => {editing = {listingId: listing.id, attributeId: attribute.id}}}
-                                />
+                                              onclick={(newRating: number) => { if(attribute.dataType === "RATING") {
+                                                  console.log("Single click")
+                                                  onUpdate(newRating, listing, attribute)
+                                              }} } />
                             {/if}
                         {/snippet}
                     </TD>

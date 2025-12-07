@@ -6,5 +6,5 @@ export interface ListingDetailProps {
     listing: Listing
     attributes: Attribute[]
     configuration: Configuration,
-    horizontal: boolean
+    horizontal: boolean | undefined
 }
