@@ -73,9 +73,9 @@ fun <T : Any> getJsonPaths(obj: T, prefix: String = ""): Set<String> {
         is Array<*>,
         is Collection<*> -> {
             val c = (obj as? Collection<*>) ?: (obj as? Array<*>)?.toList()
-            paths.add("$prefix[]")
+            paths.add("$prefix[*]")
             c?.filterNotNull()?.forEach { value ->
-                paths += getJsonPaths(value, "$prefix[]")
+                paths += getJsonPaths(value, "$prefix[*]")
             }
         }
 
@@ -106,6 +106,6 @@ fun <T : Any> getJsonPaths(obj: T, prefix: String = ""): Set<String> {
         }
     }
 
-    return paths.filter { it.isNotEmpty() && !paths.contains("$it[]") }.toSet()
+    return paths.filter { it.isNotEmpty() && !paths.contains("$it[*]") }.toSet()
 }
 
