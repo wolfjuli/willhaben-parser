@@ -17,7 +17,7 @@
 
     let oldSearchString = SearchParamsStore.value.searchString
     let searchString = $state(SearchParamsStore.value.searchString)
-    let timer = 0;
+    let timer: Timeout  = 0;
 
     $effect(() => {
         if(searchString != oldSearchString) {
@@ -50,9 +50,9 @@
                                    name="attributes"
                                    value={attribute.attribute}
                                    bind:group={SearchParamsStore.value.searchAttributes}
-                                   checked={SearchParamsStore.value.searchAttributes.indexOf(attribute?.attribute) > -1}
+                                   checked={SearchParamsStore.value.searchAttributes.indexOf(attribute.attribute) > -1}
                             />
-                            {attribute.label}
+                            {attribute.label ?? attribute.attribute}
                         </label>
                     </li>
                 {/each}

@@ -21,7 +21,7 @@
 
     const settings = $derived(SearchParamsStore.value)
     const fields = $derived(settings.viewAttributes.map(f => BaseAttributesStore.value?.find(a => f === a.attribute)).filter(Boolean)) as Attribute[]
-    const attributes = $derived(BaseAttributesStore.value?.filter(a => !fields.find(f => f!!.attribute === a.attribute)) ?? [])
+    const attributes = $derived(BaseAttributesStore.value ?? [])
 
     let tableData = $state<Listing[]>()
 
@@ -154,7 +154,7 @@
                         <td>Lärm</td>
                     {/if}
                     <td colspan={fields.length - 6 } class="details">
-                        <ListingDetail {listing} attributes={BaseAttributesStore.value} {configuration}/>
+                        <ListingDetail {listing} {attributes} {configuration}/>
                     </td>
                 </tr>
             {/if}
