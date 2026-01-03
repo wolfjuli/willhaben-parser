@@ -49,7 +49,6 @@ export class SearchParamsStore extends WithLocalStore<SearchParams> {
     }
 
     static set(value: SearchParams): SearchParams {
-        console.log("SearchParamsStore set value", value)
         SearchParamsStore.instance.value = value
         return value
     }

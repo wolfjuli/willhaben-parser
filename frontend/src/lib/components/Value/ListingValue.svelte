@@ -1,7 +1,7 @@
 <script lang="ts">
     import type {ListingValueProps} from "$lib/components/Value/ListingValue";
     import {listingAttribute} from "$lib/utils/jsonpath.js";
-    import Stars from "$lib/components/Stars.svelte";
+    import Stars from "$lib/components/Stars/Stars.svelte";
 
     let {
         listing, attribute, configuration,
@@ -12,7 +12,7 @@
     }: ListingValueProps = $props()
 
     let attr = $derived(listing && attribute ? listingAttribute(listing, attribute.attribute) : undefined)
-    let val = $derived(attr?.custom?.toString() ?? attr?.base?.toString() ?? "[empty]")
+    let val = $derived(attr?.custom?.toString() ?? attr?.base?.toString() ?? attr?.root?.toString() ?? "[empty]")
     let userVal = $derived(attr?.user?.toString())
     let obj = $derived(attr?.custom as unknown as { href: string, value: string })
 

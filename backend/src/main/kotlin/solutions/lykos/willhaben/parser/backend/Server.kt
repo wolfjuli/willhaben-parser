@@ -54,12 +54,12 @@ object Server {
 
         databaseManager.upgrade(configuration.database)
 
+        Crawler.init(configuration)
         val server = createServer(configuration)
-        val crawler = Crawler(configuration)
 
-        crawler.start()
+        Crawler.start()
         server.start(true) // Blocking
-        crawler.stop()
+        Crawler.stop()
     }
 
 

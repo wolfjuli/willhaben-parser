@@ -57,7 +57,6 @@ export class ListingsStore extends WithState<ListingsStoreType> {
 
     static set(userAttribute: CreateUserAttribute): CreateUserAttribute {
         Socket.send("setListingUserAttribute", userAttribute, (data: RawListing) => {
-            console.log("Got new value back", data)
             ListingsStore.upsert([data])
         })
         return userAttribute
@@ -65,5 +64,21 @@ export class ListingsStore extends WithState<ListingsStoreType> {
 
     private knownListings(listingIds: number[]): string[] {
         return listingIds.map(lId => this.value.knownListings?.[lId])?.filter(Boolean)
+    }
+
+    static crawl(url: string): Promise<Listing> {
+        return new Promise((resolve, reject) => {
+            Socket.send("crawlListing", {url}, (data: RawListing[]) => {
+                resolve(ListingsStore.upsert(data)[0])
+            })
+        })
+    }
+
+    static create(listing: Listing): Promise<Listing> {
+        return new Promise((resolve, reject) => {
+            Socket.send("createListing", {listing}, (data: RawListing[]) => {
+                resolve(ListingsStore.upsert(data)[0])
+            })
+        })
     }
 }

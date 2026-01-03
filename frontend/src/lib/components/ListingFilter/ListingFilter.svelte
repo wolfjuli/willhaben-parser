@@ -20,14 +20,18 @@
     let timer: Timeout  = 0;
 
     $effect(() => {
-        if(searchString != oldSearchString) {
+
+        console.log("Listing FIlter effect", searchString , oldSearchString  , SearchParamsStore.value.searchString)
+
+        if( searchString === oldSearchString &&  searchString !== SearchParamsStore.value.searchString)
+            searchString = SearchParamsStore.value.searchString
+
+        if(searchString != oldSearchString ) {
             if(timer) clearTimeout(timer);
             oldSearchString = searchString
-            console.log("Resetting timer")
             timer = setTimeout(() => {
                 clearTimeout(timer);
                 timer = 0
-                console.log("Setting search")
                 if(!SearchParamsStore.value.searchAttributes.length) SearchParamsStore.value.searchAttributes = [...SearchParamsStore.value.viewAttributes];
                 SearchParamsStore.value.searchString = searchString
                 SearchParamsStore.set(SearchParamsStore.value)
@@ -85,6 +89,6 @@
             </ul>
         </details>
         <input bind:value={searchString} disabled={searchType !== "normal"} type="search"/>
-        <button onclick={() => {SearchParamsStore.value.searchString = "" }}>X</button>
+        <button onclick={() => {searchString = "" }}>X</button>
     </div>
 </div>

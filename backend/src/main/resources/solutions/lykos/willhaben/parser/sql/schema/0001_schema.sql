@@ -206,33 +206,21 @@ BEGIN
                                ON p.listing_id = r.listing_id
                                AND p.attribute_id = r.attribute_id
                                AND p.idx = r.idx - 1),
-        r_ua AS (
+        r_ua AS (SELECT r.listing_id, r.parent, r.idx, jsonb_build_object(r.part, r.values) AS obj
+                 FROM direct_parents r
+                 WHERE r.part NOT IN (SELECT DISTINCT coalesce(parent, '') FROM direct_parents)
+                   AND r.parent IS NULL
 
-            SELECT r.listing_id, r.parent, r.idx, jsonb_object_agg(r.part, r.values) AS obj
-            FROM direct_parents r
-            WHERE r.part NOT IN (SELECT DISTINCT coalesce(parent, '') FROM direct_parents)
-            GROUP BY r.listing_id, r.parent, r.idx
+                 UNION ALL
 
-            UNION ALL
-
-            SELECT r.listing_id, r.parent, r.idx, jsonb_object_agg(r.part, r.values) AS obj
-            FROM direct_parents r
-            JOIN (SELECT x.listing_id, x.parent, max(x.idx) AS idx FROM direct_parents x GROUP BY 1, 2) x
-                USING (listing_id, parent, idx)
-            GROUP BY r.listing_id, r.parent, r.idx
-
-
-            UNION ALL
-
-            SELECT r.listing_id, r.parent, r.idx, jsonb_build_object(r.part, r_ua.obj) AS obj
-            FROM r_ua
-            JOIN direct_parents r
-                ON r.listing_id = r_ua.listing_id
-                AND r.part = r_ua.parent
-                AND r.idx = r_ua.idx - 1),
-        ua AS (SELECT DISTINCT listing_id, obj AS raw
+                 SELECT r.listing_id, NULL, -1, jsonb_build_object(r.parent, jsonb_object_agg(r.part, r.values)) AS obj
+                 FROM direct_parents r
+                 WHERE r.part NOT IN (SELECT DISTINCT coalesce(parent, '') FROM direct_parents)
+                   AND r.parent IS NOT NULL
+                 GROUP BY r.listing_id, r.parent),
+        ua AS (SELECT listing_id, jsonb_merge_agg(obj) AS raw
                FROM r_ua
-               WHERE idx = 1)
+               GROUP BY listing_id)
         INSERT INTO normalized_listings (listing_id, willhaben_id, listing, md5)
             SELECT l.id                                                                           AS listing_id,
                    l.willhaben_id,
@@ -582,8 +570,6 @@ DECLARE
     attr RECORD ;
 BEGIN
     BEGIN
-
-
         SELECT *
         INTO attr
         FROM attributes a
@@ -601,7 +587,6 @@ BEGIN
         WHEN OTHERS THEN
             RAISE INFO '%', _attribute;
             RAISE EXCEPTION '%, %', sqlstate, sqlerrm;
-
     END;
 END;
 $$;
@@ -615,14 +600,24 @@ $$
 DECLARE
     ret jsonb;
 BEGIN
-    SELECT coalesce(u.val, c.val, b.val)
+    SELECT val
     INTO ret
-    FROM jsonb_path_query(listing, ('$.user.' || path)::jsonpath) WITH ORDINALITY u(val, idx)
-    FULL JOIN jsonb_path_query(listing, ('$.custom.' || path)::jsonpath) WITH ORDINALITY c(val, idx)
-        USING (idx)
-    FULL JOIN jsonb_path_query(listing, ('$.base.' || path)::jsonpath) WITH ORDINALITY b(val, idx)
-        USING (idx)
-    LIMIT 1;
+    FROM (SELECT coalesce(uval, cval, bval) AS val
+          FROM (SELECT u.val AS uval, c.val AS cval, b.val AS bval
+                FROM jsonb_path_query(listing, ('$.user.' || path)::jsonpath) WITH ORDINALITY u(val, idx)
+                FULL JOIN jsonb_path_query(listing, ('$.custom.' || path)::jsonpath) WITH ORDINALITY c(val, idx)
+                    USING (idx)
+                FULL JOIN jsonb_path_query(listing, ('$.base.' || path)::jsonpath) WITH ORDINALITY b(val, idx)
+                    USING (idx)
+                WHERE left(path, 1) != '$') x
+
+          UNION ALL
+
+          SELECT u.val AS val
+          FROM jsonb_path_query(listing, (path)::jsonpath)
+              WITH ORDINALITY u(val, idx)
+          WHERE left(path, 1) = '$'
+          LIMIT 1) y;
 
     RETURN ret;
 END
@@ -651,6 +646,22 @@ BEGIN
     RETURN nullif(nullif(regexp_replace(replace(val, ',', '.'), '[^0-9.]', '', 'g'), 'null'), '')::jsonb;
 END;
 $$;
+
+CREATE OR REPLACE AGGREGATE jsonb_merge_agg(jsonb)
+    (
+    SFUNC = jsonb_concat,
+    STYPE = jsonb,
+    INITCOND = '{}'
+    );
+
+CREATE OR REPLACE FUNCTION jsonb_concat(a jsonb, b jsonb) RETURNS jsonb
+AS
+'SELECT $1 || $2'
+    LANGUAGE sql
+    IMMUTABLE
+    PARALLEL SAFE
+;
+
 
 INSERT INTO functions (function, name)
 VALUES ('(to_real(val) > 50)::INT * -1', 'Lärm');

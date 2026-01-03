@@ -8,6 +8,7 @@ LEFT JOIN listing_points lp
     ON l.listing_id = lp.listing_id
 WHERE (${knownMd5}::TEXT[] IS NULL OR NOT md5 = ANY (${knownMd5}::TEXT[]))
   AND (${ids}::INT[] IS NULL OR l.listing_id = ANY (${ids}::INT[]))
+  AND (${willhabenIds}::INT[] IS NULL OR l.willhaben_id = ANY (${willhabenIds}::INT[]))
 --AND l.last_seen = (SELECT max(last_seen) FROM listings)
 GROUP BY listing, md5, l.listing_id, l.willhaben_id
 ;

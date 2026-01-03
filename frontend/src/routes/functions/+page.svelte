@@ -14,6 +14,7 @@
     import ListingDetail from "$lib/components/ListingDetail/ListingDetail.svelte";
     import {BaseAttributesStore} from "$lib/stores/Attributes.svelte";
     import {SortingStore} from "$lib/stores/SortingStore.svelte";
+    import {setValue} from "$lib/utils/jsonpath";
 
 
     const functions = $derived(FunctionsStore.value)
@@ -25,6 +26,8 @@
 
     let {data}: PageProps = $props()
     let configuration = $derived(data.configuration)
+
+    console.log(setValue({'test1': "should be here", user: {"someOther": true}}, '$.user.attributeMap[*].address', "MyAdress 1"))
 
 </script>
 

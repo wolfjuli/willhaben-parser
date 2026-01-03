@@ -2,7 +2,7 @@
     import type {InputProps} from "$lib/components/Input/Input";
 
     let {
-        value,
+        value = $bindable(),
         placeholder,
         onsubmit = () => {
         },
@@ -16,13 +16,13 @@
 
 <input onkeyup={(ev: KeyboardEvent) => {
             if(ev.key === "Enter"){
-                onsubmit(ev.target.value)
+                onsubmit(ev.target.value, ev.target)
             } else {
-                onchange(oldValue, ev.target.value)
+                onchange(oldValue, ev.target.value, ev.target)
                 oldValue = ev.target.value
             }
             }}
        {placeholder}
        type="text"
-       {value}
+       bind:value={value}
 />

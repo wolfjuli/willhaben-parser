@@ -10,7 +10,6 @@
 </script>
 
 <input onkeyup={(ev: KeyboardEvent) => {
-    console.log(ev.key)
                 if(ev.key === "Enter") onupdate(ev.target?.value, listing, attribute)
             }
         }

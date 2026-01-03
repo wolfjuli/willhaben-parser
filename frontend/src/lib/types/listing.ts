@@ -1,4 +1,6 @@
 
+
+
 export type RawListing = {
     listing: Listing,
     md5: string
@@ -8,6 +10,7 @@ export type ListingAttribute = {
     base: string | number | undefined
     custom: string | number | undefined
     user: string | number | undefined
+    root: string | number | undefined
 }
 
 export type Listing = {

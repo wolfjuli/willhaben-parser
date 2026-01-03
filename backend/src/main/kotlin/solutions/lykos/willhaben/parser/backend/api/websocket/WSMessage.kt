@@ -13,6 +13,8 @@ import solutions.lykos.willhaben.parser.backend.database.postgresql.Transaction
     JsonSubTypes.Type(Ping::class, name = "ping"),
     JsonSubTypes.Type(GetAttributes::class, name = "getAttributes"),
     JsonSubTypes.Type(GetListings::class, name = "getListings"),
+    JsonSubTypes.Type(CrawlListing::class, name = "crawlListing"),
+    JsonSubTypes.Type(CreateListing::class, name = "createListing"),
     JsonSubTypes.Type(GetSorting::class, name = "getSorting"),
     JsonSubTypes.Type(SetAttribute::class, name = "setAttribute"),
     JsonSubTypes.Type(SetListingUserAttribute::class, name = "setListingUserAttribute"),

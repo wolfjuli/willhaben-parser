@@ -6,22 +6,24 @@
 
 import type {Listing, ListingAttribute} from "$lib/types/listing";
 
-export function jsonPath(obj, expr, arg = undefined) {
+export function normalize(expr): string {
+    let subx = [];
+    return expr.replace(/[\['](\??\(.*?\))[\]']/g, function ($0, $1) {
+        return "[#" + (subx.push($1) - 1) + "]";
+    })
+        .replace(/'?\.'?|\['?/g, ";")
+        .replace(/;;;|;;/g, ";..;")
+        .replace(/;$|'?\]|'$/g, "")
+        .replace(/#([0-9]+)/g, function ($0, $1) {
+            return subx[$1];
+        });
+}
+
+export function jsonPath(obj, expr, arg: { resultType: 'PATH' | 'CREATE' | 'VALUE' } | undefined = undefined) {
     let P = {
         resultType: arg && arg.resultType || "VALUE",
         result: [],
-        normalize: function (expr) {
-            let subx = [];
-            return expr.replace(/[\['](\??\(.*?\))[\]']/g, function ($0, $1) {
-                return "[#" + (subx.push($1) - 1) + "]";
-            })
-                .replace(/'?\.'?|\['?/g, ";")
-                .replace(/;;;|;;/g, ";..;")
-                .replace(/;$|'?\]|'$/g, "")
-                .replace(/#([0-9]+)/g, function ($0, $1) {
-                    return subx[$1];
-                });
-        },
+        normalize,
         asPath: function (path) {
             let x = path.split(";"), p = "$";
             for (let i = 1, n = x.length; i < n; i++)
@@ -36,9 +38,7 @@ export function jsonPath(obj, expr, arg = undefined) {
             if (expr) {
                 let x = expr.split(";"), loc = x.shift();
                 x = x.join(";");
-                if (val && val.hasOwnProperty(loc))
-                    P.trace(x, val[loc], path + ";" + loc);
-                else if (loc === "*")
+                if (loc === "*")
                     P.walk(loc, x, val, path, function (m, l, x, v, p) {
                         P.trace(m + ";" + x, v, p);
                     });
@@ -47,7 +47,9 @@ export function jsonPath(obj, expr, arg = undefined) {
                     P.walk(loc, x, val, path, function (m, l, x, v, p) {
                         typeof v[m] === "object" && P.trace("..;" + x, v[m], p + ";" + m);
                     });
-                } else if (/,/.test(loc)) { // [name1,name2,...]
+                } else if (val && val.hasOwnProperty(loc))
+                    P.trace(x, val[loc], path + ";" + loc);
+                else if (/,/.test(loc)) { // [name1,name2,...]
                     for (let s = loc.split(/'?,'?/), i = 0, n = s.length; i < n; i++)
                         P.trace(s[i] + ";" + x, val, path);
                 } else if (/^\(.*?\)$/.test(loc)) // [(expr)]
@@ -106,6 +108,37 @@ export function listingAttribute(listing: Listing, attribute: string): ListingAt
     return ({
         "user": jsonPath(listing, `$.user.${attribute}`),
         "custom": jsonPath(listing, `$.custom.${attribute}`),
-        "base": jsonPath(listing, `$.base.${attribute}`)
+        "base": jsonPath(listing, `$.base.${attribute}`),
+        "root": jsonPath(listing, attribute)
     })
+}
+
+export function setValue<T extends {[key: string]: unknown}>(obj: T, path: string, value: any | undefined): T {
+    let reversed = normalize(path).split(";").toReversed()
+    let ret: object | undefined = undefined
+    let part: string | undefined = undefined
+    while (part = reversed.shift()) {
+        if (part === "$" || part === "*" || part === "..")
+            continue
+        ret = jsonPath(obj, reversed.toReversed().join(";"))
+        let isArray = false
+        if (ret === undefined) {
+            if (reversed.length > 0)
+                if (reversed[0] === "*") {
+                    console.log("is array")
+                    isArray = true
+                    ret = []
+                }
+
+            if (ret === undefined)
+                ret = {}
+        }
+        if (isArray)
+            ret = ret + value
+        else
+            ret[part] = value
+        value = ret
+    }
+
+    return obj || ret
 }

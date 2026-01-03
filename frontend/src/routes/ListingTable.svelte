@@ -8,12 +8,13 @@
     import EditListingValue from "$lib/components/Value/EditListingValue.svelte";
     import ListingFilter from "$lib/components/ListingFilter/ListingFilter.svelte";
     import ListingDetail from "$lib/components/ListingDetail/ListingDetail.svelte";
-    import {listingAttribute} from "$lib/utils/jsonpath";
+    import {jsonPath, listingAttribute, normalize} from "$lib/utils/jsonpath";
     import {BaseAttributesStore} from "$lib/stores/Attributes.svelte";
     import {SortingStore} from "$lib/stores/SortingStore.svelte";
     import {SearchParamsStore} from "$lib/stores/SearchParamsStore.svelte";
     import {ListingsStore} from "$lib/stores/ListingsStore.svelte";
     import type {Configuration} from "$lib/types/Configuration";
+    import NewEntryModal from "$lib/components/NewEntryModal/NewEntryModal.svelte";
 
     const {configuration}: {
         configuration: Configuration
@@ -27,7 +28,6 @@
 
     $effect(() => {
         const page = SearchParamsStore.value.page
-        console.log("Update sorting/listing")
         SortingStore.fetch(SearchParamsStore.value)
             .then((sorting) => ListingsStore.fetch(sorting.sorting.slice((page - 1) * 100, page * 100)))
     })
@@ -43,7 +43,6 @@
 
     const onSort = (field: Attribute) => {
         const key = field.sortingAttribute ?? field.attribute
-        console.log("onSort", field, key)
         if (SearchParamsStore.value.sortCol === key) {
             SearchParamsStore.value.sortDir = (SearchParamsStore.value.sortDir === "ASC") ? "DESC" : "ASC"
         } else {
@@ -54,7 +53,6 @@
     }
 
     function onUpdate(newValue: string, listing: Listing, attribute: Attribute) {
-        console.log("onUpdate", newValue, attribute, listing)
         const currentAttr = listingAttribute(listing, attribute.attribute)
         if (currentAttr?.base == newValue) newValue = undefined
         if (currentAttr?.user != newValue)
@@ -63,7 +61,7 @@
                 attributeId: attribute.id,
                 listingId: listing.id
             })
-        editing ={ attributeId: -1, listingId: -1}
+        editing = {attributeId: -1, listingId: -1}
     }
 
     function toggleExpand(id: number) {
@@ -73,7 +71,14 @@
         else
             expanded = [...expanded, id]
     }
+
+    let newEntryOpen = $state(false);
+
+    console.log(normalize('$.user.attributeMap[*].test'))
+    console.log(jsonPath({user: {}}, '$.user.attributeMap[*].test'))
 </script>
+
+<NewEntryModal {fields} bind:open={newEntryOpen} {configuration} ></NewEntryModal>
 
 {#if expanded && fields}
     <div class=container-fluid>
@@ -83,6 +88,8 @@
             Page {SearchParamsStore.value.page}
             <button onclick={() => SearchParamsStore.value.page++}
                     disabled={(tableData ?? []).length < 100}>{">"}</button>
+
+            <button onclick={() => newEntryOpen = true}>New Entry</button>
         </div>
         <div class=col>
             <ListingFilter {attributes}></ListingFilter>
@@ -91,81 +98,80 @@
 
     <Table {tableData}>
         {#snippet thead()}
-            <TH></TH>
-            {#each fields as field}
-                <TH
+        <TH></TH>
+        {#each fields as field}
+            <TH
                     currentColumn={field.attribute}
                     label={field.label}
                     sorted={SearchParamsStore.value.sortCol === field.attribute}
                     sortAscending={SearchParamsStore.value.sortDir === "ASC"}
                     onSort={() => onSort(field)}
-                ></TH>
-            {/each}
+            ></TH>
+        {/each}
         {/snippet}
 
         {#snippet row(listing: Listing, idx)}
-            <tr class:even={idx % 2}>
+        <tr class:even={idx % 2}>
+            <TD>
+                {#snippet render()}
+                {listing.id}
+                <button onclick={() => toggleExpand(listing.id)}>V</button>
+                {/snippet}
+            </TD>
+            {#each fields as attribute}
                 <TD>
                     {#snippet render()}
-                        {listing.id}
-                        <button onclick={() => toggleExpand(listing.id)}>V</button>
+                    {#if editing.attributeId === attribute.id && editing.listingId === listing.id}
+                        <EditListingValue {listing} {attribute} onupdate={onUpdate}/>
+                    {:else}
+                        <ListingValue {listing} {attribute} {configuration}
+                                      ondblclick={() => {editing = {listingId: listing.id, attributeId: attribute.id}}}
+                                      onclick={(newRating: number) => { if(attribute.dataType === "RATING") {
+                                                  onUpdate(newRating, listing, attribute)
+                                              }} }/>
+                    {/if}
                     {/snippet}
                 </TD>
-                {#each fields as attribute}
-                    <TD>
-                        {#snippet render()}
-                            {#if editing.attributeId === attribute.id && editing.listingId === listing.id}
-                                <EditListingValue {listing} {attribute} onupdate={onUpdate}/>
-                            {:else}
-                                <ListingValue {listing} {attribute} {configuration}
-                                              ondblclick={() => {editing = {listingId: listing.id, attributeId: attribute.id}}}
-                                              onclick={(newRating: number) => { if(attribute.dataType === "RATING") {
-                                                  console.log("Single click")
-                                                  onUpdate(newRating, listing, attribute)
-                                              }} } />
-                            {/if}
-                        {/snippet}
-                    </TD>
-                {/each}
-            </tr>
-            {#if expanded && expanded.indexOf(listing?.id) > -1}
-                {@const coords = listingAttribute(listing, 'attributeMap.coordinates')}
-                {@const address = listingAttribute(listing, 'attributeMap.address')}
-                {@const district = listingAttribute(listing, 'attributeMap.district')}
-                <tr>
-                    {#if coords.user || coords.base}
-                        {@const [lat, long] = (coords.user ?? coords.base)?.toString()?.split(",") ?? []}
-                        {@const addr = (address.user ?? address.base)?.toString() ?? "" }
-                        {@const distr = (district?.user ?? district?.base)?.toString() ?? "" }
-                        {@const
+            {/each}
+        </tr>
+        {#if expanded && expanded.indexOf(listing?.id) > -1}
+            {@const coords = listingAttribute(listing, 'attributeMap.coordinates')}
+            {@const address = listingAttribute(listing, 'attributeMap.address')}
+            {@const district = listingAttribute(listing, 'attributeMap.district')}
+            <tr>
+                {#if coords.user || coords.base}
+                    {@const [lat, long] = (coords.user ?? coords.base)?.toString()?.split(",") ?? []}
+                    {@const addr = (address.user ?? address.base)?.toString() ?? "" }
+                    {@const distr = (district?.user ?? district?.base)?.toString() ?? "" }
+                    {@const
                             sunUrl1 = `https://voibos.rechenraum.com/voibos/voibos?Datum=06-21-13%3A00&H=10&name=sonnengang&Koordinate=${long.trim()}%2C${lat.trim()}&CRS=4326&Output=Horizont%2CLage%2CTabelle`}
-                        {@const
+                    {@const
                             sunUrl2 = `https://voibos.rechenraum.com/voibos/voibos?Datum=06-21-13%3A00&H=10&name=sonnengang&Koordinate=${long.trim()}%2C${lat.trim()}&CRS=4326&Output=Formular%2CHorizont%2CLage%2CTabelle`}
-                        {@const
+                    {@const
                             katasterUrl = `https://kataster.bev.gv.at/#/center/${long.trim()},${lat.trim()}/zoom/17.5/ortho/1/vermv/1`}
-                        {@const
+                    {@const
                             laermUrl = `https://maps.laerminfo.at/#/cstrasse22_24h/bgrau/a-/q${addr}, ${distr}/@${lat.trim()},${long.trim()},17z`}
-                        <td colspan="2"><a target="_blank" href={katasterUrl}>Kataster</a>
-                            <iframe src={katasterUrl}></iframe>
-                        </td>
-                        <td colspan="2">
-                            <a target="_blank" href={sunUrl2}>Sonnestand</a>
-                            <iframe src={sunUrl1} class="suncalc"></iframe>
-                        </td>
-                        <td colspan="2">
-                            <a target="_blank" href={laermUrl}>Lärm</a>
-                            <iframe src={laermUrl}></iframe>
-                        </td>
-                    {:else}
-                        <td>Kataster</td>
-                        <td>Sonnestand</td>
-                        <td>Lärm</td>
-                    {/if}
-                    <td colspan={fields.length - 6 } class="details">
-                        <ListingDetail {listing} {attributes} {configuration}/>
+                    <td colspan="2"><a target="_blank" href={katasterUrl}>Kataster</a>
+                        <iframe src={katasterUrl}></iframe>
                     </td>
-                </tr>
-            {/if}
+                    <td colspan="2">
+                        <a target="_blank" href={sunUrl2}>Sonnestand</a>
+                        <iframe src={sunUrl1} class="suncalc"></iframe>
+                    </td>
+                    <td colspan="2">
+                        <a target="_blank" href={laermUrl}>Lärm</a>
+                        <iframe src={laermUrl}></iframe>
+                    </td>
+                {:else}
+                    <td>Kataster</td>
+                    <td>Sonnestand</td>
+                    <td>Lärm</td>
+                {/if}
+                <td colspan={fields.length - 6 } class="details">
+                    <ListingDetail {listing} {attributes} {configuration}/>
+                </td>
+            </tr>
+        {/if}
         {/snippet}
 
     </Table>

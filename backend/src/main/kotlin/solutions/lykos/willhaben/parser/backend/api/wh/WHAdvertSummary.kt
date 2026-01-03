@@ -15,4 +15,27 @@ class WHAdvertSummary(
     val upsellingOrganisationLogo: String?, //
     val teaserAttributes: List<WHTeaserAttribute>?, // [],
     val children: List<WHAdvertSummary>?
-) : WHAdvertSpecification(id, attributes)
+) : WHAdvertSpecification(id, attributes) {
+    companion object {
+        fun fromUrl(url: String) = WHAdvertSummary(
+            0,
+            0,
+            0,
+            0,
+            null,
+            null,
+            WHAttributes(
+                mutableListOf(
+                    WHAttributes.AttributeEntry("seo_url", listOf(url))
+                )
+            ),
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        )
+    }
+}

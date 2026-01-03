@@ -7,7 +7,6 @@ import solutions.lykos.willhaben.parser.backend.database.postgresql.Transaction
 import solutions.lykos.willhaben.parser.backend.importer.ImporterFetcher.logger
 import solutions.lykos.willhaben.parser.backend.importer.pipelines.PipelineMessage
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.stream.Collectors
 import java.util.stream.Stream
 import kotlin.streams.asSequence
 

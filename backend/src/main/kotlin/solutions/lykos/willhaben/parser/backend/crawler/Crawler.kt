@@ -2,6 +2,9 @@ package solutions.lykos.willhaben.parser.backend.crawler
 
 import Importer
 import org.slf4j.LoggerFactory
+import solutions.lykos.willhaben.parser.backend.api.wh.WHAdvertSpecification
+import solutions.lykos.willhaben.parser.backend.api.wh.WHAdvertSummary
+import solutions.lykos.willhaben.parser.backend.api.wh.WHAttributes
 import solutions.lykos.willhaben.parser.backend.config.WPConfiguration
 import solutions.lykos.willhaben.parser.backend.database.postgresql.DataSource
 import solutions.lykos.willhaben.parser.backend.database.postgresql.Transaction
@@ -11,19 +14,26 @@ import solutions.lykos.willhaben.parser.backend.parser.detailed
 import solutions.lykos.willhaben.parser.backend.parser.parse
 import java.time.Duration
 import java.time.LocalDateTime
+import java.util.stream.Stream
 import kotlin.concurrent.thread
+import kotlin.streams.asStream
 
-class Crawler(
-    private val configuration: WPConfiguration
-) {
+object Crawler {
     private var currentThread: Thread? = null
     private var stop: Boolean = false
 
-    private val dataSource = DataSource(configuration.database)
-
     private val logger = LoggerFactory.getLogger(this::class.java)
 
+    private lateinit var  dataSource: DataSource
+    private lateinit var configuration: WPConfiguration
+
+    fun init(configuration: WPConfiguration) {
+        this.configuration = configuration
+        this.dataSource =  DataSource(configuration.database)
+    }
+
     fun start() {
+        if (configuration.crawler.timeout == null) return
         if (currentThread != null)
             error("Crawler.start called twice")
 
@@ -51,7 +61,8 @@ class Crawler(
         try {
             dataSource.connection.useTransaction { transaction ->
                 val importer = Importer(transaction)
-                dataSource.get.watchLists().parse()
+                dataSource.get.watchLists()
+                    .parse()
                     .detailed(configuration.crawler)
                     .write(transaction, configuration.crawler, importer)
             }
@@ -68,7 +79,7 @@ class Crawler(
         }
 
         val wait = lastRun?.let {
-            (configuration.crawler.timeout * 1000L -
+            (configuration.crawler.timeout!! * 1000L -
                     Duration.between(it.toLocalDateTime()!!, LocalDateTime.now()).toMillis()).coerceAtLeast(0)
         } ?: 0
 
@@ -79,5 +90,29 @@ class Crawler(
                 return@forEach
         }
         logger.info("Finished wait")
+    }
+
+    fun crawlSingle(url: String) : List<Int> {
+        if(!url.startsWith(configuration.crawler.listingBaseUrl))
+            throw Exception("Not allowed url $url")
+
+        val allIds = mutableSetOf<Int>()
+        dataSource.connection.useTransaction { transaction ->
+            val importer = Importer(transaction)
+            sequenceOf<WHAdvertSpecification>(
+                WHAdvertSummary.fromUrl(
+                    url.replace(
+                        configuration.crawler.listingBaseUrl,
+                        ""
+                    )
+                )
+            )
+                .asStream()
+                .detailed(configuration.crawler)
+                .map { allIds.add(it.id); it }
+                .write(transaction, configuration.crawler, importer)
+        }
+
+        return allIds.toList()
     }
 }
